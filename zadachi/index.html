@@ -804,7 +804,7 @@ const RULES={
 /* ---------- сборка заданий ---------- */
 const ITEMS=[];
 TPL.forEach((tp,i)=>{ITEMS.push(Object.assign({},tp,{street:tp.st,id:tp.st+':'+i}));});
-function makeInst(it){const o=(it.g||GEN[it.type])();o.text=it.t(o);return o;}
+function makeInst(it){let o;do{o=(it.g||GEN[it.type])();}while(o.k1!==undefined&&o.k1===o.k);o.text=it.t(o);return o;}
 
 /* верная схема и ловушки для каждого типа */
 function schemesFor(it,o){
