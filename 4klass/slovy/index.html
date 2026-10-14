@@ -772,7 +772,7 @@ function mainSpecs(it){
       {ask:'Ці трэба коска на месцы пропуску?',show:`<div class="sent">${gapS(it.s)}</div>`,opts:['так, трэба коска','не, коска не трэба'],ans:it.a===','?'так, трэба коска':'не, коска не трэба',long:1},
       {ask:'Чаму?',show:`<div class="sent">${it.s.replace('_',it.a===','?OK(','):'')}</div>`,opts:ADN_WHY.slice(),ans:it.w,long:1}];
     case 'case':return [
-      {ask:`Пастаў пытанне ад слова «${it.host.toLowerCase()}» да слова «${it.w}»`,show:`<div class="sent">${hl(it.s,it.w)}</div>`,opts:shuffle([it.q,...it.d]).map(q=>`${it.host.toLowerCase()} (${q})`),ans:`${it.host.toLowerCase()} (${it.q})`},
+      {ask:`Пастаў пытанне ад слова «${it.host.toLowerCase()}» да слова «${it.w}»`,show:`<div class="sent">${hl(it.s,it.w)}</div>`,opts:shuffle([it.q,...it.d]).map(q=>`${it.host.toLowerCase()} (${q})`),ans:`${it.host.toLowerCase()} (${it.q})`,note:'Задай <b>склонавае</b> пытанне (хто? што? каго? чаго? каму?… з прыназоўнікам: на чым? з чаго?). Пытанні <b>куды? дзе? адкуль?</b> — сэнсавыя, па іх склон не пазнаць.'},
       {ask:'Які гэта склон?',show:`<div class="sent">${it.host.toLowerCase()} (${it.q}) <b>${it.w}</b></div>`,opts:CASES.map(caseOpt),ans:caseOpt(it.c),long:1}];
     case 'skl':return [
       {ask:'Якога роду гэта слова?',show:`<div class="word">${it.w}</div><p class="why">падстаў: ён мой, яна мая, яно маё</p>`,opts:['м. р.','ж. р.','н. р.'],ans:it.g},
