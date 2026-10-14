@@ -646,6 +646,11 @@ const CHEAT=[
   {g:'Доли'},
   {t:'Найти часть числа',w:'¼ от 20 — разделить на 4',ex:'В классе 28 учеников, ¼ часть — отличники. Сколько отличников?',s:{rows:[{segs:[{v:1},{v:1},{v:1},{v:1}]}],up:[{r:0,a:0,b:3,t:'28'}],down:[{r:0,a:0,b:0,t:'?'}]},a:'28 : 4 = 7',r:'Число делим на количество частей (число под чертой)'},
   {t:'Найти число по его части',w:'⅛ часть равна 8 — умножить на 8',ex:'⅛ часть массы равна 8 кг. Найди всю массу.',s:{rows:[{segs:Array.from({length:8},()=>({v:1}))}],up:[{r:0,a:0,b:0,t:'8'}],down:[{r:0,a:0,b:7,t:'?'}]},a:'8 · 8 = 64 (кг)',r:'Часть умножаем на количество частей'}
+,
+  {g:'Площадь, периметр, время, числа'},
+  {t:'Площадь и периметр',w:'S = a · b, P = (a + b) · 2',ex:'Длина 9 см, ширина 4 см.',a:'S = 9 · 4 = 36 (см²)<br>P = (9 + 4) · 2 = 26 (см)',r:'Сторона = S : другая сторона. Квадрат: P = a · 4, S = a · a'},
+  {t:'Сложение времени',w:'60 мин = 1 ч',ex:'Отошла в 10 ч 45 мин, ехала 32 мин. Когда прибыла?',a:'45 + 32 = 77 мин = 1 ч 17 мин<br>→ 11 ч 17 мин',r:'Если минут 60 и больше — отдай 60 мин в часы'},
+  {t:'Сколько всего сотен?',w:'закрой две последние цифры',ex:'Сколько всего сотен в числе 4 827?',a:'48 сотен',r:'Всего десятков — закрой одну цифру, всего тысяч — три'}
 ];
 function cheatHTML(){
   return `<div class="cheat">
@@ -678,6 +683,7 @@ const CHEAT_CSS=CHEAT_CSS0+MOTION_CSS+".kw th{white-space:nowrap}.kw td{vertical
    По учебнику «Математика, 4 класс, часть 1» (Муравьёва, Урбан): движение (навстречу, в противоположных
    направлениях), цена — количество — стоимость, приведение к единице, доли, уравнения, единицы величин.
    Числа каждый раз новые. */
+var EXTRA={};
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const pickA=a=>a[Math.floor(Math.random()*a.length)];
 const MI='−',MUL='·',DIV=':';
@@ -820,6 +826,7 @@ PART.forEach((tp,i)=>ITEMS.push(Object.assign({},tp,{street:tp.st,id:'part:'+i})
 EQS.forEach((tp,i)=>ITEMS.push({street:'eq',type:'eq_'+tp.k,k:tp.k,g:tp.g,id:'eq:'+i,t:o=>`Реши уравнение: <b class="big">${o.eq}</b>`,ans:x=>'x = '+x}));
 CONV.forEach(([f,to,k],i)=>ITEMS.push({street:'conv',type:'conv',f,to,k,id:'conv:'+i,g:()=>({v:rnd(2,9)}),t:o=>`Вырази в ${UNITCASE[to]||to}: <b class="big">${o.v} ${f} = ? ${to}</b>`,ans:x=>x+' '+to}));
 function makeInst(it){
+  if(EXTRA[it.type]){const o=it.g();o.text=it.t(o);return o;}
   let o;do{o=it.g();}while(['mv','pr','wk'].includes(it.type)&&o.a===o.b);
   if(/^(me|aw)/.test(it.type))o.s=(o.v1+o.v2)*o.t;
   o.text=it.t(o);return o;
@@ -867,6 +874,7 @@ const ansOf=(it,o)=>{const s=solFor(it,o);const [x,op,y]=s[s.length-1];return ev
 const STEP_Q={meT:['Скорость сближения','Время встречи'],meS:['Скорость сближения','Расстояние между ними'],meV:['Скорость сближения','Скорость первого'],
   awT:['Скорость удаления','Через сколько времени'],awS:['Скорость удаления','Расстояние между ними'],awV:['Скорость удаления','Скорость первого']};
 function mainSpecs(it){
+  if(EXTRA[it.type])return EXTRA[it.type].specs(it,it.inst);
   const o=it.inst,specs=[],sols=solFor(it,o);
   if(['mv','pr','wk'].includes(it.type)){
     const v=triVals(o),known={},roles=it.H.map(h=>h.toLowerCase());
@@ -915,7 +923,7 @@ function unitOf(it){
   if(it.u)return it.u;return '';
 }
 function solved(it,o){
-  o=o||it.inst;const sols=solFor(it,o);
+  o=o||it.inst;if(EXTRA[it.type])return EXTRA[it.type].solved(it,o);const sols=solFor(it,o);
   const lines=sols.map(([x,op,y],i)=>`${sols.length>1?(i+1)+') ':''}${ex(x,op,y)} = <b>${ev(x,op,y)}</b>`).join('<br>');
   let pic='';
   if(['mv','pr','wk'].includes(it.type))pic=triTable(it,o,{0:1,1:1,2:1});
@@ -933,6 +941,97 @@ function lessonHTML(it){
   return {title:r.title,text:r.text,ex:`<p class="sub">Смотри, как решается похожая задача</p><div class="ex">${solved(other,o)}</div>`};
 }
 function ruleFor(it){return RULES[it.type]}
+
+/* ===== дополнительные улицы: многозначные числа, площадь и периметр, время ===== */
+const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+STREETS.push(
+  {id:'num',name:'Многозначные числа',sign:'1 000 000',c:'#2E7D9A',desc:'Классы и разряды. Сколько всего сотен? Запиши цифрами.'},
+  {id:'area',name:'Площадь и периметр',sign:'S · P',c:'#5E7C16',desc:'S = a · b, P = (a + b) · 2. Сторона по площади.'},
+  {id:'time',name:'Время',sign:'ч · мин',c:'#C2185B',desc:'Когда закончится? Сколько длилось? Через ровный час.'}
+);
+Object.assign(RULES,{
+  nAll:{title:'Сколько всего сотен (тысяч)',text:'Чтобы узнать, сколько <b>всего сотен</b> в числе, закрой <b>две последние цифры</b>: в числе 4 827 всего <b>48</b> сотен. <b>Всего десятков</b> — закрой одну последнюю цифру. <b>Всего тысяч</b> — закрой три последние цифры: в числе 45 300 всего <b>45</b> тысяч.'},
+  nWr:{title:'Запись многозначных чисел',text:'Число делят на <b>классы</b> по три цифры справа: класс единиц и класс тысяч. В каждом классе — <b>3 разряда</b>: сотни, десятки, единицы. Если какого-то разряда нет, ставим <b>0</b>: 3 тысячи 5 единиц = 3 <b>00</b>5.'},
+  ar:{title:'Площадь и периметр прямоугольника',text:'<b>Периметр</b> — длина всех сторон: P = (a + b) · 2. <b>Площадь</b> — сколько квадратиков внутри: S = a · b (в см², дм², м²). Найти сторону: <b>b = S : a</b>. У квадрата все стороны равны: P = a · 4, S = a · a, сторона = P : 4.'},
+  tm:{title:'Действия со временем',text:'В 1 ч = <b>60 мин</b>. Складываем отдельно часы и минуты. Если минут получилось <b>60 и больше</b>, отдаём 60 мин в часы: 77 мин = 1 ч 17 мин. Сколько длилось: сначала посчитай минуты <b>до ровного часа</b>, потом прибавь остальное.'}
+});
+/* ---- многозначные числа ---- */
+const NUMT=[
+  {k:'s',t:o=>`Сколько всего <b>сотен</b> в числе <b class="big">${fmt(o.N)}</b>?`,g:()=>({N:rnd(1200,98999)}),cut:2,name:['сотня','сотни','сотен']},
+  {k:'t',t:o=>`Сколько всего <b>тысяч</b> в числе <b class="big">${fmt(o.N)}</b>?`,g:()=>({N:rnd(12000,989999)}),cut:3,name:['тысяча','тысячи','тысяч']},
+  {k:'d',t:o=>`Сколько всего <b>десятков</b> в числе <b class="big">${fmt(o.N)}</b>?`,g:()=>({N:rnd(1200,9999)}),cut:1,name:['десяток','десятка','десятков']}
+];
+NUMT.forEach((tp,i)=>ITEMS.push({street:'num',type:'nAll',id:'num:a'+i,g:tp.g,t:tp.t,cut:tp.cut,nm:tp.name}));
+const WRT=[
+  ()=>{const a=rnd(2,9),b=rnd(1,9);return {words:`${a} тысячи ${b} ${plural(b,'единица','единицы','единиц')}`.replace(/(\d) тысячи/,(m,d)=>d+' '+plural(+d,'тысяча','тысячи','тысяч')),N:a*1000+b};},
+  ()=>{const a=rnd(11,99),b=rnd(2,9)*10;return {words:`${a} ${plural(a,'тысяча','тысячи','тысяч')} ${b}`,N:a*1000+b};},
+  ()=>{const a=rnd(2,9),b=rnd(1,9)*100;return {words:`${a} ${plural(a,'тысяча','тысячи','тысяч')} ${b}`,N:a*1000+b};},
+  ()=>{const a=rnd(101,909),b=rnd(1,9);return {words:`${a} ${plural(a,'тысяча','тысячи','тысяч')} ${b}`,N:a*1000+b};},
+  ()=>{const a=rnd(20,90),b=rnd(1,9)*100+rnd(1,9);return {words:`${a} ${plural(a,'тысяча','тысячи','тысяч')} ${b}`,N:a*1000+b};}
+];
+WRT.forEach((g,i)=>ITEMS.push({street:'num',type:'nWr',id:'num:w'+i,g,t:o=>`Запиши цифрами: <b class="big">${o.words}</b>`}));
+EXTRA.nAll={specs:(it,o)=>[
+  {ask:'Как узнать?',show:'',opts:shuffle([`закрыть ${['','одну последнюю цифру','две последние цифры','три последние цифры'][it.cut]}`,...[1,2,3].filter(c=>c!==it.cut).slice(0,2).map(c=>`закрыть ${['','одну последнюю цифру','две последние цифры','три последние цифры'][c]}`)]),ans:`закрыть ${['','одну последнюю цифру','две последние цифры','три последние цифры'][it.cut]}`,long:1},
+  {ask:`Сколько всего ${it.nm[2]}?`,show:`<p class="eq">${fmt(o.N).replace(/\s/g,'').slice(0,-it.cut)}<span style="color:var(--ghost)">${String(o.N).slice(-it.cut)}</span></p>`,num:true,ans:String(Math.floor(o.N/10**it.cut))}],
+  solved:(it,o)=>`<p class="task sm">${o.text}</p><p class="eq">${String(o.N).slice(0,-it.cut)}<span style="color:var(--ghost)">${String(o.N).slice(-it.cut)}</span></p><p class="why">Ответ: <b>${nf(Math.floor(o.N/10**it.cut),it.nm)}</b></p>`};
+EXTRA.nWr={specs:(it,o)=>[
+  {ask:'Сколько цифр будет в этом числе?',show:'',opts:shuffle([String(o.N).length,String(o.N).length-1,String(o.N).length+1].map(String)),ans:String(String(o.N).length),letters:1},
+  {ask:'Запиши число цифрами',show:`<p class="why">пустые разряды — нули</p>`,num:true,ans:String(o.N)}],
+  solved:(it,o)=>`<p class="task sm">${o.text}</p><p class="eq"><b>${fmt(o.N)}</b></p><p class="why">класс тысяч: ${Math.floor(o.N/1000)} · класс единиц: ${String(o.N%1000).padStart(3,'0')}</p><p class="why">Ответ: <b>${fmt(o.N)}</b></p>`};
+/* ---- площадь и периметр ---- */
+function rectSVG(a,b,la,lb,inside){
+  const W=240,H=Math.max(70,Math.min(150,Math.round(200*b/a)));
+  return `<svg class="scheme" viewBox="0 0 300 ${H+50}" width="300" height="${H+50}"><rect x="40" y="14" width="${W-20}" height="${H}" fill="#E7F1FF" stroke="#2B3A9E" stroke-width="4"/>
+  <text x="${30+W/2}" y="${H+42}" text-anchor="middle" class="${/\?/.test(la)?'sq':'sl'}">${la}</text><text x="${W+28}" y="${14+H/2+6}" text-anchor="start" class="${/\?/.test(lb)?'sq':'sl'}">${lb}</text>
+  ${inside?`<text x="${30+W/2}" y="${14+H/2+6}" text-anchor="middle" class="${/\?/.test(inside)?'sq':'sl'}">${inside}</text>`:''}</svg>`;
+}
+const AREA=[
+  {k:'S',g:()=>({a:rnd(5,12),b:rnd(2,4)}),t:o=>`Длина прямоугольника — ${o.a} см, ширина — ${o.b} см. Найди <b>площадь</b> прямоугольника.`,F:'S = a · b',sol:o=>[o.a,MUL,o.b,['+']],u:'см²',pic:o=>rectSVG(o.a,o.b,o.a+' см',o.b+' см','S = ?')},
+  {k:'P',g:()=>({a:rnd(5,12),b:rnd(2,4)}),t:o=>`Длина прямоугольника — ${o.a} см, ширина — ${o.b} см. Найди <b>периметр</b> прямоугольника.`,F:'P = (a + b) · 2',two:1,sol:o=>[[o.a,'+',o.b,[MUL]],[o.a+o.b,MUL,2,['+']]],u:'см',pic:o=>rectSVG(o.a,o.b,o.a+' см',o.b+' см','P = ?')},
+  {k:'Sb',g:()=>({a:rnd(8,16),b:rnd(3,9)}),t:o=>`Площадь оконной рамы прямоугольной формы — ${o.a*o.b} дм². Длина одной стороны — ${o.a} дм. Найди длину другой стороны.`,F:'b = S : a',sol:o=>[o.a*o.b,DIV,o.a,[MUL,MI]],u:'дм',pic:o=>rectSVG(o.a,o.b,o.a+' дм','? дм','S = '+o.a*o.b+' дм²')},
+  {k:'qP',g:()=>({a:rnd(4,12)}),t:o=>`Периметр квадрата — ${o.a*4} см. Найди длину его стороны.`,F:'сторона = P : 4',sol:o=>[o.a*4,DIV,4,[MUL,MI]],u:'см',pic:o=>rectSVG(1,1,'? см','? см','P = '+o.a*4+' см')},
+  {k:'qS',g:()=>({a:rnd(3,9)}),t:o=>`Сторона квадрата — ${o.a} дм. Найди площадь квадрата.`,F:'S = a · a',sol:o=>[o.a,MUL,o.a,['+']],u:'дм²',pic:o=>rectSVG(1,1,o.a+' дм',o.a+' дм','S = ?')},
+  {k:'S3',g:()=>({a:rnd(6,9),b:rnd(3,5),k:3}),t:o=>`Площадь прямоугольника в 3 раза больше площади квадрата со стороной ${o.b} дм. Найди площадь прямоугольника.`,F:'S = a · a, потом · 3',two:1,sol:o=>[[o.b,MUL,o.b,['+']],[o.b*o.b,MUL,3,['+']]],u:'дм²',pic:o=>rectSVG(1,1,o.b+' дм',o.b+' дм','S = ?')}
+];
+const AREA_F=['S = a · b','P = (a + b) · 2','b = S : a','сторона = P : 4','S = a · a','S = a · a, потом · 3'];
+AREA.forEach((tp,i)=>ITEMS.push(Object.assign({street:'area',type:'ar',id:'area:'+i},tp)));
+EXTRA.ar={specs:(it,o)=>{
+  const sp=[{ask:'Какая формула нужна?',show:`<div class="mini">${it.pic(o)}</div>`,opts:shuffle([it.F,...shuffle(AREA_F.filter(f=>f!==it.F&&!(it.F.startsWith(f)||f.startsWith(it.F)))).slice(0,2)]),ans:it.F,long:1}];
+  const S=it.sol(o);const steps=it.two?S:[S];
+  steps.forEach(([x,op,y,tr],k)=>{
+    sp.push({ask:steps.length>1?`${k+1}) Каким действием?`:'Каким действием?',show:`<div class="mini">${it.pic(o)}</div><p class="why">${it.F}</p>`,opts:exprOpts(x,y,op,tr),ans:ex(x,op,y)});
+    sp.push({ask:'Вычисли',show:`<p class="eq">${ex(x,op,y)} = <span class="blank"></span></p>`,num:true,ans:String(ev(x,op,y))});});
+  return sp;},
+  solved:(it,o)=>{const S=it.sol(o);const steps=it.two?S:[S];const last=steps[steps.length-1];
+    return `<p class="task sm">${o.text}</p><div class="mini">${it.pic(o)}</div><p class="why">${it.F}</p><p class="eq">${steps.map(([x,op,y],k)=>`${steps.length>1?(k+1)+') ':''}${ex(x,op,y)} = <b>${ev(x,op,y)}</b>`).join('<br>')}</p><p class="why">Ответ: <b>${ev(last[0],last[1],last[2])} ${it.u}</b></p>`;}};
+/* ---- время ---- */
+const hm=(h,m)=>`${h} ч ${String(m).padStart(2,'0')} мин`;
+const TIME=[
+  {k:'add',g:()=>{const h=rnd(8,16),m=rnd(35,55),d=rnd(61-m,50);return {h,m,d};},t:o=>`Электричка отошла от станции в ${hm(o.h,o.m)} и была в пути ${o.d} мин. В котором часу она прибыла на следующую станцию?`},
+  {k:'add',g:()=>{const h=rnd(7,9),m=rnd(30,50),d=rnd(61-m,55);return {h,m,d};},t:o=>`Бабушка начала готовить драники в ${hm(o.h,o.m)} и готовила ${o.d} мин. В котором часу она закончила?`},
+  {k:'add',g:()=>{const h=rnd(15,19),m=rnd(40,58),d=rnd(61-m,45);return {h,m,d};},t:o=>`Вира уснула на подоконнике в ${hm(o.h,o.m)} и проспала ${o.d} мин. В котором часу она проснулась?`},
+  {k:'dur',g:()=>{const h=rnd(10,17),m=rnd(35,55),e=rnd(5,25);return {h,m,e};},t:o=>`Мультфильм начался в ${hm(o.h,o.m)}, а закончился в ${hm(o.h+1,o.e)}. Сколько минут длился мультфильм?`},
+  {k:'dur',g:()=>{const h=rnd(14,18),m=rnd(30,50),e=rnd(5,30);return {h,m,e};},t:o=>`Стив начал строить замок в ${hm(o.h,o.m)}, а закончил в ${hm(o.h+1,o.e)}. Сколько минут он строил?`},
+  {k:'sub',g:()=>{const h=rnd(10,15),m=rnd(5,20),d=rnd(25,50);return {h,m,d};},t:o=>`Мультфильм закончился в ${hm(o.h,o.m)}, а начался ${o.d} мин назад. В котором часу начался мультфильм?`}
+];
+TIME.forEach((tp,i)=>ITEMS.push(Object.assign({street:'time',type:'tm',id:'time:'+i},tp)));
+EXTRA.tm={specs:(it,o)=>{
+  if(it.k==='add'){const s=o.m+o.d,H=o.h+Math.floor(s/60),M=s%60;
+    const sp=[{ask:'1) Сложи минуты',show:'',num:true,ans:String(s)}];
+    if(s>=60)sp.push({ask:`${s} мин — это сколько?`,show:'<p class="why">в 1 ч = 60 мин</p>',opts:shuffle([`1 ч ${M} мин`,`${Math.floor(s/10)} ч ${s%10} мин`,`1 ч ${s-50} мин`]),ans:`1 ч ${M} мин`});
+    sp.push({ask:'2) Когда?',show:'',opts:shuffle([hm(H,M),`${o.h} ч ${s} мин`,hm(H+1,M)]),ans:hm(H,M),long:1});return sp;}
+  if(it.k==='dur'){const a=60-o.m;return [{ask:`1) Сколько минут от ${hm(o.h,o.m)} до ${o.h+1} ч 00 мин?`,show:'<p class="why">в 1 ч = 60 мин</p>',num:true,ans:String(a)},
+    {ask:'2) Сколько минут всего?',show:`<p class="eq">${a} + ${o.e} = <span class="blank"></span></p>`,num:true,ans:String(a+o.e)}];}
+  const tot=o.h*60+o.m-o.d,H=Math.floor(tot/60),M=tot%60;
+  return [{ask:`1) Сколько минут прошло после ${o.h} ч 00 мин?`,show:'',num:true,ans:String(o.m)},
+    {ask:`2) Сколько минут мультфильм шёл до ${o.h} ч 00 мин?`,show:`<p class="eq">${o.d} − ${o.m} = <span class="blank"></span></p>`,num:true,ans:String(o.d-o.m)},
+    {ask:'3) Во сколько начался?',show:`<p class="why">${o.h} ч 00 мин − ${o.d-o.m} мин</p>`,opts:shuffle([hm(H,M),hm(o.h,o.d-o.m),hm(H,o.m+o.d)]).filter((v,i,a)=>a.indexOf(v)===i),ans:hm(H,M),long:1}];},
+  solved:(it,o)=>{
+    let line,ans;
+    if(it.k==='add'){const s=o.m+o.d,H=o.h+Math.floor(s/60),M=s%60;line=`${o.m} + ${o.d} = ${s} мин${s>=60?` = 1 ч ${M} мин`:''}`;ans=hm(H,M);}
+    else if(it.k==='dur'){const a=60-o.m;line=`${a} + ${o.e} = ${a+o.e} мин`;ans=(a+o.e)+' мин';}
+    else{const tot=o.h*60+o.m-o.d;line=`${hm(o.h,o.m)} − ${o.d} мин`;ans=hm(Math.floor(tot/60),tot%60);}
+    return `<p class="task sm">${o.text}</p><p class="eq">${line}</p><p class="why">Ответ: <b>${ans}</b></p>`;}};
 
 /* =================== ДВИЖОК =================== */
 const store={get(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
