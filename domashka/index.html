@@ -300,6 +300,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--ink);outline-of
 .board{margin:14px 0 0;background:#fff;border:3px solid var(--blue);border-radius:16px;padding:12px 14px;background-image:linear-gradient(#E6ECFA 1px,transparent 1px),linear-gradient(90deg,#E6ECFA 1px,transparent 1px);background-size:22px 22px}
 .board[hidden]{display:none}
 .bl{font-size:21px;font-weight:800;margin:4px 0;overflow-x:auto}
+.bl.act{font-size:19px;color:#3C3870;margin-left:4px}
 .bl.big{font-size:30px;text-align:center;padding-top:10px}
 .cmp{font-size:26px;text-align:center}
 .ex{white-space:nowrap;display:inline-flex;align-items:flex-end;gap:.18em;flex-wrap:nowrap}
@@ -524,7 +525,7 @@ function valueItem(expr,vars){
   vn.forEach(v=>steps.push({k:'num',q:`Какое число ставим вместо <i class="var">${v}</i>?`,ok:vars[v],hints:[`Посмотри в задание: там написано, чему равно <i class="var">${v}</i>.`,`Буква — это переменная. Вместо неё пишем число из условия.`],board:`<div class="bl">${exprHTML(expr)}</div><div class="bl">${exprHTML(s)}</div>`}));
   steps.push({k:'order',q:'В каком порядке выполняем действия? Нажимай на знаки по порядку.',expr:s,ok:acts.map(x=>x.i),hints:ORDER_HINTS,why:orderWhy(s,acts),board:(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}</div>`});
   acts.forEach((x,n)=>{const st=calcStep(x.a,x.o,x.b,`<span class="cn">${CIRC[n+1]}</span>`);
-    st.board=(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}${n===acts.length-1?` <span class="tk">= ${x.r}</span>`:''}</div>`;steps.push(st)});
+    st.board=(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}${n===acts.length-1?` <span class="tk">= ${x.r}</span>`:''}</div>`+acts.slice(0,n+1).map((y,k)=>`<div class="bl act"><span class="cn">${CIRC[k+1]}</span> <span class="ex">${y.a} ${y.o} ${y.b} = ${y.r}</span></div>`).join('');steps.push(st)});
   return {start:`<div class="bl">${exprHTML(expr)}</div>`,steps,record:`${exprHTML(s)} <span class="tk">= ${acts[acts.length-1].r}</span>`};
 }
 const ORDER_HINTS=['Вспомни правило: сначала действия в скобках, потом умножение и деление, потом сложение и вычитание.','Смотри слева направо. Есть скобки? Если нет — найди умножение или деление.'];
