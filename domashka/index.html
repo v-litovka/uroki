@@ -368,12 +368,13 @@ button.opb.bad{animation:shake .4s}
 .btn:disabled{cursor:wait;background:#FFF0B3}
 .btn.locking::before{content:"";position:absolute;inset:0;background:var(--sun);transform-origin:left;transform:scaleX(0);animation:fill var(--t,5s) linear forwards}
 @keyframes fill{to{transform:scaleX(1)}}
+.ktab th,.ktab td,.copy .ktab td,.copy .ktab th{white-space:normal;padding:5px 7px}.ktab small{font-size:11px;font-weight:700}
 .parent{margin-top:22px;text-align:center}.parent .row{justify-content:center;margin-top:8px}.parent input{width:150px;height:52px;border:3px solid var(--ink);border-radius:14px;font:inherit;font-size:24px;text-align:center}
 .task.sol .penl{display:none}.task.sol{margin-top:14px;display:grid;gap:10px}
 .okmsg{margin:0;color:var(--good);font-weight:900;font-size:19px}
 .win{margin:0;font-family:var(--display);font-weight:400;font-size:32px;color:var(--good)}
 .copy{overflow-x:auto;background:#fff;border:3px solid var(--blue);border-radius:14px;padding:8px 14px}
-.copy .bl{white-space:nowrap;margin-bottom:10px}.copy .tblc td{white-space:nowrap;padding:6px 8px}
+.copy .bl{white-space:normal;margin-bottom:10px}.copy .tblc td{white-space:nowrap;padding:6px 8px}
 .pen{color:#8A86A8;font-size:.85em;font-weight:700;margin:2px 0 0 6px}.tblc .pen{margin:2px 0 0;font-size:15px}
 .penl{margin:0;padding:10px 14px;font-size:20px;line-height:1.25;color:var(--ink);font-weight:900;background:#FFF4D6;border:3px dashed #E08A00;border-radius:14px}
 .copy u{text-decoration:none;display:inline-block;border-bottom:3px solid var(--trap);padding-bottom:2px}
@@ -1062,6 +1063,42 @@ PAGES.wb[35]={lesson:'Уроки 37–38. Деление на 1, на само �
      answer:{q:'Ответ: во сколько раз щенок тяжелее?',ok:3,text:'в 3 раза.'}})]}
 ]};
 
+/* ===== Задачи «по … в каждом» — через К1 · К = ОК (как решают в классе), без схем-деревьев ===== */
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const RULE_K=`<p>Решаем через таблицу <b>К1 · К = ОК</b>:</p><p><b>К1</b> — сколько в одном (букете, ряду…), <b>К</b> — сколько их, <b>ОК</b> — общее количество.</p><p>Знаем К1 и К → ОК = К1 · К. «Всего» в конце — складываем.</p>`;
+function kGroups(o){
+  const H=o.h;
+  const tbl=(ok,showRows)=>`<table class="tblc ktab"><tr><th></th><th>К1<br><small>${H[0]}</small></th><th>К<br><small>${H[1]}</small></th><th>ОК<br><small>${H[2]}</small></th></tr>${o.rows.map((r,i)=>`<tr><th>${r.name}</th><td>${showRows[i]>=1?r.k1:''}</td><td>${showRows[i]>=2?r.k:''}</td><td>${ok[i]!=null?'<b>'+ok[i]+'</b>':showRows[i]>=2?'<b class="qq">?</b>':''}</td></tr>`).join('')}</table>${o.plus?`<p class="bl">${o.plus.name}: <b>${o.plus.v}</b></p>`:''}`;
+  const filled=o.rows.map(()=>0),okv=o.rows.map(()=>null);
+  const pre=[];
+  o.rows.forEach((r,i)=>{
+    pre.push({k:'num',q:`${r.q1} Это <b>К1</b>.`,ok:r.k1,hints:['Ищи в задаче слово «по»: число после него — это сколько в ОДНОМ.','«по 9 роз» — значит, в каждом букете 9.'],board:(filled[i]=1,BL(tbl(okv,filled.slice())))});
+    pre.push({k:'num',q:`${r.q2} Это <b>К</b>.`,ok:r.k,hints:['Сколько их всего штук — букетов, рядов…?','Это число стоит перед словом «по».'],board:(filled[i]=2,BL(tbl(okv,filled.slice())))});
+  });
+  const steps=pre.slice();const lines=[];
+  o.rows.forEach((r,i)=>{
+    const ok=r.k1*r.k;
+    steps.push({k:'pick',q:`${r.name}: как найти ОК — сколько всего?`,opts:shuffle([`${r.k1} · ${r.k}`,`${r.k1} + ${r.k}`,`${Math.max(r.k1,r.k)} − ${Math.min(r.k1,r.k)}`]),ok:-1,okv:`${r.k1} · ${r.k}`,hints:['Знаем К1 и К. Как найти ОК?','К1 · К = ОК — умножаем.'],why:{ok:'К1 · К = ОК',no:['К1 + К = ОК']},
+      board:BL(tbl(okv,filled.slice()))+lines.map(BL).join('')+BL(`${i+1}) <span class="ex">${r.k1} · ${r.k} = <b class="qq">?</b></span> ${o.u}`)});
+    const cs=calcStep(r.k1,'·',r.k);okv[i]=ok;lines.push(`${i+1}) <span class="ex">${r.k1} · ${r.k} = ${ok}</span> ${o.u} — ${r.short||r.name.toLowerCase()}`);
+    cs.board=BL(tbl(okv.slice(),filled.slice()))+lines.map(BL).join('');steps.push(cs);
+  });
+  const a=o.plus?o.plus.v:okv[0],b=o.plus?okv[0]:okv[1],n=o.rows.length+1,tot=a+b;
+  steps.push({k:'pick',q:o.allQ,opts:shuffle([`${a} + ${b}`,`${Math.max(a,b)} − ${Math.min(a,b)}`,`${a} · ${b}`]),ok:-1,okv:`${a} + ${b}`,hints:['«Всего» — какое действие?','Соединяем обе части вместе.'],why:{ok:'«Всего» — складываем',no:['«Всего» — вычитаем']},
+    board:BL(tbl(okv,filled))+lines.map(BL).join('')+BL(`${n}) <span class="ex">${a} + ${b} = <b class="qq">?</b></span> ${o.u}`)});
+  const cs=calcStep(a,'+',b);lines.push(`${n}) <span class="ex">${a} + ${b} = ${tot}</span> ${o.u}`);
+  cs.board=BL(tbl(okv,filled))+lines.map(BL).join('')+BL('Ответ: '+o.ans(tot));steps.push(cs);
+  steps.forEach(st=>{if(st.okv){st.ok=st.opts.indexOf(st.okv)}});
+  return {start:BL(tbl(okv.map(()=>null),o.rows.map(()=>0))),steps};
+}
+function setK(p,n,item){const ex=PAGES.wb[p].ex.find(e=>e.n===n);ex.items=[item];ex.rule=RULE_K}
+setK(28,4,kGroups({h:['в одном букете','букетов','всего цветов'],u:'(цв.)',
+  rows:[{name:'Розы',k1:9,k:5,short:'розы',q1:'Сколько роз в одном букете?',q2:'Сколько букетов с розами?'},{name:'Гладиолусы',k1:7,k:4,short:'гладиолусы',q1:'Сколько гладиолусов в одном букете?',q2:'Сколько букетов с гладиолусами?'}],allQ:'Как узнать, сколько всего цветов?',ans:t=>`${t} ${plural(t,'цветок','цветка','цветов')}.`}));
+setK(29,4,kGroups({h:['птенцов у одной','куропаток','всего птенцов'],u:'(пт.)',
+  rows:[{name:'Серые',k1:8,k:7,short:'у серых',q1:'Сколько птенцов у одной серой куропатки?',q2:'Сколько серых куропаток?'},{name:'Белые',k1:3,k:6,short:'у белых',q1:'Сколько птенцов у одной белой куропатки?',q2:'Сколько белых куропаток?'}],allQ:'Как узнать, сколько всего птенцов?',ans:t=>`${t} ${plural(t,'птенец','птенца','птенцов')}.`}));
+setK(30,4,kGroups({h:['деревьев в ряду','рядов','всего елей'],u:'(д.)',
+  rows:[{name:'Ели',k1:5,k:6,short:'ели',q1:'Сколько елей в одном ряду?',q2:'Сколько рядов елей?'}],plus:{name:'Сосны',v:63},allQ:'Как узнать, сколько всего деревьев (сосны и ели)?',ans:t=>`${t} ${plural(t,'дерево','дерева','деревьев')}.`}));
+
 /* ===== «Почему?» — короткий выбор причины после верного ответа ===== */
 function W(p,n,it,st,ok,no,q){const s=PAGES.wb[p].ex.find(e=>e.n===n).items[it].steps[st];s.why={ok,no:no||[],q}}
 /* стр. 30 */
@@ -1070,20 +1107,11 @@ W(30,2,0,0,'7 одинаковое, а 8 < 9',['8 · 7 стоит слева']);
 W(30,2,1,0,'Больше частей — кусочки меньше',['6 больше 4 — значит, больше']);
 W(30,2,2,0,'a одинаковое, а 18 > 8',['18 · a стоит слева']);
 W(30,2,3,0,'Больше частей — кусочки меньше',['8 больше 2 — значит, больше']);
-W(30,4,0,0,'Про ели всё известно: 6 по 5',['Сначала всегда ищут «всего»'],'Почему сначала ели?');
-W(30,4,0,1,'Сначала ели 6 · 5, потом + сосны',['Сначала 63 + 6, потом · 5'],'Почему эта схема?');
-W(30,4,0,2,'По 5 взять 6 раз',['6 и 5 надо сложить']);
-W(30,4,0,4,'«Всего» — складываем',['«Всего» — вычитаем']);
 W(30,5,0,0,'4 стороны по 9 см',['2 стороны по 9 см']);
 W(30,5,0,2,'2 длины и 2 ширины',['1 длина и 1 ширина']);
 W(30,5,0,5,'36 больше 22',[],'Почему у квадрата?');
 W(30,5,0,6,'«На сколько» — вычитаем',['«На сколько» — делим']);
 /* стр. 28 */
-W(28,4,0,0,'5 букетов по 9 роз — всё известно',['Сначала всегда ищут «всего»'],'Почему сначала розы?');
-W(28,4,0,1,'Розы 5 · 9, гладиолусы 4 · 7, потом +',['Сначала 5 + 9 и 4 + 7'],'Почему эта схема?');
-W(28,4,0,2,'По 9 взять 5 раз',['5 и 9 надо сложить']);
-W(28,4,0,4,'По 7 взять 4 раза',['4 и 7 надо сложить']);
-W(28,4,0,6,'«Всего» — складываем',['«Всего» — вычитаем']);
 W(28,5,0,0,'Ширина меньше длины',['Длина меньше ширины'],'Почему длина?');
 W(28,5,0,1,'«В 2 раза больше» — 2 таких куска',['«В 2 раза» — кусочек 2 см'],'Почему эта схема?');
 W(28,5,0,2,'Длина больше — умножаем',['Слово «меньше» — делим']);
