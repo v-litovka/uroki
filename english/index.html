@@ -577,6 +577,9 @@ const pickOne=a=>a[Math.floor(Math.random()*a.length)];
 const SVGPIC={skirt:`<svg viewBox="0 0 60 60" width="1em" height="1em"><path d="M18 12h24l12 40H6z" fill="#E8452C"/><path d="M18 12h24v6H18z" fill="#26224F"/><path d="M14 30h32M10 42h40" stroke="#fff" stroke-width="2" opacity=".6"/></svg>`};
 const picHTML=w=>SVGPIC[w[0]]||w[1];
 
+/* котик на картинке всегда тот же, о ком фраза */
+const catFor=(txt,moodV,moodW,sz)=>/Вир/.test(txt)?vira(moodV,sz||60):wendy(moodW,(sz||60)-6);
+
 /* ===== English with Vira & Wendy: движок ===== */
 const store={get(){try{return JSON.parse(localStorage.getItem('english3'))||{}}catch(e){return {}}},set(v){try{localStorage.setItem('english3',JSON.stringify(v))}catch(e){}}};
 const S=Object.assign({stars:0,lv:{},sel:['pron'],done:{},sfx:true,voice:true},store.get());
@@ -773,7 +776,7 @@ function renderSpell(q){
     }
   };
 }
-function fbMsg(html,mood){const who=Math.random()<.5;$('#fb').innerHTML=`<div class="fb ${mood==='sad'?'bad':'ok'}">${who?vira(mood==='sad'?'wow':'eat',56):wendy(mood==='sad'?'sly':'happy',50)}<p>${html}</p></div>`}
+function fbMsg(html,mood){const sad=mood==='sad';$('#fb').innerHTML=`<div class="fb ${sad?'bad':'ok'}">${/Вир|Венд/.test(html)?catFor(html,sad?'wow':'eat',sad?'sly':'happy',56):(Math.random()<.5?vira(sad?'wow':'eat',56):wendy(sad?'sly':'happy',50))}<p>${html}</p></div>`}
 function wrong(){
   R.tries++;R.fail=true;play('bad');
   const q=R.q;
@@ -783,14 +786,14 @@ function wrong(){
     $('#fb').innerHTML=`<div class="fb bad">${vira('sad',56)}<div><p>Правильно: <b>${esc(st.ans)}</b></p><div class="rule">${q.rule||''}</div></div></div><button class="btn" id="nx">Дальше →</button>`;
     say(q.say);R.bad++;$('#nx').onclick=()=>{R.si=0;next()};return}
   if(R.tries>=3&&q.kind==='type'){$('#fb').innerHTML=`<div class="fb bad">${vira('sad',56)}<div><p>Правильно: <b>${esc(q.ans)}</b></p><div class="rule">${q.rule||''}</div></div></div><button class="btn" id="nx">Дальше →</button>`;say(q.say);R.bad++;$('#nx').onclick=next;return}
-  $('#fb').innerHTML=`<div class="fb bad">${Math.random()<.5?vira('wow',56):wendy('sly',50)}<div><p>${pickOne(CAT_BAD)}</p><div class="rule">${q.hint||q.rule||''}</div></div></div>`;if(q.listen||q.sayFirst)say(q.listen||'');
+  const cb=pickOne(CAT_BAD);$('#fb').innerHTML=`<div class="fb bad">${catFor(cb,'wow','sly',56)}<div><p>${cb}</p><div class="rule">${q.hint||q.rule||''}</div></div></div>`;if(q.listen||q.sayFirst)say(q.listen||'');
 }
 function good(){
   const q=R.q;play('ok');say(q.say);
   const first=!R.fail;
   if(first){S.stars++;R.ok++;S.done[q.topic]=(S.done[q.topic]||0)+1;save();updStars()}else R.bad++;
   const fb=$('#fb');
-  fb.innerHTML=`<div class="fb ok">${Math.random()<.55?vira(pickOne(['happy','eat']),60):wendy('happy',54)}<div><p>${first?pickOne(CAT_OK)+' +1 ⭐':'Исправлено! Это ещё повторим 💪'}</p>${q.sentFill?`<p class="sent sm">${esc(q.sentFill.replace('___',q.ans))}</p>`:''}</div></div><button class="btn" id="nx">Дальше →</button>`;
+  const co=first?pickOne(CAT_OK):'Исправлено! Это ещё повторим 💪';fb.innerHTML=`<div class="fb ok">${first?catFor(co,pickOne(['happy','eat']),'happy',60):wendy('happy',54)}<div><p>${first?co+' +1 ⭐':co}</p>${q.sentFill?`<p class="sent sm">${esc(q.sentFill.replace('___',q.ans))}</p>`:''}</div></div><button class="btn" id="nx">Дальше →</button>`;
   R.si=0;$('#nx').onclick=next;try{$('#nx').focus({preventScroll:true})}catch(e){}
 }
 function finish(){
