@@ -368,6 +368,8 @@ button.opb.bad{animation:shake .4s}
 .btn:disabled{cursor:wait;background:#FFF0B3}
 .btn.locking::before{content:"";position:absolute;inset:0;background:var(--sun);transform-origin:left;transform:scaleX(0);animation:fill var(--t,5s) linear forwards}
 @keyframes fill{to{transform:scaleX(1)}}
+.parent{margin-top:22px;text-align:center}.parent .row{justify-content:center;margin-top:8px}.parent input{width:150px;height:52px;border:3px solid var(--ink);border-radius:14px;font:inherit;font-size:24px;text-align:center}
+.task.sol .penl{display:none}.task.sol{margin-top:14px;display:grid;gap:10px}
 .okmsg{margin:0;color:var(--good);font-weight:900;font-size:19px}
 .win{margin:0;font-family:var(--display);font-weight:400;font-size:32px;color:var(--good)}
 .copy{overflow-x:auto;background:#fff;border:3px solid var(--blue);border-radius:14px;padding:8px 14px}
@@ -1137,7 +1139,47 @@ function page(b,p){
   <p class="sub">Какое упражнение решаем?</p>
   <div class="exs">${pg.ex.map(e=>`<button class="exb${S.done[doneKey(b,p,e.n)]?' ok':''}" data-n="${e.n}"><span class="num">${e.n}</span><span class="et">${e.title}</span><span class="ck">${S.done[doneKey(b,p,e.n)]?'✓':''}</span></button>`).join('')}</div>`;
   $('#bk').onclick=()=>pages(b);
-  view().querySelectorAll('.exb').forEach(x=>x.onclick=()=>run(b,p,+x.dataset.n));
+  view().querySelectorAll('.exb').forEach(x=>x.onclick=()=>{const n=+x.dataset.n;S.done[doneKey(b,p,n)]?doneScreen(b,p,n):run(b,p,n)});
+  view().insertAdjacentHTML('beforeend',`<div class="parent"><button class="link" id="par">👨‍👩‍👧 Показать решение (для родителей)</button><div id="pgate"></div></div>`);
+  $('#par').onclick=()=>parentGate(b,p);
+  scrollTo(0,0);
+}
+
+
+/* запись для тетради — из данных упражнения (тот же вид, что после решения) */
+function copyHTML(ex){
+  let rec=ex.items.map(it=>it.record||(it.steps.length?it.steps[it.steps.length-1].board||'':''));
+  const cols=ex.items.map(i=>i.col).filter(Boolean);
+  if(cols.length)rec=[`<table class="tblc">${['Уменьшаемое','Вычитаемое','Разность'].map((h,r)=>`<tr><th>${h}</th>${cols.map(c=>`<td>${r===2?'<b>'+c[r]+'</b>':c[r]}</td>`).join('')}</tr>`).join('')}</table>`];
+  rec=rec.filter(Boolean);
+  return `${rec.join('').includes('class="pen"')?'<p class="penl">✏️ ПРОМЕЖУТОЧНЫЕ ОТВЕТЫ (СЕРЫЕ) ПЕРЕПИШИ КАРАНДАШОМ В ТЕТРАДЬ!</p>':''}<div class="copy">${rec.map(r=>`<div class="bl">${r}</div>`).join('')}</div>`;
+}
+let PARENT=false;
+function doneScreen(b,p,n){
+  const ex=PAGES[b][p].ex.find(e=>e.n===n);
+  view().innerHTML=`<button class="back" id="bk">← Упражнения</button>
+  <div class="task"><p class="kick">${BOOKS[b].short}, стр. ${p} · упражнение ${n}</p><div class="tt">${ex.text}</div></div>
+  <div class="card"><h3 class="win">✓ Это упражнение уже решено</h3><p class="sub">Что делаем?</p>
+  <div class="acts"><button class="btn" id="cp">✏️ Переписать в тетрадь</button><button class="btn ghost" id="rs">🔄 Начать заново</button></div><div id="cpw"></div></div>`;
+  $('#bk').onclick=()=>page(b,p);
+  $('#rs').onclick=()=>run(b,p,n);
+  $('#cp').onclick=()=>{$('#cpw').innerHTML=`<p class="sub">Перепиши в тетрадь</p>${copyHTML(ex)}`;$('#cp').disabled=true};
+  scrollTo(0,0);
+}
+function parentGate(b,p){
+  const box=$('#pgate');
+  if(PARENT)return parentView(b,p);
+  box.innerHTML=`<form class="row" id="pwf" autocomplete="off"><input id="pw" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="пароль" aria-label="пароль для родителей"><button class="btn" type="submit">Открыть</button></form><p class="msg" id="pwm"></p>`;
+  const i=$('#pw');setTimeout(()=>{try{i.focus()}catch(e){}},50);
+  $('#pwf').onsubmit=e=>{e.preventDefault();if(i.value.trim()==='2924'){PARENT=true;parentView(b,p)}else{$('#pwm').textContent='Неверный пароль';i.select()}};
+}
+function parentView(b,p){
+  const pg=PAGES[b][p];
+  view().innerHTML=`<button class="back" id="bk">← Упражнения</button>
+  <p class="kick">Для родителей · ${BOOKS[b].short}, страница ${p}</p><h2 class="h2">Решение: ${pg.lesson}</h2>
+  ${pg.ex.map(e=>`<div class="task sol"><p class="kick">Упражнение ${e.n}</p><div class="tt">${e.text}</div>${copyHTML(e)}</div>`).join('')}
+  <button class="btn ghost" id="lock">🔒 Закрыть решение</button>`;
+  $('#bk').onclick=()=>page(b,p);$('#lock').onclick=()=>{PARENT=false;page(b,p)};
   scrollTo(0,0);
 }
 
@@ -1252,15 +1294,12 @@ function advance(){
 function finish(){
   play('finish');S.done[doneKey(R.b,R.p,R.ex.n)]=1;save();
   const pg=PAGES[R.b][R.p],next=pg.ex.find(e=>e.n>R.ex.n&&!S.done[doneKey(R.b,R.p,e.n)])||pg.ex.find(e=>!S.done[doneKey(R.b,R.p,e.n)]);
-  let rec=R.records.filter(Boolean);
-  const cols=R.ex.items.map(i=>i.col).filter(Boolean);
-  if(cols.length)rec=[`<table class="tblc">${['Уменьшаемое','Вычитаемое','Разность'].map((h,r)=>`<tr><th>${h}</th>${cols.map(c=>`<td>${r===2?'<b>'+c[r]+'</b>':c[r]}</td>`).join('')}</tr>`).join('')}</table>`];
   $('#stepc').innerHTML=`<h3 class="win">⭐ Упражнение ${R.ex.n} решено!</h3>
-  ${rec.length?`<p class="sub">Перепиши в тетрадь</p>${rec.join('').includes('class="pen"')?'<p class="penl">✏️ ПРОМЕЖУТОЧНЫЕ ОТВЕТЫ (СЕРЫЕ) ПЕРЕПИШИ КАРАНДАШОМ В ТЕТРАДЬ!</p>':''}<div class="copy">${rec.map(r=>`<div class="bl">${r}</div>`).join('')}</div>`:'<p class="sub">Перепиши решение из рамки выше в тетрадь.</p>'}
+  <p class="sub">Перепиши в тетрадь</p>${copyHTML(R.ex)}
   <div class="acts">${next?`<button class="btn" id="nx">Упражнение ${next.n} →</button>`:'<p class="okmsg">Вся страница решена! Молодец!</p>'}<button class="btn ghost" id="tp">К упражнениям</button></div>`;
   if(next)$('#nx').onclick=()=>run(R.b,R.p,next.n);
   $('#tp').onclick=()=>page(R.b,R.p);
-  if(R.ex.items.length>1)setBoard('');
+  setBoard('');
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const stl=document.createElement('style');stl.textContent=SCHEME_CSS;document.head.appendChild(stl);
