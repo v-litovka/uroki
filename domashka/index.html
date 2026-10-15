@@ -349,6 +349,16 @@ button.opb.bad{animation:shake .4s}
 .hint.bad{border-color:var(--trap);background:#FFF1EC}
 .hint b{font-family:var(--display);font-weight:400;font-size:22px}
 .hint p{margin:4px 0}
+.why{border:3px solid var(--good);background:#EAF8EF;border-radius:16px;padding:10px 14px}
+.why .nw{white-space:nowrap}
+.why .wh{font-family:var(--display);font-weight:400;font-size:23px;color:var(--good)}
+.why p{display:flex;gap:10px;margin:8px 0;font-size:17px;line-height:1.4}
+.why .mk{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;font-size:15px}
+.why .wok .mk{background:var(--good)}.why .wno .mk{background:var(--trap)}
+.btn{position:relative;overflow:hidden}.btn .lbl{position:relative}
+.btn:disabled{cursor:wait;background:#FFF0B3}
+.btn.locking::before{content:"";position:absolute;inset:0;background:var(--sun);transform-origin:left;transform:scaleX(0);animation:fill var(--t,5s) linear forwards}
+@keyframes fill{to{transform:scaleX(1)}}
 .okmsg{margin:0;color:var(--good);font-weight:900;font-size:19px}
 .win{margin:0;font-family:var(--display);font-weight:400;font-size:32px;color:var(--good)}
 .copy{overflow-x:auto;background:#fff;border:3px solid var(--blue);border-radius:14px;padding:8px 14px}
@@ -472,7 +482,7 @@ function orderOf(str){
     if(p<0)for(let j=s;j<e;j++)if(L[j].t==='op'){p=j;break}
     if(p<0){L.splice(s-1,1);L.splice(s,1);continue}
     const a=L[p-1].v,b=L[p+1].v,o=L[p].o;
-    acts.push({i:L[p].i,a,o,b,r:apply(a,o,b)});
+    acts.push({i:L[p].i,a,o,b,r:apply(a,o,b),par:s>0});
     L.splice(p-1,3,{t:'n',v:apply(a,o,b)});
     if(L[p-2]&&L[p-2].t==='('&&L[p]&&L[p].t===')'){L.splice(p,1);L.splice(p-2,1)}
   }
@@ -507,7 +517,7 @@ function valueItem(expr,vars){
   const marks={};acts.forEach((x,n)=>marks[x.i]=n+1);
   const steps=[];
   vn.forEach(v=>steps.push({k:'num',q:`Какое число ставим вместо <i class="var">${v}</i>?`,ok:vars[v],hints:[`Посмотри в задание: там написано, чему равно <i class="var">${v}</i>.`,`Буква — это переменная. Вместо неё пишем число из условия.`],board:`<div class="bl">${exprHTML(expr)}</div><div class="bl">${exprHTML(s)}</div>`}));
-  steps.push({k:'order',q:'В каком порядке выполняем действия? Нажимай на знаки по порядку.',expr:s,ok:acts.map(x=>x.i),hints:ORDER_HINTS,board:(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}</div>`});
+  steps.push({k:'order',q:'В каком порядке выполняем действия? Нажимай на знаки по порядку.',expr:s,ok:acts.map(x=>x.i),hints:ORDER_HINTS,why:orderWhy(s,acts),board:(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}</div>`});
   acts.forEach((x,n)=>{const st=calcStep(x.a,x.o,x.b,`<span class="cn">${CIRC[n+1]}</span>`);
     st.board=(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}${n===acts.length-1?` <span class="tk">= ${x.r}</span>`:''}</div>`;steps.push(st)});
   return {start:`<div class="bl">${exprHTML(expr)}</div>`,steps,record:`${exprHTML(s)} <span class="tk">= ${acts[acts.length-1].r}</span>`};
@@ -541,8 +551,33 @@ function drawTree(t,opt){
 /* только порядок действий, без счёта */
 function orderItem(expr){
   const acts=orderOf(expr),marks={};acts.forEach((x,n)=>marks[x.i]=n+1);
-  return {start:'',steps:[{k:'order',q:'Нажимай на знаки действий по порядку: какое первое, второе…',expr,ok:acts.map(x=>x.i),hints:ORDER_HINTS,
+  return {start:'',steps:[{k:'order',q:'Нажимай на знаки действий по порядку: какое первое, второе…',expr,ok:acts.map(x=>x.i),hints:ORDER_HINTS,why:orderWhy(expr,acts),
     board:`<div class="bl">${exprHTML(expr,marks,{circles:1})}</div>`}],record:exprHTML(expr,marks,{circles:1})};
+}
+
+/* «почему так?» для порядка действий — собирается автоматически */
+const OPN={'+':'сложение','−':'вычитание','·':'умножение',':':'деление'};
+function orderWhy(expr,acts){
+  const tk=tokens(expr);const ops=[];let d=0;
+  tk.forEach((x,j)=>{if(x.t==='(')d++;else if(x.t===')')d--;else if(x.t==='op'){
+    const L=tk[j-1],Rr=tk[j+1];const side=t=>t.t==='n'?t.v:t.t==='v'?t.name:'(…)';
+    ops.push({o:x.o,par:d>0,frag:`${side(L)} ${x.o} ${side(Rr)}`})}});
+  const isM=o=>o==='·'||o===':';
+  const hasAdd=ops.some(x=>!isM(x.o)&&!x.par),nMul=ops.filter(x=>isM(x.o)&&!x.par).length,nAdd=ops.filter(x=>!isM(x.o)&&!x.par).length;
+  const ok=acts.map((x,n)=>{const op=ops[x.i],m=isM(op.o);let r;
+    if(op.par)r=m&&ops.some(y=>y.par&&!isM(y.o))?'оно в скобках, а в скобках '+OPN[op.o]+' делаем раньше':'оно в скобках, скобки считаем раньше остального';
+    else if(m)r=OPN[op.o]+(hasAdd?' делаем раньше сложения и вычитания':'')+(nMul>1?', по порядку слева направо':'');
+    else r=OPN[op.o]+' — в конце'+(nAdd>1?', по порядку слева направо':'');
+    return `<span class="cn">${CIRC[n+1]}</span> <b class="nw">${op.frag}</b> — ${r}`}).join('<br>');
+  const first=ops[acts[0].i];let no='';
+  const left=ops[0];
+  if(acts[0].i!==0){
+    if(first.par&&!left.par)no=`Начинать с <b class="nw">${left.frag}</b> нельзя: сначала считаем в скобках.`;
+    else no=`Начинать с <b class="nw">${left.frag}</b> нельзя: ${left.par?'внутри скобок ':''}сначала умножение и деление.`;
+  }else{const j=ops.findIndex(x=>!isM(x.o));
+    if(j>0&&isM(first.o))no=`<b class="nw">${ops[j].frag}</b> первым не делаем: сначала умножение и деление.`;
+    else if(ops.length>1)no='Начинать с конца или с середины нельзя: одинаковые по старшинству действия делаем по порядку слева направо.';}
+  return {ok,no:no?[no]:[]};
 }
 
 /* ===== Домашка: страницы ===== */
@@ -748,6 +783,38 @@ PAGES.wb[28]={lesson:'Урок 26. Порядок действий в выраж
    ]}]}
 ]};
 
+/* ===== «Почему так?» — объяснения к шагам с выбором ===== */
+function W(p,n,it,st,ok,no){const s=PAGES.wb[p].ex.find(e=>e.n===n).items[it].steps[st];s.why={ok,no:no||[]}}
+
+/* --- стр. 30 --- */
+W(30,1,0,0,'В <b>35 : a</b> и <b>35 + b</b> есть буква — это переменная.',['<b>35 : 5</b> и <b>37 − 8</b> — только числа, буквы нет. Это выражения без переменной.']);
+W(30,2,0,0,'Множитель 7 есть в обоих. Остались 8 и 9: 8 < 9, значит 8 раз по 7 меньше, чем 9 раз по 7.',['«=» было бы, если бы другие множители тоже были равны. А 8 и 9 разные.']);
+W(30,2,1,0,'36 делим на 6 частей и на 4 части. Чем на <b>больше</b> частей делим, тем <b>меньше</b> каждая часть.',['«>» — частая ловушка: 6 больше 4, но частное от этого становится меньше, а не больше.']);
+W(30,2,2,0,'Множитель a одинаковый. 18 > 8, значит 18 раз по a больше, чем 8 раз по a.',['«<» — так было бы, если бы первый множитель был меньше. А 18 больше 8.']);
+W(30,2,3,0,'b делим на 8 частей и на 2 части. На 8 частей — кусочки мельче, значит b : 8 меньше.',['«>» — ловушка: 8 больше 2, но при делении на большее число частное меньше.']);
+W(30,4,0,0,'Про ели всё известно: 6 рядов по 5. Значит, сколько елей, можно узнать сразу.',['«Сколько всего деревьев» сразу не узнать: для этого нужно знать, сколько елей, а это пока неизвестно.']);
+W(30,4,0,1,'В правильной схеме сначала <b>6 · 5</b> (ели), а потом <b>63 + ели</b> — всего деревьев.',['Схема, где сначала 63 + 6, неверная: 63 — это деревья, а 6 — это ряды. Деревья с рядами не складывают.','Схема с «−» неверная: спрашивают «сколько всего», значит в конце складываем.']);
+W(30,4,0,2,'6 рядов, в каждом по 5 елей: по 5 взять 6 раз — это <b>умножение</b>.',['<b>6 + 5</b> — неверно: 6 — это ряды, 5 — деревья. Получилось бы «11 непонятно чего».']);
+W(30,4,0,4,'«Всего» — это сосны и ели вместе, значит <b>складываем</b>: 63 + 30.',['<b>63 − 30</b> — так узнали бы, на сколько сосен больше, чем елей. Но спрашивают не это.']);
+W(30,5,0,0,'У квадрата 4 <b>одинаковые</b> стороны по 9 см: 9 · 4.',['<b>9 · 2</b> — это только 2 стороны, а их 4.','<b>9 + 4</b> — 4 здесь не сантиметры, а количество сторон. Складывать их нельзя.']);
+W(30,5,0,2,'У прямоугольника 2 длины и 2 ширины: (длина + ширина) · 2.',['<b>7 + 4</b> — это только половина: одна длина и одна ширина.','<b>7 · 4</b> — так находят площадь, а не периметр.']);
+W(30,5,0,5,'36 см больше, чем 22 см, значит у квадрата периметр больше.',[]);
+W(30,5,0,6,'«На сколько больше» — из большего вычитаем меньшее: 36 − 22.',['<b>36 : 22</b> — деление отвечает на вопрос «во сколько раз», а не «на сколько».']);
+
+/* --- стр. 28 --- */
+W(28,4,0,0,'Про розы всё известно: 5 букетов по 9 роз. Можно узнать сразу, сколько роз.',['«Сколько всего цветов» сразу не узнать — сначала нужны розы и гладиолусы.','«Сколько букетов с розами» искать не надо — это уже написано: 5.']);
+W(28,4,0,1,'В правильной схеме розы — <b>5 · 9</b>, гладиолусы — <b>4 · 7</b>, а потом их <b>складываем</b>.',['Схемы, где 5 + 9 или 4 + 7, неверные: «5 букетов по 9» — это умножение.','Схема с «−» внизу неверная: спрашивают «сколько всего», значит в конце складываем.']);
+W(28,4,0,2,'5 букетов по 9 роз: по 9 взять 5 раз — <b>умножение</b>.',['<b>5 + 9</b> — неверно: 5 — это букеты, 9 — розы. Их складывать нельзя.']);
+W(28,4,0,4,'4 букета по 7 гладиолусов: по 7 взять 4 раза — <b>умножение</b>.',['<b>4 + 7</b> — неверно: букеты и цветы не складывают.']);
+W(28,4,0,6,'«Всего цветов» — розы и гладиолусы вместе: <b>45 + 28</b>.',['<b>45 − 28</b> — так узнали бы, на сколько роз больше, чем гладиолусов.']);
+W(28,5,0,0,'«Ширина в 2 раза <b>меньше</b> длины» — значит, длина <b>больше</b>, длина длиннее.',['Ширина короче: про неё сказано «меньше».']);
+W(28,5,0,1,'В правильной схеме длина — это <b>2 таких же отрезка</b>, как ширина: «в 2 раза больше».',['Схема с кусочком «2 см» — это «на 2 больше», а в задаче «в 2 раза».','Схема, где длина короче ширины, неверная: ширина меньше длины, а не наоборот.']);
+W(28,5,0,2,'Длина в 2 раза больше ширины: 4 · 2.',['<b>4 : 2</b> — ловушка! В задаче слово «меньше», но меньше <b>ширина</b>. Длину ищем, она больше — умножаем.','<b>4 + 2</b> — так было бы, если бы длина была «на 2 больше».']);
+W(28,5,0,4,'У прямоугольника 2 длины и 2 ширины: (8 + 4) · 2.',['<b>8 + 4</b> — только половина периметра.','<b>8 · 4</b> — так находят площадь, а не периметр.']);
+/* первое действие в примерах с единицами */
+[4,5,6,7].forEach(i=>{const s=PAGES.wb[28].ex.find(e=>e.n===2).items[i].steps[0];const ok=s.opts[s.ok],no=s.opts[1-s.ok];
+  s.why={ok:`<b>${ok}</b> — здесь умножение или деление, его делаем раньше.`,no:[`<b>${no}</b> — сложение или вычитание, его делаем потом.`]}});
+
 /* ===== Домашка: интерфейс ===== */
 const store={get(){try{return JSON.parse(localStorage.getItem('domashka3'))||{}}catch(e){return {}}},set(v){try{localStorage.setItem('domashka3',JSON.stringify(v))}catch(e){}}};
 const S=Object.assign({done:{},sfx:true},store.get());
@@ -877,6 +944,25 @@ function good(){
   if(st.board)setBoard(st.board);
   $('#hintc').innerHTML='';
   $('#stepc').querySelectorAll('button,input').forEach(x=>x.disabled=true);
+  if(st.why){showWhy(st);return}
+  advance();
+}
+function showWhy(st){
+  play('step');
+  const w=st.why,okLbl=st.k==='pick'&&!st.svg?`<b>${st.signs?st.opts[st.ok]:fmt(st.opts[st.ok])}</b> — `:'';
+  const txt=(w.ok+(w.no||[]).join(' ')).replace(/<[^>]+>/g,'');
+  const sec=Math.min(9,Math.max(4,Math.round(txt.length/28)));
+  const hb=$('#hb');if(hb)hb.remove();
+  $('#stepc').insertAdjacentHTML('beforeend',`<div class="why" role="status"><b class="wh">Верно! А почему так?</b>
+    <p class="wok"><span class="mk">✓</span><span>${okLbl}${w.ok}</span></p>
+    ${(w.no||[]).map(t=>`<p class="wno"><span class="mk">✗</span><span>${t}</span></p>`).join('')}</div>
+    <button class="btn locking" id="nxs" disabled style="--t:${sec}s"><span class="lbl">Прочитай — и дальше</span></button>`);
+  const b=$('#nxs');try{$('.why').scrollIntoView({block:'nearest',behavior:'smooth'});b.scrollIntoView({block:'nearest'})}catch(e){}
+  setTimeout(()=>{b.disabled=false;b.classList.remove('locking');b.querySelector('.lbl').textContent='Понятно, дальше →'},sec*1000);
+  b.onclick=()=>{if(!b.disabled)advance()};
+}
+function advance(){
+  const it=curItem();
   R.step++;
   if(R.step<it.steps.length){play('step');setTimeout(showStep,550);return}
   play('right');R.records.push(it.record||'');
