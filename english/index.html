@@ -334,6 +334,13 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--ink);outline-of
 .tiles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .tile{width:56px;height:60px;border:3px solid var(--ink);border-radius:14px;background:var(--sun);box-shadow:3px 3px 0 var(--ink);font-family:var(--display);font-size:34px}
 .tile.used{visibility:hidden}.tile.bad{background:#FFB4A2;animation:shake .4s}
+.wline{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:52px}
+.wslot{min-width:52px;height:48px;padding:0 8px;border-bottom:4px solid var(--ink);display:grid;place-items:center;font-weight:900;font-size:22px;background:#fff;border-radius:10px 10px 0 0}
+.wslot.on{border-color:var(--good);color:var(--good);background:#E3F6EA}
+.wtiles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.wt{min-height:52px;padding:0 16px;border:3px solid var(--ink);border-radius:14px;background:#E7F1FF;box-shadow:3px 3px 0 var(--ink);font-weight:900;font-size:22px}
+.wt.used{visibility:hidden}.wt.bad{background:#FFB4A2;animation:shake .4s}
+.yn{display:block;text-align:center;font-size:40px;margin-top:-8px}
 .word{font-family:var(--display);font-size:clamp(44px,12vw,64px);text-align:center;letter-spacing:.04em;color:var(--ink)}
 .note{margin:0;color:var(--muted);text-align:center}
 .cells{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
@@ -590,8 +597,11 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const lvlAt=n=>5*n*(n+3);
 const levelOf=st=>{let n=0;while(lvlAt(n+1)<=st)n++;return n};
 const LVN=['лёгкий','средний','сложный'];
-const TOPICS=[{id:'pron',n:'★',en:'He, she, they…',ru:'Местоимения: мой папа → he',pic:'👨➡️<b>he</b>',c:'#E2557A'}].concat(UNITS.map(u=>({id:u.id,n:u.n,en:u.en,ru:u.ru,pic:u.pic,c:u.c})));
-const LVD={pron:['Кто это? he, she, it, they — с картинками','Замени в предложении: he → his, she → her','Два шага: кто это → чей? Все местоимения'],
+const TOPICS=[{id:'pron',n:'★',en:'He, she, they…',ru:'Местоимения: мой папа → he',pic:'👨➡️<b>he</b>',c:'#E2557A'},
+ {id:'be',n:'★',en:'am / is / are',ru:'Глагол to be: не…, вопросы',pic:'🐄🐱 <b>is</b>',c:'#2D6CDF'},
+ {id:'have',n:'★',en:'have got / has got',ru:'У меня есть… / нет…, вопросы',pic:'🥣 <b>has</b>',c:'#13A3A0'},
+ {id:'can',n:'★',en:'can / can\'t',ru:'Могу, не могу, вопросы',pic:'🐈✅🐄❌',c:'#FF8A1C'}].concat(UNITS.map(u=>({id:u.id,n:u.n,en:u.en,ru:u.ru,pic:u.pic,c:u.c})));
+const LVD={be:['am / is / are, узнать отрицание','Сделай «не…», вопрос, короткий ответ','Собери вопрос из слов, напиши сама'],have:['have или has, узнать hasn\'t','«Нет у…», вопрос Has…got?, короткий ответ','Собери вопрос из слов, напиши сама'],can:['can или can\'t по картинке','«Не может», вопрос Can…?, короткий ответ','Собери вопрос из слов, напиши сама'],pron:['Кто это? he, she, it, they — с картинками','Замени в предложении: he → his, she → her','Два шага: кто это → чей? Все местоимения'],
   unit:['Картинка → слово, слушай → картинка','Слово с перепутанными буквами, собери из букв','Собери из букв с лишними, напиши сама']};
 
 /* ---------- звук и голос ---------- */
@@ -680,7 +690,7 @@ function genPron(lv){
     {ask:'Шаг 1. Кто владелец? Замени одним словом',show:`<div class="pic">${p[1]}</div><p class="sent">${esc(p[0])}</p>`,opts:['he','she','it','they'],optHTML:['he','she','it','they'].map(o=>`<span class="pi">${PR_ICON[o[0].toUpperCase()+o.slice(1)]}</span>${o}`),ans:who},
     {ask:`Шаг 2. <b>${who}</b> → чей? Выбери слово`,show:`<div class="pic">${p[1]}</div><p class="sent">${esc(p[0])} → <span class="gap">?</span> ${esc(obj)}</p>`,opts:shuffle(['my','your','his','her','its','our','their']),ans:p[2],small:1}]};
 }
-function genQ(topic){const lv=S.lv[topic]||0;return topic==='pron'?genPron(lv):genUnit(topic,lv)}
+function genQ(topic){const lv=S.lv[topic]||0;return topic==='pron'?genPron(lv):topic==='be'?genBe(lv):topic==='have'?genHave(lv):topic==='can'?genCan(lv):genUnit(topic,lv)}
 
 /* ---------- экраны ---------- */
 const view=()=>$('#view');
@@ -691,9 +701,9 @@ function menu(){
     <div class="cats">${vira('happy',96)}${wendy('happy',84)}</div>
     <h1>English с Вирой и Венди</h1>
     <p>Учебник Magic Box 3. Выбери темы, которые проходите, и уровень. Вира — толстая пятнистая, любит поесть и валяться на полу. Венди — худая и быстрая. Они будут болеть за тебя!</p></section>
-    <div class="topics">${TOPICS.map(t=>{const on=S.sel.includes(t.id),lv=S.lv[t.id]||0,d=S.done[t.id]||0,ld=(t.id==='pron'?LVD.pron:LVD.unit)[lv];
+    <div class="topics">${TOPICS.map(t=>{const on=S.sel.includes(t.id),lv=S.lv[t.id]||0,d=S.done[t.id]||0,ld=(LVD[t.id]||LVD.unit)[lv];
       return `<div class="tw"><button class="topic${t.id==='pron'?' star':''}" data-t="${t.id}" aria-pressed="${on}" style="--c:${t.c}">
-        <span class="tpic">${t.pic}</span><span class="tn">${t.id==='pron'?'Главное!':'Unit '+t.n}</span><b class="ten">${t.en}</b><span class="tru">${t.ru}</span><span class="tdone">решено: ${d}</span><span class="tck">✓</span></button>
+        <span class="tpic">${t.pic}</span><span class="tn">${t.id==='pron'?'Главное!':t.n==='★'?'Грамматика':'Unit '+t.n}</span><b class="ten">${t.en}</b><span class="tru">${t.ru}</span><span class="tdone">решено: ${d}</span><span class="tck">✓</span></button>
         <div class="lvrow">${LVN.map((n,j)=>`<button class="lvb" data-t="${t.id}" data-l="${j}" aria-pressed="${lv===j}">${n}</button>`).join('')}</div><p class="lvd">${ld}</p></div>`}).join('')}</div>
     <div class="menu-actions"><button class="btn big" id="go">Поехали! 10 заданий</button>
     <label class="tog"><input type="checkbox" id="vc" ${S.voice?'checked':''}> озвучка слов 🔊</label></div>`;
@@ -710,13 +720,14 @@ function next(){
   R.seen.add(q.key);q.topic=t;R.n++;R.q=q;R.tries=0;R.fail=false;
   render(q);
 }
-function head(){const t=TOPICS.find(x=>x.id===R.q.topic);return `<div class="rtop"><span class="kick" style="color:${t.c}">${t.id==='pron'?'Местоимения':'Unit '+t.n+' · '+t.en}</span><span class="cnt">${R.n} / ${R.total}</span></div><div class="pbar"><i style="width:${(R.n-1)/R.total*100}%"></i></div>`}
+function head(){const t=TOPICS.find(x=>x.id===R.q.topic);return `<div class="rtop"><span class="kick" style="color:${t.c}">${t.id==='pron'?'Местоимения':t.n==='★'?t.en:'Unit '+t.n+' · '+t.en}</span><span class="cnt">${R.n} / ${R.total}</span></div><div class="pbar"><i style="width:${(R.n-1)/R.total*100}%"></i></div>`}
 function render(q){
   if(q.kind==='steps'){R.si=R.si||0;const st=Object.assign({kind:'choice',rule:q.rule,pr:q.pr},q.steps[R.si]);return renderChoice(st,true)}
   if(q.kind==='choice')return renderChoice(q);
   if(q.kind==='tiles')return renderTiles(q);
   if(q.kind==='spell')return renderSpell(q);
   if(q.kind==='type')return renderType(q);
+  if(q.kind==='words')return renderWords(q);
 }
 function card(q,body){
   view().innerHTML=`${head()}<div class="card" id="qc"><p class="ask">${q.ask}</p>${q.listen?`<button class="say" id="lis" aria-label="Послушать">🔊</button>`:''}${q.show||''}${body}<div id="fb"></div></div>`;
@@ -731,6 +742,16 @@ function renderChoice(q,isStep){
       good()}
     else{b.classList.add('bad');b.disabled=true;wrong()}
   });
+}
+function renderWords(q){
+  const toks=q.tokens,pool=shuffle(toks.map((t,i)=>({t,i})));
+  card(q,`<div class="wline" id="wl">${toks.map(()=>'<span class="wslot"></span>').join('')}</div><div class="wtiles">${pool.map((o,j)=>`<button class="wt" data-j="${j}">${esc(o.t)}</button>`).join('')}</div>`);
+  let pos=0;const slots=[...view().querySelectorAll('.wslot')];
+  view().querySelectorAll('.wt').forEach(b=>b.onclick=()=>{if(b.disabled)return;
+    if(b.textContent===toks[pos]){b.disabled=true;b.classList.add('used');slots[pos].textContent=toks[pos];slots[pos].classList.add('on');pos++;play('tap');
+      if(pos===toks.length){if(R.tries)R.fail=true;good()}}
+    else{b.classList.add('bad');setTimeout(()=>b.classList.remove('bad'),500);R.tries++;play('bad');
+      fbMsg(`${pickOne(CAT_BAD)}<br>${pos===0?'Какое слово в вопросе <b>первое</b>? Подумай: is, are, has, have, can — их ставим вперёд.':'Не это слово. Какое должно идти дальше?'}${R.tries>=3?` Подсказка: <b>${esc(toks[pos])}</b>`:''}`,'sad')}});
 }
 function renderType(q){
   card(q,`<form class="inrow" id="tf" autocomplete="off"><input id="ti" class="inp" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="слово" lang="en"><button class="btn" type="submit">Проверить</button></form>`);
@@ -810,6 +831,87 @@ document.addEventListener('DOMContentLoaded',()=>{
   const sb=$('#sfx');sb.setAttribute('aria-pressed',S.sfx?'true':'false');sb.onclick=()=>{S.sfx=!S.sfx;save();sb.setAttribute('aria-pressed',S.sfx?'true':'false')};
   $('#home').onclick=menu;menu();
 });
+
+/* ===== Грамматика: to be / have got / can — утверждение, отрицание, вопрос ===== */
+/* подлежащее: [как в предложении, картинка, местоимение для краткого ответа, в вопросе (I → you)] */
+const BE=[ /* [подлежащее, картинка, глагол, остаток, местоимение, по-русски] */
+ ['I','🙋‍♀️','am','nine','I','мне девять'],['I','🙋‍♀️','am','hungry','I','я голодная'],['Vira','🐄🐱','is','fat','she','Вира толстая'],['Wendy','🐈','is','thin','she','Венди худая'],
+ ['Vira','🐄🐱','is','on the floor','she','Вира на полу'],['My dad','👨','is','tall','he','папа высокий'],['My mum','👩','is','at work','she','мама на работе'],
+ ['Mike','👦','is','funny','he','Майк смешной'],['The ball','⚽','is','red','it','мяч красный'],['We','🙋‍♀️🙋','are','friends','we','мы друзья'],
+ ['My parents','👫','are','at home','they','родители дома'],['Vira and Wendy','🐱🐱','are','hungry','they','кошки голодные'],['The cats','🐱🐱','are','in the kitchen','they','кошки на кухне'],
+ ['You','🫵','are','happy','you','ты счастлива'],['Liz','👧','is','tired','she','Лиз устала'],['My granny','👵','is','kind','she','бабушка добрая']];
+const HAVE=[ /* [подлежащее, картинка, have/has, что, местоимение] */
+ ['I','🙋‍♀️','have','a cat','I'],['Vira','🐄🐱','has','a big bowl','she'],['Wendy','🐈','has','a long tail','she'],['My parents','👫','have','a car','they'],
+ ['Mike','👦','has','a bike','he'],['We','🙋‍♀️🙋','have','a garden','we'],['Liz','👧','has','a doll','she'],['The cats','🐱🐱','have','a soft sofa','they'],
+ ['My granny','👵','has','glasses','she'],['My dad','👨','has','a computer','he'],['You','🫵','have','a nice dress','you'],['Vira','🐄🐱','has','black spots','she']];
+const CAN=[ /* [подлежащее, картинка, что, может?, местоимение] */
+ ['Wendy','🐈','jump high',1,'she'],['Vira','🐄🐱','jump high',0,'she'],['Vira','🐄🐱','eat a lot',1,'she'],['A fish','🐟','swim',1,'it'],['A fish','🐟','fly',0,'it'],
+ ['A bird','🐦','fly',1,'it'],['A parrot','🦜','talk',1,'it'],['A tortoise','🐢','run fast',0,'it'],['A dog','🐶','sing',0,'it'],['My granny','👵','roller-skate',0,'she'],
+ ['Mike','👦','ride a bike',1,'he'],['I','🙋‍♀️','read',1,'I'],['My dad','👨','cook',1,'he'],['Vira and Wendy','🐱🐱','swim',0,'they'],['A frog','🐸','jump',1,'it']];
+const BE_NEG={am:"'m not",is:"isn't",are:"aren't"};
+const HV_NEG={have:"haven't",has:"hasn't"};
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const qSubj=s=>s==='I'?'you':/^(You|We|They|He|She|It)$/.test(s)?s.toLowerCase():(/^(My|The|A)\b/.test(s)?s[0].toLowerCase()+s.slice(1):s);
+const ansPr=p=>p==='you'?'I':p==='I'?'you':p;
+const qBe=r=>{const s=r[0]==='I'?'you':qSubj(r[0]);const v=r[0]==='I'?'are':r[2];return [cap(v),s,r[3]]};
+const R_BE=`<table class="pt"><tr><th>+</th><th>−</th><th>?</th></tr><tr><td>I <b>am</b></td><td>I<b>'m not</b></td><td><b>Am</b> I …?</td></tr><tr><td>he/she/it <b>is</b></td><td>… <b>isn't</b></td><td><b>Is</b> he …?</td></tr><tr><td>we/you/they <b>are</b></td><td>… <b>aren't</b></td><td><b>Are</b> they …?</td></tr></table><p>В вопросе <b>am / is / are</b> встаёт <b>на первое место</b>. Ответ: Yes, she <b>is</b>. / No, she <b>isn't</b>.</p>`;
+const R_HV=`<table class="pt"><tr><th>+</th><th>−</th><th>?</th></tr><tr><td>I/we/you/they <b>have got</b></td><td><b>haven't got</b></td><td><b>Have</b> they <b>got</b> …?</td></tr><tr><td>he/she/it <b>has got</b></td><td><b>hasn't got</b></td><td><b>Has</b> she <b>got</b> …?</td></tr></table><p>Вира — she → <b>has</b>. Кошки — they → <b>have</b>. Ответ: Yes, she <b>has</b>. / No, she <b>hasn't</b>.</p>`;
+const R_CAN=`<p><b>can</b> — может, умеет. <b>can't</b> — не может. Для всех одинаково: I can, she can, they can — <b>без -s!</b></p><p>Вопрос: <b>Can</b> Wendy jump? Ответ: Yes, she <b>can</b>. / No, she <b>can't</b>.</p>`;
+const yesNo=ok=>ok?'<span class="yn y">✅</span>':'<span class="yn n">❌</span>';
+
+function choiceQ(key,ask,show,ans,wrong,say,rule,hint){return {kind:'choice',key,ask,show,opts:shuffle([ans,...wrong]),ans,say,rule,hint}}
+function wordsQ(key,ask,show,tokens,say,rule){return {kind:'words',key,ask,show,tokens,say,rule}}
+function typeQ(key,ask,show,ans,accept,say,rule){return {kind:'type',key,ask,show,ans,accept,say,rule}}
+const pic=p=>`<div class="pic sm">${p}</div>`;
+const sent=(t,extra)=>`<p class="sent">${t}</p>${extra||''}`;
+
+function genBe(lv){
+  const r=pickOne(BE),neg=BE_NEG[r[2]],q=qBe(r),pr=r[0]==='I'?'you':r[4],apr=ansPr(pr);
+  const k=pickOne(lv===0?['aff','aff','negR','qR']:lv===1?['neg','quest','short','negR','shortN']:['words','words','typeNeg','typeShort','quest']);
+  const key='be:'+k+':'+r[0]+r[3];
+  if(k==='aff')return choiceQ(key,'Вставь am, is или are',pic(r[1])+sent(`${esc(r[0])} <span class="gap">?</span> ${esc(r[3])}.`,`<p class="ru">${r[5]}</p>`),r[2],['am','is','are'].filter(x=>x!==r[2]),`${r[0]} ${r[2]} ${r[3]}.`,R_BE,`Кто это? ${r[0]} → ${r[4]}. ${r[4]==='I'?'I → am':['he','she','it'].includes(r[4])?'he/she/it → is':'we/you/they → are'}`);
+  if(k==='negR')return choiceQ(key,'Это НЕ так! Выбери отрицание',pic(r[1])+yesNo(0)+sent(`${esc(r[0])} <span class="gap">?</span> ${esc(r[3])}.`),neg,Object.values(BE_NEG).filter(x=>x!==neg),`${r[0]} ${r[2]==='am'?'am not':neg} ${r[3]}.`,R_BE,'Отрицание: am → \'m not, is → isn\'t, are → aren\'t');
+  if(k==='neg'){const ok=`${r[0]} ${r[2]==='am'?"'m not":neg} ${r[3]}.`.replace("I 'm not","I'm not");
+    return choiceQ(key,'Как сказать НЕ? Выбери правильное предложение',pic(r[1])+sent(`${esc(r[0])} ${r[2]} ${esc(r[3])}.`)+yesNo(0),ok,[`${r[0]} not ${r[2]} ${r[3]}.`,`${r[0]} don't ${r[3]}.`],ok,R_BE,'Слово «not» ставим сразу <b>после am / is / are</b>')}
+  if(k==='quest'||k==='qR'){const ok=`${q[0]} ${q[1]} ${q[2]}?`;
+    return choiceQ(key,'Задай вопрос: какой правильный?',pic(r[1])+sent(`${esc(r[0])} ${r[2]} ${esc(r[3])}.`),ok,[`${cap(q[1])} ${q[0].toLowerCase()} ${q[2]}?`,`Do ${q[1]} ${q[2]}?`],ok,R_BE,'В вопросе <b>Is / Are / Am</b> — на первом месте')}
+  if(k==='short'||k==='shortN'){const yes=k==='short',v=apr==='I'?'am':['he','she','it'].includes(apr)?'is':'are',vn=apr==='I'?"'m not":BE_NEG[v];
+    const ans=yes?v:vn;return choiceQ(key,'Закончи короткий ответ',pic(r[1])+sent(`${esc(q[0])} ${esc(q[1])} ${esc(q[2])}?<br>${yes?'Yes':'No'}, ${apr} <span class="gap">?</span>.`),ans,(yes?['am','is','are']:["'m not","isn't","aren't"]).filter(x=>x!==ans),`${yes?'Yes':'No'}, ${apr}${ans[0]==="'"?'':' '}${ans}.`,R_BE,`${apr} → ${v}`)}
+  if(k==='words'){const neg2=Math.random()<.4;const toks=neg2?[r[0],r[2]==='am'?'am':r[2],'not',...r[3].split(' '),'.']:[q[0],q[1],...q[2].split(' '),'?'];
+    return wordsQ(key,neg2?'Собери предложение-отрицание':'Собери вопрос',pic(r[1])+sent(`${esc(r[0])} ${r[2]} ${esc(r[3])}.`)+(neg2?yesNo(0):'<p class="ru">❓</p>'),toks,toks.join(' ').replace(' ?','?').replace(' .','.'),R_BE)}
+  if(k==='typeNeg'){const acc=r[2]==='am'?["'m not",'am not']:[neg,r[2]+' not'];return typeQ(key,'Напиши отрицание сама',pic(r[1])+yesNo(0)+sent(`${esc(r[0])} <span class="gap">?</span> ${esc(r[3])}.`),acc[0],acc,`${r[0]} ${acc[1]} ${r[3]}.`,R_BE)}
+  {const v=apr==='I'?'am':['he','she','it'].includes(apr)?'is':'are',vn=apr==='I'?"'m not":BE_NEG[v];
+   return typeQ(key,'Напиши короткий ответ: No',pic(r[1])+sent(`${esc(q[0])} ${esc(q[1])} ${esc(q[2])}?<br>No, ${apr} <span class="gap">?</span>.`),vn,[vn,apr==='I'?'am not':v+' not'],`No, ${apr}${vn[0]==="'"?'':' '}${vn}.`,R_BE)}
+}
+function genHave(lv){
+  const r=pickOne(HAVE),neg=HV_NEG[r[2]],qs=qSubj(r[0]),qv=r[0]==='I'?'have':r[2],apr=ansPr(r[0]==='I'?'you':r[4]);
+  const av=['he','she','it'].includes(apr)?'has':'have';
+  const k=pickOne(lv===0?['aff','aff','negR','qR']:lv===1?['neg','quest','short','shortN','negR']:['words','words','typeNeg','typeShort','quest']);
+  const key='hv:'+k+':'+r[0]+r[3];
+  const qok=`${cap(qv)} ${qs} got ${r[3]}?`;
+  if(k==='aff')return choiceQ(key,'Вставь have или has',pic(r[1])+sent(`${esc(r[0])} <span class="gap">?</span> got ${esc(r[3])}.`),r[2],[r[2]==='has'?'have':'has','is'],`${r[0]} ${r[2]} got ${r[3]}.`,R_HV,`${r[0]} → ${r[4]}. he/she/it → has, остальные → have`);
+  if(k==='negR')return choiceQ(key,'Этого НЕТ! Выбери отрицание',pic(r[1])+yesNo(0)+sent(`${esc(r[0])} <span class="gap">?</span> got ${esc(r[3])}.`),neg,[r[2]==='has'?"haven't":"hasn't","isn't"],`${r[0]} ${neg} got ${r[3]}.`,R_HV,'has → hasn\'t, have → haven\'t');
+  if(k==='neg'){const ok=`${r[0]} ${neg} got ${r[3]}.`;return choiceQ(key,'Как сказать: нет у …? Выбери предложение',pic(r[1])+sent(`${esc(r[0])} ${r[2]} got ${esc(r[3])}.`)+yesNo(0),ok,[`${r[0]} ${r[2]} not ${r[3]}.`,`${r[0]} ${r[2]==='has'?"haven't":"hasn't"} got ${r[3]}.`],ok,R_HV,'not ставим после has / have: hasn\'t got')}
+  if(k==='quest'||k==='qR')return choiceQ(key,'Задай вопрос: какой правильный?',pic(r[1])+sent(`${esc(r[0])} ${r[2]} got ${esc(r[3])}.`),qok,[`${cap(qs)} ${qv} got ${r[3]}?`,`${qv===('has')?'Have':'Has'} ${qs} got ${r[3]}?`],qok,R_HV,'Вопрос: <b>Has / Have</b> — первым, <b>got</b> остаётся после подлежащего');
+  if(k==='short'||k==='shortN'){const yes=k==='short',ans=yes?av:HV_NEG[av];return choiceQ(key,'Закончи короткий ответ',pic(r[1])+sent(`${esc(qok)}<br>${yes?'Yes':'No'}, ${apr} <span class="gap">?</span>.`),ans,yes?[av==='has'?'have':'has','is']:[av==='has'?"haven't":"hasn't","isn't"],`${yes?'Yes':'No'}, ${apr} ${ans}.`,R_HV,`${apr} → ${av}`)}
+  if(k==='words'){const neg2=Math.random()<.4;const toks=neg2?[r[0],neg,'got',...r[3].split(' '),'.']:[cap(qv),qs,'got',...r[3].split(' '),'?'];
+    return wordsQ(key,neg2?'Собери предложение: НЕТ у …':'Собери вопрос',pic(r[1])+sent(`${esc(r[0])} ${r[2]} got ${esc(r[3])}.`)+(neg2?yesNo(0):'<p class="ru">❓</p>'),toks,toks.join(' ').replace(' ?','?').replace(' .','.'),R_HV)}
+  if(k==='typeNeg')return typeQ(key,'Напиши отрицание сама',pic(r[1])+yesNo(0)+sent(`${esc(r[0])} <span class="gap">?</span> got ${esc(r[3])}.`),neg,[neg,r[2]+' not'],`${r[0]} ${neg} got ${r[3]}.`,R_HV);
+  return typeQ(key,'Напиши короткий ответ: No',pic(r[1])+sent(`${esc(qok)}<br>No, ${apr} <span class="gap">?</span>.`),HV_NEG[av],[HV_NEG[av],av+' not'],`No, ${apr} ${HV_NEG[av]}.`,R_HV);
+}
+function genCan(lv){
+  const k=pickOne(lv===0?['aff','aff','aff','qR']:lv===1?['neg','quest','short','short']:['words','words','typeShort','typeAff','quest']);
+  const r=pickOne(k==='neg'?CAN.filter(x=>!x[3]):(k==='quest'||k==='qR'||k==='words')?CAN.filter(x=>x[3]):CAN),v=r[3]?'can':"can't",qs=qSubj(r[0]),apr=ansPr(r[0]==='I'?'you':r[4]);
+  const key='can:'+k+':'+r[0]+r[2];
+  const qok=`Can ${qs} ${r[2]}?`;
+  if(k==='aff')return choiceQ(key,'Может или не может? can или can\'t',pic(r[1])+yesNo(r[3])+sent(`${esc(r[0])} <span class="gap">?</span> ${esc(r[2])}.`),v,[r[3]?"can't":'can',r[3]?'cans':'not can'],`${r[0]} ${v} ${r[2]}.`,R_CAN,r[3]?'Галочка ✅ — может → can':'Крестик ❌ — не может → can\'t');
+  if(k==='neg'){const ok=`${r[0]} can't ${r[2]}.`;return choiceQ(key,'Скажи, что НЕ может',pic(r[1])+yesNo(0)+sent(`${esc(r[0])} … ${esc(r[2])}?`),ok,[`${r[0]} can ${r[2]} not.`,`${r[0]} don't can ${r[2]}.`],ok,R_CAN,'can\'t ставим перед действием: can\'t swim')}
+  if(k==='quest'||k==='qR')return choiceQ(key,'Задай вопрос: какой правильный?',pic(r[1])+sent(`${esc(r[0])} can ${esc(r[2])}.`),qok,[`${cap(qs)} can ${r[2]}?`,`Does ${qs} can ${r[2]}?`],qok,R_CAN,'Вопрос: <b>Can</b> — на первом месте');
+  if(k==='short'){const ans=v;return choiceQ(key,'Закончи короткий ответ',pic(r[1])+yesNo(r[3])+sent(`${esc(qok)}<br>${r[3]?'Yes':'No'}, ${apr} <span class="gap">?</span>.`),ans,[r[3]?"can't":'can',r[3]?'is':"isn't"],`${r[3]?'Yes':'No'}, ${apr} ${ans}.`,R_CAN,r[3]?'Yes → can':'No → can\'t')}
+  if(k==='words'){const toks=['Can',qs,...r[2].split(' '),'?'];return wordsQ(key,'Собери вопрос',pic(r[1])+sent(`${esc(r[0])} can ${esc(r[2])}.`)+'<p class="ru">❓</p>',toks,toks.join(' ').replace(' ?','?'),R_CAN)}
+  if(k==='typeAff')return typeQ(key,'Напиши can или can\'t',pic(r[1])+yesNo(r[3])+sent(`${esc(r[0])} <span class="gap">?</span> ${esc(r[2])}.`),v,r[3]?['can']:["can't",'cannot','can not'],`${r[0]} ${v} ${r[2]}.`,R_CAN);
+  return typeQ(key,'Напиши короткий ответ',pic(r[1])+yesNo(r[3])+sent(`${esc(qok)}<br>${r[3]?'Yes':'No'}, ${apr} <span class="gap">?</span>.`),v,r[3]?['can']:["can't",'cannot','can not'],`${r[3]?'Yes':'No'}, ${apr} ${v}.`,R_CAN);
+}
 
 </script>
 
