@@ -368,7 +368,9 @@ button.opb.bad{animation:shake .4s}
 .okmsg{margin:0;color:var(--good);font-weight:900;font-size:19px}
 .win{margin:0;font-family:var(--display);font-weight:400;font-size:32px;color:var(--good)}
 .copy{overflow-x:auto;background:#fff;border:3px solid var(--blue);border-radius:14px;padding:8px 14px}
-.copy .bl{white-space:nowrap}.copy .tblc td{white-space:nowrap;padding:6px 8px}
+.copy .bl{white-space:nowrap;margin-bottom:10px}.copy .tblc td{white-space:nowrap;padding:6px 8px}
+.pen{color:#8A86A8;font-size:.85em;font-weight:700;margin:2px 0 0 6px}.tblc .pen{margin:2px 0 0;font-size:15px}
+.penl{margin:0;padding:10px 14px;font-size:20px;line-height:1.25;color:var(--ink);font-weight:900;background:#FFF4D6;border:3px dashed #E08A00;border-radius:14px}
 .copy u{text-decoration:none;display:inline-block;border-bottom:3px solid var(--trap);padding-bottom:2px}
 .copy .no{color:#A7A3C4}.copy .no .var{color:#A7A3C4}
 .acts{display:flex;flex-wrap:wrap;gap:12px}
@@ -526,7 +528,7 @@ function valueItem(expr,vars){
   steps.push({k:'order',q:'В каком порядке выполняем действия? Нажимай на знаки по порядку.',expr:s,ok:acts.map(x=>x.i),hints:ORDER_HINTS,why:orderWhy(s,acts),board:(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}</div>`});
   acts.forEach((x,n)=>{const st=calcStep(x.a,x.o,x.b,`<span class="cn">${CIRC[n+1]}</span>`);
     st.board=(vn.length?`<div class="bl">${exprHTML(expr)}</div>`:'')+`<div class="bl">${exprHTML(s,marks,{circles:1})}${n===acts.length-1?` <span class="tk">= ${x.r}</span>`:''}</div>`+acts.slice(0,n+1).map((y,k)=>`<div class="bl act"><span class="cn">${CIRC[k+1]}</span> <span class="ex">${y.a} ${y.o} ${y.b} = ${y.r}</span></div>`).join('');steps.push(st)});
-  return {start:`<div class="bl">${exprHTML(expr)}</div>`,steps,record:`${exprHTML(s)} <span class="tk">= ${acts[acts.length-1].r}</span>`};
+  return {start:`<div class="bl">${exprHTML(expr)}</div>`,steps,record:`${exprHTML(s,marks,{circles:1})} <span class="tk">= ${acts[acts.length-1].r}</span>`+(acts.length>1?acts.map((y,k)=>`<div class="pen">${CIRC[k+1]} <span class="ex">${y.a} ${y.o} ${y.b} = ${y.r}</span></div>`).join(''):'')};
 }
 const ORDER_HINTS=['Вспомни правило: сначала действия в скобках, потом умножение и деление, потом сложение и вычитание.','Смотри слева направо. Есть скобки? Если нет — найди умножение или деление.'];
 
@@ -709,7 +711,8 @@ function unitItem(o){
   const lines=[];const steps=[];
   seq.forEach(([st,line])=>{if(line){if(lines.length&&/qq/.test(lines[lines.length-1]))lines.pop();lines.push(line)}
     st.board=head+lines.map(L).join('')+(st===sf?L(o.expr+' = '+o.f[0].ok+' '+o.f[0].u+' '+o.f[1].ok+' '+o.f[1].u):'');steps.push(st)});
-  return {start:head,steps,record:o.expr+' = '+o.f[0].ok+' '+o.f[0].u+' '+o.f[1].ok+' '+o.f[1].u};
+  const pen=t=>`<div class="pen">${t}</div>`;
+  return {start:head,steps,record:o.expr+' = '+o.f[0].ok+' '+o.f[0].u+' '+o.f[1].ok+' '+o.f[1].u+pen(l1)+(o.convAfter?pen(l2)+pen(o.convDone):pen(o.convDone)+pen(l2))};
 }
 /* столбик таблицы «уменьшаемое − вычитаемое» */
 function diffItem(m,s){
@@ -720,7 +723,7 @@ function diffItem(m,s){
   if(typeof m!=='number'){const a=orderOf(m)[0];steps.push(Object.assign(calcStep(a.a,a.o,a.b,'Уменьшаемое:'),{board:`<div class="bl">${tbl(mv)}</div>`}))}
   const b=orderOf(s)[0];steps.push(Object.assign(calcStep(b.a,b.o,b.b,'Вычитаемое:'),{board:`<div class="bl">${tbl(mv,sv)}</div>`}));
   steps.push(Object.assign(calcStep(mv,'−',sv,'Разность:'),{hints:['Разность = уменьшаемое − вычитаемое.'].concat(calcHints(mv,'−',sv)),board:`<div class="bl">${tbl(mv,sv,mv-sv)}</div>`}));
-  return {start:`<div class="bl">${tbl()}</div>`,steps,record:'',col:[typeof m==='number'?String(m):exprHTML(m),exprHTML(s),String(mv-sv)]};
+  return {start:`<div class="bl">${tbl()}</div>`,steps,record:'',col:[typeof m==='number'?String(m):exprHTML(m)+`<div class="pen">= ${mv}</div>`,exprHTML(s)+`<div class="pen">= ${sv}</div>`,String(mv-sv)+`<div class="pen">${mv} − ${sv}</div>`]};
 }
 
 const T4_OK={op:'+',l:{op:'·',l:'5',r:'9'},r:{op:'·',l:'4',r:'7'}};
@@ -978,7 +981,7 @@ function finish(){
   const cols=R.ex.items.map(i=>i.col).filter(Boolean);
   if(cols.length)rec=[`<table class="tblc">${['Уменьшаемое','Вычитаемое','Разность'].map((h,r)=>`<tr><th>${h}</th>${cols.map(c=>`<td>${r===2?'<b>'+c[r]+'</b>':c[r]}</td>`).join('')}</tr>`).join('')}</table>`];
   $('#stepc').innerHTML=`<h3 class="win">⭐ Упражнение ${R.ex.n} решено!</h3>
-  ${rec.length?`<p class="sub">Перепиши в тетрадь</p><div class="copy">${rec.map(r=>`<div class="bl">${r}</div>`).join('')}</div>`:'<p class="sub">Перепиши решение из рамки выше в тетрадь.</p>'}
+  ${rec.length?`<p class="sub">Перепиши в тетрадь</p>${rec.join('').includes('class="pen"')?'<p class="penl">✏️ ПРОМЕЖУТОЧНЫЕ ОТВЕТЫ (СЕРЫЕ) ПЕРЕПИШИ КАРАНДАШОМ В ТЕТРАДЬ!</p>':''}<div class="copy">${rec.map(r=>`<div class="bl">${r}</div>`).join('')}</div>`:'<p class="sub">Перепиши решение из рамки выше в тетрадь.</p>'}
   <div class="acts">${next?`<button class="btn" id="nx">Упражнение ${next.n} →</button>`:'<p class="okmsg">Вся страница решена! Молодец!</p>'}<button class="btn ghost" id="tp">К упражнениям</button></div>`;
   if(next)$('#nx').onclick=()=>run(R.b,R.p,next.n);
   $('#tp').onclick=()=>page(R.b,R.p);
