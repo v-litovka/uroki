@@ -268,6 +268,26 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--ink);outline-of
 #sfx .mute{display:none}#sfx[aria-pressed="false"]{background:var(--ghost)}#sfx[aria-pressed="false"] .mute{display:inline}#sfx[aria-pressed="false"] .wave{display:none}
 .stars{margin-left:auto;display:flex;align-items:center;gap:6px;height:46px;padding:0 14px;border-radius:999px;border:3px solid var(--ink);background:var(--sun);box-shadow:3px 3px 0 var(--ink);font-weight:900;font-size:20px}
 .stars small:empty{display:none}.stars small{font-size:12px;background:var(--ink);color:#fff;border-radius:8px;padding:1px 6px}
+.strip{flex:1;min-width:0;min-height:46px;display:flex;align-items:center;gap:10px;padding:4px 12px;border:3px solid var(--ink);border-radius:14px;background:var(--paper);box-shadow:3px 3px 0 var(--ink)}
+.strip[hidden]{display:none}
+.clock{font-weight:900;font-size:22px;font-variant-numeric:tabular-nums;min-width:3.6em}.clock.soon{color:#C26A00}.clock.over{color:var(--trap)}
+.goal{flex:1;min-width:0;display:grid;gap:3px;font-size:13px;font-weight:800;line-height:1.15}
+.gbar{height:12px;border:2px solid var(--ink);border-radius:99px;background:var(--ghost);overflow:hidden}.gbar i{display:block;height:100%;width:0;background:var(--good);transition:width .4s}
+body.playing .stars{margin-left:0;padding:0 10px;font-size:18px}body.playing .stars small{display:none}
+.top{gap:8px}.strip{gap:8px;padding:4px 10px}.goal span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){.clock{font-size:19px;min-width:3.2em}.goal{font-size:11.5px}}
+.settings{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;margin:20px 0 0;padding:14px 16px;border:3px dashed var(--muted);border-radius:18px;background:rgba(255,253,248,.8)}
+.set{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.setl{font-family:var(--display);font-size:22px}.setu{color:var(--muted);font-size:14px}
+.stepper{display:flex;align-items:center;border:3px solid var(--ink);border-radius:14px;background:var(--paper);overflow:hidden}
+.stepper button{width:44px;height:44px;border:0;background:var(--sun);font-weight:900;font-size:24px}
+.stepper output{min-width:4.4em;text-align:center;font-weight:900;font-size:20px}
+.snote{flex-basis:100%;margin:0;font-size:14px;color:var(--muted)}
+.hist{margin-top:22px;overflow-x:auto}.hist h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 8px}
+.hist table{border-collapse:collapse;width:100%;font-size:14px;background:var(--paper);border:3px solid var(--ink)}.hist th,.hist td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--ghost);white-space:nowrap}
+.okc{color:var(--good);font-weight:900}
+.lvup{display:flex;align-items:center;gap:12px;border:3px solid var(--sun);background:#FFF6CC;border-radius:16px;padding:8px 12px;font-weight:800}.lvup b{font-family:var(--display);font-weight:400;font-size:26px}
+.lvprog{margin:0;font-size:13px;color:var(--muted);text-align:center}
+.sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}.sum div{border:3px solid var(--ink);border-radius:14px;background:#fff;padding:8px 4px;display:grid}.sum b{font-size:24px}.sum span{font-size:12px;color:var(--muted)}
 .hub{display:inline-block;margin:2px 0 6px;font-size:15px;font-weight:900;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:10px;padding:4px 10px;background:var(--paper)}
 .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(36px,9vw,56px);line-height:1;margin:6px 0 8px}
 .hero p{margin:0 0 16px;color:var(--muted);max-width:56ch}
@@ -360,6 +380,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--ink);outline-of
 <div class="ground" aria-hidden="true"></div>
 <main class="app">
 <div class="top"><button class="iconbtn" id="home" aria-label="К темам"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg></button>
+<div class="strip" id="strip" hidden><span class="clock" id="clk">15:00</span><div class="goal"><span id="glbl">0 из 20</span><div class="gbar"><i id="gbar"></i></div></div></div>
 <div class="stars">⭐ <span id="starN">0</span><small id="lvlN"></small></div>
 <button class="iconbtn" id="sfx" aria-label="Звук" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="wave" d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/><path class="mute" d="m17 9 5 6m0-6-5 6"/></svg></button></div>
 <div id="view"></div>
@@ -589,7 +610,7 @@ const catFor=(txt,moodV,moodW,sz)=>/Вир/.test(txt)?vira(moodV,sz||60):wendy(m
 
 /* ===== English with Vira & Wendy: движок ===== */
 const store={get(){try{return JSON.parse(localStorage.getItem('english3'))||{}}catch(e){return {}}},set(v){try{localStorage.setItem('english3',JSON.stringify(v))}catch(e){}}};
-const S=Object.assign({stars:0,lv:{},sel:['pron'],done:{},sfx:true,voice:true},store.get());
+const S=Object.assign({stars:0,lv:{},sel:['pron'],done:{},sfx:true,voice:true,minutes:15,goal:20,history:[]},store.get());
 const save=()=>store.set(S);
 const $=s=>document.querySelector(s);
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -696,7 +717,8 @@ function genQ(topic){const lv=S.lv[topic]||0;return topic==='pron'?genPron(lv):t
 const view=()=>$('#view');
 function updStars(){$('#starN').textContent=S.stars;const n=levelOf(S.stars);$('#lvlN').textContent=n?'ур. '+n:''}
 function menu(){
-  R=null;updStars();
+  if(R&&R.t0&&!R.done){finish('stop');return}
+  R=null;clearInterval(TICK);$('#strip').hidden=true;document.body.classList.remove('playing');updStars();
   view().innerHTML=`<section class="hero"><a class="hub" href="../">← Все игры</a>
     <div class="cats">${vira('happy',96)}${wendy('happy',84)}</div>
     <h1>English с Вирой и Венди</h1>
@@ -705,22 +727,55 @@ function menu(){
       return `<div class="tw"><button class="topic${t.id==='pron'?' star':''}" data-t="${t.id}" aria-pressed="${on}" style="--c:${t.c}">
         <span class="tpic">${t.pic}</span><span class="tn">${t.id==='pron'?'Главное!':t.n==='★'?'Грамматика':'Unit '+t.n}</span><b class="ten">${t.en}</b><span class="tru">${t.ru}</span><span class="tdone">решено: ${d}</span><span class="tck">✓</span></button>
         <div class="lvrow">${LVN.map((n,j)=>`<button class="lvb" data-t="${t.id}" data-l="${j}" aria-pressed="${lv===j}">${n}</button>`).join('')}</div><p class="lvd">${ld}</p></div>`}).join('')}</div>
-    <div class="menu-actions"><button class="btn big" id="go">Поехали! 10 заданий</button>
+    <div class="settings">
+      <div class="set"><span class="setl">Время</span><div class="stepper"><button id="tM" aria-label="Меньше минут">−</button><output id="tV"></output><button id="tP" aria-label="Больше минут">+</button></div></div>
+      <div class="set"><span class="setl">Цель</span><div class="stepper"><button id="gM" aria-label="Меньше ответов">−</button><output id="gV"></output><button id="gP" aria-label="Больше ответов">+</button></div><span class="setu">правильных</span></div>
+      <p class="snote" id="sN"></p></div>
+    <div class="menu-actions"><button class="btn big" id="go">Начать занятие</button>
     <label class="tog"><input type="checkbox" id="vc" ${S.voice?'checked':''}> озвучка слов 🔊</label></div>`;
   view().querySelectorAll('.topic').forEach(b=>b.onclick=()=>{const t=b.dataset.t,i=S.sel.indexOf(t);if(i>=0){if(S.sel.length>1)S.sel.splice(i,1)}else S.sel.push(t);save();b.setAttribute('aria-pressed',S.sel.includes(t));play('tap')});
   view().querySelectorAll('.lvb').forEach(b=>b.onclick=()=>{S.lv[b.dataset.t]=+b.dataset.l;if(!S.sel.includes(b.dataset.t))S.sel.push(b.dataset.t);save();menu()});
   $('#vc').onchange=e=>{S.voice=e.target.checked;save()};
+  const sync=()=>{$('#tV').textContent=S.minutes+' мин';$('#gV').textContent=S.goal;$('#sN').textContent=`Если за ${S.minutes} мин будет меньше ${S.goal} правильных, игра даст добавочное время и покажет, сколько ответов осталось до финиша.`;save()};
+  const bump=(id,f)=>{$(id).onclick=()=>{f();sync();play('tap')}};
+  bump('#tM',()=>S.minutes=Math.max(5,S.minutes-5));bump('#tP',()=>S.minutes=Math.min(60,S.minutes+5));
+  bump('#gM',()=>S.goal=Math.max(5,S.goal-5));bump('#gP',()=>S.goal=Math.min(100,S.goal+5));sync();
+  const h=(S.history||[]).slice(0,5);
+  if(h.length)view().insertAdjacentHTML('beforeend',`<div class="hist"><h3>Прошлые занятия</h3><table><tr><th>Когда</th><th>Правильных</th><th>Ошибок</th><th>Время</th></tr>${h.map(x=>{const d=new Date(x.d);return `<tr><td>${d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}, ${d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</td><td class="${x.c>=x.g?'okc':''}">${x.c} из ${x.g}</td><td>${x.w}</td><td>${mmss(x.t)}${x.k==='stop'?' · остановлено':''}</td></tr>`}).join('')}</table></div>`);
   $('#go').onclick=start;scrollTo(0,0);
 }
 let R=null;
-function start(){R={n:0,total:10,ok:0,bad:0,seen:new Set()};next()}
+let TICK=null;
+const mmss=t=>{t=Math.max(0,Math.round(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+function start(){R={n:0,ok:0,bad:0,seen:new Set(),t0:Date.now(),lim:S.minutes*60,done:false,learned:0};
+  $('#strip').hidden=false;document.body.classList.add('playing');clearInterval(TICK);TICK=setInterval(tick,1000);tick();next()}
+function elapsed(){return (Date.now()-R.t0)/1000}
+function tick(){
+  if(!R||R.done)return;
+  const left=R.lim-elapsed(),c=$('#clk');
+  if(left>0){c.textContent=mmss(left);c.className='clock'+(left<60?' soon':'')}
+  else{c.textContent='+'+mmss(-left);c.className='clock over'}
+  const g=Math.min(1,R.ok/S.goal);$('#gbar').style.width=g*100+'%';
+  $('#glbl').textContent=R.ok>=S.goal?`Цель есть! ${R.ok} правильных`:`${R.ok} из ${S.goal} правильных`;
+}
 function next(){
-  if(R.n>=R.total)return finish();
+  if(R.done)return;
+  const left=R.lim-elapsed();
+  if(left<=0&&R.ok>=S.goal)return finish('ok');
+  if(left<=0&&!R.extraShown){R.extraShown=true;return extra()}
   let q,t;for(let k=0;k<12;k++){t=pickOne(S.sel);q=genQ(t);if(!R.seen.has(q.key))break}
   R.seen.add(q.key);q.topic=t;R.n++;R.q=q;R.tries=0;R.fail=false;
   render(q);
 }
-function head(){const t=TOPICS.find(x=>x.id===R.q.topic);return `<div class="rtop"><span class="kick" style="color:${t.c}">${t.id==='pron'?'Местоимения':t.n==='★'?t.en:'Unit '+t.n+' · '+t.en}</span><span class="cnt">${R.n} / ${R.total}</span></div><div class="pbar"><i style="width:${(R.n-1)/R.total*100}%"></i></div>`}
+function extra(){
+  const need=S.goal-R.ok;play('meow');
+  view().innerHTML=`<div class="card fin"><p class="kick" style="color:var(--trap)">Время вышло</p><div class="cats">${vira('wow',90)}${wendy('sly',80)}</div>
+   <h2>Ещё ${need} ${plural(need,'правильный ответ','правильных ответа','правильных ответов')}<br>${plural(need,'остался','осталось','осталось')}, чтобы закончить</h2>
+   <p class="big2">Цель на сегодня — ${S.goal}. Добиваем, и занятие закончится само. Вира уже ждёт рыбку!</p><button class="btn big" id="xg">Добиваем!</button></div>`;
+  $('#xg').onclick=next;
+}
+const plural=(n,a,b,c)=>{const m=n%10,h=n%100;return m===1&&h!==11?a:(m>=2&&m<=4&&(h<12||h>14)?b:c)};
+function head(){const t=TOPICS.find(x=>x.id===R.q.topic);return `<div class="rtop"><span class="kick" style="color:${t.c}">${t.id==='pron'?'Местоимения':t.n==='★'?t.en:'Unit '+t.n+' · '+t.en}</span><span class="cnt">задание ${R.n}</span></div>`}
 function render(q){
   if(q.kind==='steps'){R.si=R.si||0;const st=Object.assign({kind:'choice',rule:q.rule,pr:q.pr},q.steps[R.si]);return renderChoice(st,true)}
   if(q.kind==='choice')return renderChoice(q);
@@ -813,23 +868,35 @@ function wrong(){
 function good(){
   const q=R.q;play('ok');say(q.say);
   const first=!R.fail;
-  if(first){S.stars++;R.ok++;S.done[q.topic]=(S.done[q.topic]||0)+1;save();updStars()}else R.bad++;
+  let lvUp='';
+  if(first){const before=levelOf(S.stars);S.stars++;R.ok++;S.done[q.topic]=(S.done[q.topic]||0)+1;save();updStars();tick();
+    const n=levelOf(S.stars);if(n>before){lvUp=`<div class="lvup">${vira('eat',64)}<div><b>Уровень ${n}!</b><br>Вира устроила праздник и съела торт 🎂</div></div>`;setTimeout(()=>play('fin'),400)}}
+  else R.bad++;
+  const nl=levelOf(S.stars),la=lvlAt(nl),lb=lvlAt(nl+1);
   const fb=$('#fb');
-  const co=first?pickOne(CAT_OK):'Исправлено! Это ещё повторим 💪';fb.innerHTML=`<div class="fb ok">${first?catFor(co,pickOne(['happy','eat']),'happy',60):wendy('happy',54)}<div><p>${first?co+' +1 ⭐':co}</p>${q.sentFill?`<p class="sent sm">${esc(q.sentFill.replace('___',q.ans))}</p>`:''}</div></div><button class="btn" id="nx">Дальше →</button>`;
+  const co=first?pickOne(CAT_OK):'Исправлено! Это ещё повторим 💪';fb.innerHTML=`<div class="fb ok">${first?catFor(co,pickOne(['happy','eat']),'happy',60):wendy('happy',54)}<div><p>${first?co+' +1 ⭐':co}</p>${q.sentFill?`<p class="sent sm">${esc(q.sentFill.replace('___',q.ans))}</p>`:''}</div></div>${lvUp}<p class="lvprog">Уровень ${nl}. До уровня ${nl+1}: ${S.stars-la} из ${lb-la} ⭐, осталось ${lb-S.stars}</p><button class="btn" id="nx">Дальше →</button>`;
   R.si=0;$('#nx').onclick=next;try{$('#nx').focus({preventScroll:true})}catch(e){}
 }
-function finish(){
-  play('fin');
-  const pct=Math.round(R.ok/R.total*100);
-  view().innerHTML=`<div class="card fin"><div class="cats">${vira(pct>=70?'eat':'sleep',110)}${wendy(pct>=70?'happy':'sly',96)}</div>
-    <h2>${pct>=90?'Super! Вира в восторге!':pct>=70?'Very good! Венди довольна!':pct>=40?'Good try! Вира уснула, но верит в тебя!':'Вира решила поваляться… Давай ещё раз!'}</h2>
-    <p class="big2">Правильно с первого раза: <b>${R.ok} из ${R.total}</b></p>
-    <div class="acts"><button class="btn" id="again">Ещё 10!</button><button class="btn ghost" id="tm">К темам</button></div></div>`;
-  $('#again').onclick=start;$('#tm').onclick=menu;
+function finish(kind){
+  if(!R||R.done)return;R.done=true;clearInterval(TICK);
+  const total=elapsed();
+  S.history=[{d:Date.now(),c:R.ok,g:S.goal,w:R.bad,t:total,k:kind}].concat(S.history||[]).slice(0,30);save();
+  $('#strip').hidden=true;document.body.classList.remove('playing');
+  if(kind!=='stop')play('fin');
+  const extraT=Math.max(0,total-R.lim);
+  const head=kind==='stop'?'Занятие остановлено':extraT>1?'Цель выполнена!':'Цель выполнена вовремя!';
+  const sub=kind==='stop'?`Сделано ${R.ok} из ${S.goal} правильных за ${mmss(total)}.`:extraT>1?`${R.ok} правильных: ${S.minutes} мин и ещё ${mmss(extraT)} добавочного времени.`:`${R.ok} правильных за ${S.minutes} мин.`;
+  const acc=R.ok+R.bad?Math.round(R.ok/(R.ok+R.bad)*100):0;
+  view().innerHTML=`<div class="card fin"><p class="kick">Итоги занятия</p><div class="cats">${vira(kind==='stop'?'sleep':'eat',110)}${wendy(kind==='stop'?'sly':'happy',96)}</div>
+    <h2>${head}</h2><p class="big2">${sub}</p>
+    <div class="sum"><div><b>${R.ok}</b><span>правильных</span></div><div><b>${R.bad}</b><span>${plural(R.bad,'ошибка','ошибки','ошибок')}</span></div><div><b>${acc}%</b><span>точность</span></div><div><b>${mmss(total)}</b><span>время</span></div></div>
+    <p class="big2">${kind==='stop'?'Вира решила поваляться… В следующий раз добьём!':acc>=90?'Super! Вира в восторге и требует рыбку!':acc>=70?'Very good! Венди довольна!':'Good try! Вира верит в тебя!'}</p>
+    <div class="acts"><button class="btn" id="again">Ещё занятие</button><button class="btn ghost" id="tm">К темам</button></div></div>`;
+  $('#again').onclick=start;$('#tm').onclick=()=>{R=null;menu()};
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const sb=$('#sfx');sb.setAttribute('aria-pressed',S.sfx?'true':'false');sb.onclick=()=>{S.sfx=!S.sfx;save();sb.setAttribute('aria-pressed',S.sfx?'true':'false')};
-  $('#home').onclick=menu;menu();
+  $('#home').onclick=()=>menu();menu();
 });
 
 /* ===== Грамматика: to be / have got / can — утверждение, отрицание, вопрос ===== */
