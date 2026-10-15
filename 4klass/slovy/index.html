@@ -471,6 +471,18 @@ b.big{font-size:1.3em;color:var(--accent)}
 .lvtoast{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:12px;padding:12px 20px;border:4px solid var(--ink);border-radius:20px;background:#FFF1C2;box-shadow:5px 5px 0 var(--ink);font-family:var(--display);font-size:28px;white-space:nowrap;animation:lvin .4s ease-out}
 .lvtoast svg{width:44px;height:44px;animation:spin 6s linear infinite}
 @keyframes lvin{from{transform:translate(-50%,-30px);opacity:0}}
+.stw{display:grid;gap:6px;align-content:start;min-width:0}
+.lvrow{display:flex;border:3px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--paper)}
+.lvb2{flex:1;border:0;border-right:2px solid var(--ink);background:var(--paper);font-weight:900;font-size:13px;padding:7px 4px;min-height:36px}
+.lvb2:last-child{border-right:0}.lvb2[aria-pressed="true"]{background:var(--sun)}
+.lvd{margin:0;font-size:12px;color:var(--muted);line-height:1.25;padding:0 4px}
+.tli{flex:0 1 140px;text-align:center}
+.cells{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0}
+.cell{width:clamp(28px,calc((100vw - 110px) / 9),44px);height:56px;padding:0;border:0;border-bottom:5px solid var(--ink);border-radius:10px 10px 0 0;background:#fff;text-align:center;font-family:var(--display);font-size:34px;color:var(--ink)}
+.cell:focus{outline:3px solid var(--accent);outline-offset:1px}
+.cell.ok{border-color:var(--good);color:var(--good);background:#E3F6EA}
+.cell.no{border-color:var(--trap);color:var(--trap);background:#FFE3DC}
+.word .ok{color:var(--good)}
 .hub{display:inline-block;margin:2px 0 6px;font-family:var(--body,system-ui);font-size:15px;font-weight:900;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:10px;padding:4px 10px;background:var(--paper,#fff)}
 </style>
 </head>
@@ -829,6 +841,67 @@ function lessonHTML(it){
 }
 function ruleFor(it){return RULES[it.type]}
 
+/* ===== 4 класс: словарные слова (уровни: выбрать / напечатать букву / всё слово) ===== */
+const T2={"letterAsk": "Устаў літару", "typeAsk": "Надрукуй прапушчаную літару", "ph": "літара", "ready": "Паглядзі на слова і запомні. Зараз яно схаваецца — напішаш яго цалкам.", "readyBtn": "Пішу слова!", "spellAsk": "Напішы слова цалкам", "check": "Праверыць", "look": "Паглядзець слова", "fixed": "Выпраўлена! Гэта слова яшчэ паўторым", "wrongCells": "Чырвоныя літары — няправільныя. Выпраў толькі іх.", "look2": "Не атрымліваецца? Можна падгледзець слова.", "remember": "слоўнікавае слова — запомні!"};
+const DICT4=[["па_тальён", "шт", "чт"], ["тэлегра_а", "м", "мм"], ["г_мець", "ры", "рэ"], ["пл_вец", "ы", "о"], ["б_рэт", "е", "э"], ["ах_отна", "в", "ф"], ["гара_ане", "дж", "ж"], ["_летку", "у", "ў"], ["сё_я", "нн", "н"], ["с_кунда", "е", "я"], ["лед_ве", "зь", "з"], ["бал_рына", "е", "я"]];
+const DSTREET={id:'dict',name:'Слоўнікавыя словы',sign:'Запомні',c:'#E2557A',desc:'12 слоў з падручніка: паштальён, тэлеграма, сёння…'};
+const DRULE={title:'Слоўнікавае слова',text:'Слоўнікавае слова <b>нельга праверыць</b> — яго запамінаюць. Прачытай слова <b>па складах так, як яно пішацца</b>, і запомні цяжкую літару.'};
+
+function LV(k){return (S.lv&&S.lv[k])||0}
+let SPELL_ERR=false;
+const pl4=(w,l)=>w.replace('_',l);
+const gap4=w=>`<div class="word">${w.replace('_','<span class="gap">?</span>')}</div>`;
+const nch=c=>String(c).toLowerCase().replace(/ё/g,'е');
+function dictType(it,show){
+  const sp=[{ask:T2.typeAsk,show,typeL:true,ans:it.l}];
+  if(LV(it.street)===2)sp.push({ask:T2.spellAsk,show:'',spell:true,ans:pl4(it.w,it.l),word:pl4(it.w,it.l)});
+  return sp;
+}
+function typeLUI(sp,done,fail){
+  const box=document.getElementById('tl');
+  box.innerHTML=`<form class="inrow" id="tlf" autocomplete="off"><input id="tli" class="inp tli" type="text" maxlength="${sp.ans.length}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${T2.ph}" aria-label="${T2.ph}"><button class="btn" type="submit"><span class="lbl">${T2.check}</span></button></form>`;
+  const inp=document.getElementById('tli');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
+  document.getElementById('tlf').addEventListener('submit',e=>{e.preventDefault();const v=nch(inp.value.trim());if(!v){inp.focus();return}
+    if(v===nch(sp.ans)){inp.disabled=true;inp.classList.add('right');done()}else{inp.classList.add('bad');fail(inp.value.trim())}});
+}
+function spellUI(sp,done){
+  const box=document.getElementById('tl'),w=sp.word,chars=[...w];let tries=0;
+  box.innerHTML=`<div class="word">${esc(w)}</div><p class="note">${T2.ready}</p><button class="btn big" id="rdy"><span class="lbl">${T2.readyBtn}</span></button>`;
+  document.getElementById('rdy').addEventListener('click',phaseB);
+  function phaseB(){
+    box.innerHTML=`<div class="cells" id="cells">${chars.map((c,j)=>`<input class="cell" data-j="${j}" maxlength="2" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="${j+1}">`).join('')}</div>
+      <p class="soft" id="cmsg" aria-live="polite"></p><div class="inrow"><button class="btn" id="cchk"><span class="lbl">${T2.check}</span></button></div><div id="lookw"></div>`;
+    const cells=[...box.querySelectorAll('.cell')];
+    const nextFree=(k,dir)=>{for(let m=k+dir;m>=0&&m<cells.length;m+=dir)if(!cells[m].disabled)return cells[m];return null};
+    cells.forEach((c,k)=>{
+      c.addEventListener('input',()=>{c.value=c.value.slice(-1);c.classList.remove('no');if(c.value){const n=nextFree(k,1);if(n)n.focus()}});
+      c.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!c.value){const p=nextFree(k,-1);if(p){p.value='';p.focus();e.preventDefault()}}else if(e.key==='Enter'){e.preventDefault();check()}});
+    });
+    setTimeout(()=>{try{cells[0].focus()}catch(e){}},60);
+    document.getElementById('cchk').addEventListener('click',check);
+    function check(){
+      const empty=cells.find(c=>!c.disabled&&!c.value);if(empty){empty.focus();shake(empty);return}
+      let bad=0;cells.forEach(c=>{const j=+c.dataset.j;if(nch(c.value)===nch(chars[j])){c.disabled=true;c.classList.add('ok');c.classList.remove('no')}else{bad++;c.classList.add('no')}});
+      if(!bad){if(tries)SPELL_ERR=true;done();return}
+      tries++;play('stepWrong');document.getElementById('cmsg').textContent=T2.wrongCells;
+      const f=cells.find(c=>!c.disabled);if(f){f.focus();f.select&&f.select()}
+      if(tries>=2&&!document.getElementById('lkb')){document.getElementById('lookw').innerHTML=`<p class="note">${T2.look2}</p><button class="link" id="lkb">${T2.look}</button>`;
+        document.getElementById('lkb').addEventListener('click',()=>{const c=document.getElementById('cells');if(document.getElementById('peek'))return;c.hidden=true;
+          c.insertAdjacentHTML('beforebegin',`<div class="word" id="peek">${esc(w)}</div>`);
+          setTimeout(()=>{const p=document.getElementById('peek');if(p)p.remove();c.hidden=false;const f2=cells.find(x=>!x.disabled);if(f2)f2.focus()},3000)})}
+    }
+  }
+}
+
+DICT4.forEach(([w,l,alt])=>add('dict',{type:'dict',w,l,alt,label:`${w} → ${pl4(w,l)}`}));
+STREETS.unshift(DSTREET);
+RULES.dict=DRULE;
+const _ms4=mainSpecs,_sv4=solved,_tv4=taskView;
+mainSpecs=function(it){if(it.type!=='dict')return _ms4(it);
+  return LV(it.street)===0?[{ask:T2.letterAsk,show:gap4(it.w),opts:shuffle([it.l,it.alt]),ans:it.l,letters:1}]:dictType(it,gap4(it.w));};
+solved=function(it){if(it.type!=='dict')return _sv4(it);return `<div class="word">${it.w.replace('_','<span class="ok">'+it.l+'</span>')}</div><p class="why">${T2.remember}</p>`};
+taskView=function(it){if(it.type!=='dict')return _tv4(it);return gap4(it.w)};
+
 /* =================== ДВИЖОК =================== */
 const store={get(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
 const S=Object.assign({box:{},stars:0,streets:["adn", "case", "skl"],minutes:15,goal:20,history:[],sfx:true},store.get()||{});
@@ -901,14 +974,14 @@ function levelBox(before,after){
 }
 function updateStars(){$('#starN').textContent=S.stars;const n=levelOf(S.stars);$('#lvlN').textContent=n?'узр. '+n:'';}
 function addStar(){const b=levelOf(S.stars);S.stars++;save();updateStars();if(SES)SES.stars++;const n=levelOf(S.stars);if(n>b){lvToast(n);setTimeout(()=>play('finish'),300);}}
-function boxId(it){return it.id}
+function boxId(it){if(it.type==='dict'&&LV(it.street))return 'D'+LV(it.street)+it.id;return it.id}
 function setBox(id,ok){const b=S.box[id]||0;S.box[id]=ok?Math.min(2,b+1):0;save();
   if(SES&&ok&&b<2&&S.box[id]===2)SES.learned.add(id);if(SES&&!ok)SES.learned.delete(id);return S.box[id];}
 
 /* ---------- одна или несколько ступенек вопроса ---------- */
 /* specs выполняются по очереди; cb(true) — всё верно; cb(false, ступенька) — ошибка */
 function runSpecs(specs,head,cb){
-  let i=0;const vals=[];
+  SPELL_ERR=false;let i=0;const vals=[];
   function draw(){
     const sp=specs[i];window.__CUR=sp;
     stage.innerHTML=`<div class="card" id="qcard">
@@ -916,12 +989,13 @@ function runSpecs(specs,head,cb){
       ${specs.length>1?`<div class="progress-dots">${specs.map((_,j)=>`<i class="${j<i?'on':''}"></i>`).join('')}</div>`:''}
       <p class="ask">${sp.ask}</p>
       ${typeof sp.show==='function'?sp.show(vals):(sp.show||'')}
-      ${sp.num?`<form class="inrow" id="inform" autocomplete="off"><input id="inp" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="ответ" aria-label="Ответ числом"><button class="btn" type="submit"><span class="lbl">Праверыць</span></button></form><p class="soft" id="soft" aria-live="polite"></p>`
+      ${sp.typeL||sp.spell?'<div id="tl"></div>':sp.num?`<form class="inrow" id="inform" autocomplete="off"><input id="inp" class="inp" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="ответ" aria-label="Ответ числом"><button class="btn" type="submit"><span class="lbl">Праверыць</span></button></form><p class="soft" id="soft" aria-live="polite"></p>`
         :sp.cards?`<div class="opts cards" id="opts">${sp.cards.map((c,j)=>`<button class="opt sch" data-v="${c.v}" aria-label="Схема ${j+1}"><span class="k">${j+1}</span>${c.html}</button>`).join('')}</div>`
         :`<div class="opts${sp.letters?' letters':''}${sp.long||sp.opts.some(o=>o.length>11)?' long':''}" id="opts" lang="ru">${sp.opts.map((o,j)=>`<button class="opt" data-v="${esc(o)}"><span class="k">${j+1}</span>${esc(o)}</button>`).join('')}</div>`}
       ${sp.note?`<p class="note">${sp.note}</p>`:''}
     </div>`;
-    if(sp.num){
+    if(sp.typeL||sp.spell){KEYS=null;if(sp.spell)spellUI(sp,()=>{vals[i]=sp.ans;ok()});else typeLUI(sp,()=>{vals[i]=sp.ans;ok()},v=>bad(v));}
+    else if(sp.num){
       KEYS=null;const inp=$('#inp');setTimeout(()=>{try{inp.focus()}catch(err){}},50);
       $('#inform').addEventListener('submit',ev2=>{
         ev2.preventDefault();const v=inp.value.replace(/\D/g,'');
@@ -971,6 +1045,8 @@ function newRound(){
   runSpecs(mainSpecs(it),`<p class="kicker" style="color:${st.c}">${st.name}</p><p class="task">${it.inst.text}</p>`,(ok,v)=>answered(it,ok,v));
 }
 function answered(it,ok,v){
+  if(ok&&SPELL_ERR){SPELL_ERR=false;setBox(boxId(it),false);noteAnswer(false,it);play('step');
+    stage.innerHTML=`<div class="card"><p class="verdict" style="color:#B05A00">${T2.fixed}</p>${solved(it)}${nextBtn('Далей')}</div>`;armNext($('#next'),newRound,2,'Далей');return}
   const box=setBox(boxId(it),ok);
   noteAnswer(ok,it);
   if(!ok){
@@ -1094,11 +1170,12 @@ function renderMenu(){
       const xs=ITEMS.filter(x=>x.street===st.id),t=xs.length;
       const k=xs.filter(x=>(S.box[boxId(x)]||0)===2).length,a=xs.filter(x=>(S.box[boxId(x)]||0)===1).length;
       const on=S.streets.includes(st.id);
-      return `<button class="street" data-s="${st.id}" aria-pressed="${on}" style="--c:${st.c}">
+      const cur=LV(st.id),hasL=st.id==='dict';
+      return `<div class="stw"><button class="street" data-s="${st.id}" aria-pressed="${on}" style="--c:${st.c}">
         <span class="check">${CHECK}</span><span class="sign">${st.sign}</span>
         <span class="sname">${st.name}</span><span class="sdesc">${st.desc}</span>
         <span class="bar"><i style="width:${k/t*100}%;background:var(--good)"></i><i style="width:${a/t*100}%;background:var(--almost)"></i></span>
-        <span class="cnt">ведаю ${k} з ${t}${a?`, амаль — ${a}`:''}</span></button>`;}).join('')}</div>
+        <span class="cnt">ведаю ${k} з ${t}${a?`, амаль — ${a}`:''}</span></button>${hasL?`<div class="lvrow" role="group" aria-label="Узровень">${['лёгкі','сярэдні','складаны'].map((n,j)=>`<button class="lvb2" data-s="${st.id}" data-l="${j}" aria-pressed="${cur===j}">${n}</button>`).join('')}</div><p class="lvd">${['Выбраць літару з дзвюх','Надрукаваць літару','Літара, потым усё слова па памяці'][cur]}</p>`:''}</div>`;}).join('')}</div>
     <div class="legend"><span><i style="background:var(--ghost)"></i>не ведаю</span><span><i style="background:var(--almost)"></i>амаль ведаю</span><span><i style="background:var(--good)"></i>ведаю</span></div>
     <div class="settings">
       <div class="set"><span class="setl">Час</span><div class="step"><button id="tMinus" aria-label="Менш хвілін">−</button><output id="tVal"></output><button id="tPlus" aria-label="Больш хвілін">+</button></div></div>
@@ -1119,6 +1196,7 @@ function renderMenu(){
   bump('#gMinus',()=>S.goal=Math.max(5,S.goal-5));bump('#gPlus',()=>S.goal=Math.min(100,S.goal+5));
   syncSet();
   $('#cheat').addEventListener('click',showCheat);
+  stage.querySelectorAll('.lvb2').forEach(b=>b.addEventListener('click',()=>{S.lv=S.lv||{};S.lv[b.dataset.s]=+b.dataset.l;save();renderMenu();}));
   $('#play').addEventListener('click',startSession);
   const rs=$('#reset');let armed=false;
   rs.addEventListener('click',()=>{
