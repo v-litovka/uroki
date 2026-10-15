@@ -508,7 +508,7 @@ const PRON_SUBJ=[ /* [что, картинка, местоимение, по-р�
  ['Vira','🐄🐱','She','Вира'],['Wendy','🐈','She','Венди'],['Vira and Wendy','🐱🐱','They','Вира и Венди'],['the ball','⚽','It','мяч'],
  ['the house','🏠','It','дом'],['Mike','👦','He','Майк'],['Liz','👧','She','Лиз'],['Mike and Liz','👦👧','They','Майк и Лиз'],
  ['my uncle','🧔','He','мой дядя'],['my auntie','👩‍🦰','She','моя тётя'],['the cake','🎂','It','торт'],['my cousins','👧👦','They','мои двоюродные'],
- ['the baby','👶','He','малыш'],['Mike and I','👦🙋','We','Майк и я'],['my dog','🐶','It','моя собака'],['the children','🧒🧒🧒','They','дети']];
+ ['the baby','👶','He','малыш'],['Mike and I','👦🙋','We','Майк и я'],['a cat in the street','🐈‍⬛','It','кошка на улице'],['a dog in the park','🐕','It','собака в парке'],['the children','🧒🧒🧒','They','дети']];
 const PRON_POSS=[ /* [фраза, картинка, притяжательное, кто] */
  ['Mike\'s ball','👦⚽','his','he'],['Liz\'s doll','👧🪆','her','she'],['my dad\'s car','👨🚗','his','he'],['my mum\'s bag','👩👜','her','she'],
  ['Vira\'s bowl','🐄🥣','her','she'],['Wendy\'s toy','🐈🧶','her','she'],['the children\'s room','🧒🧒🛏️','their','they'],['my parents\' house','👫🏠','their','they'],
@@ -531,7 +531,7 @@ const PRON_SENT=[ /* [предложение 1, предложение 2 с ___,
  ['The cat is hungry.','___ bowl is empty.','Its',['It','Her'],'🐱'],
  ['My brother can swim.','___ is a good swimmer.','He',['His','She'],'🏊']];
 const PRON_RU=[ /* «мой папа» → по-английски одним словом */
- ['мой папа','👨','He'],['моя мама','👩','She'],['мои родители','👫','They'],['моя кошка Вира','🐄🐱','She'],['мяч','⚽','It'],['мой брат','👦','He'],['моя бабушка','👵','She'],['мы с папой','👨🙋','We']];
+ ['мой папа','👨','He'],['моя мама','👩','She'],['мои родители','👫','They'],['моя кошка Вира','🐄🐱','She'],['мяч','⚽','It'],['мой брат','👦','He'],['моя бабушка','👵','She'],['мы с папой','👨🙋','We'],['кошка на улице','🐈‍⬛','It'],['наша кошка Вира','🐄🐱','She']];
 
 /* ===== Вира и Венди (рисунки) ===== */
 /* Венди — худая серо-коричневая полосатая; Вира — толстая пушистая белая с чёрными пятнами, как корова */
@@ -658,7 +658,8 @@ const PRON_RULE=`<table class="pt"><tr><th></th><th>кто?</th><th>чей?</th>
 <tr><td>👨 он</td><td><b>he</b></td><td><b>his</b></td></tr><tr><td>👩 она</td><td><b>she</b></td><td><b>her</b></td></tr>
 <tr><td>📦🐶 оно</td><td><b>it</b></td><td><b>its</b></td></tr><tr><td>👨‍👩‍👧 они</td><td><b>they</b></td><td><b>their</b></td></tr>
 <tr><td>🙋‍♀️ я</td><td><b>I</b></td><td><b>my</b></td></tr><tr><td>🙋‍♀️🙋 мы</td><td><b>we</b></td><td><b>our</b></td></tr></table>
-<p>Мальчик, папа, дедушка → <b>he</b>. Девочка, мама, бабушка, Вира → <b>she</b>. Вещь → <b>it</b>. Двое и больше → <b>they</b>.</p>`;
+<p>Мальчик, папа, дедушка → <b>he</b>. Девочка, мама, бабушка, Вира → <b>she</b>. Вещь → <b>it</b>. Двое и больше → <b>they</b>.</p>
+<p>🐈 <b>Животное:</b> кошка с улицы, чужая собака → <b>it</b>. А наша Вира — член семьи, мы знаем, что она девочка → <b>she</b>. Венди тоже <b>she</b>.</p>`;
 function genPron(lv){
   const kinds=lv===0?['who','who','ru']:lv===1?['sent','sent','poss','who']:['two','two','sentAll','typeP'];
   const k=pickOne(kinds);
