@@ -353,7 +353,8 @@ button.opb.bad{animation:shake .4s}
 .win{margin:0;font-family:var(--display);font-weight:400;font-size:32px;color:var(--good)}
 .copy{overflow-x:auto;background:#fff;border:3px solid var(--blue);border-radius:14px;padding:8px 14px}
 .copy .bl{white-space:nowrap}.copy .tblc td{white-space:nowrap;padding:6px 8px}
-.copy u{text-decoration-thickness:3px;text-underline-offset:5px}
+.copy u{text-decoration:none;display:inline-block;border-bottom:3px solid var(--trap);padding-bottom:2px}
+.copy .no{color:#A7A3C4}.copy .no .var{color:#A7A3C4}
 .acts{display:flex;flex-wrap:wrap;gap:12px}
 .tblc{border-collapse:collapse;font-size:19px;font-weight:800;margin:0 auto;background:#fff}.tblc th,.tblc td{border:2px solid var(--ink);padding:6px 12px;text-align:center}.tblc th{text-align:left;font-size:15px;color:var(--muted)}
 .tree{display:block;max-width:100%;height:auto;margin:0 auto;overflow:visible}
@@ -593,7 +594,7 @@ const PAGES={
    {n:1,title:'Подчеркни выражения с переменной',text:'Подчеркни выражения с переменной.',rule:RULE_VAR,items:[
      {start:'',steps:[{k:'multi',q:'Нажми на все выражения с переменной, потом нажми Проверить.',opts:['35 : a','35 : 5','37 − 8','35 + b'],ok:[0,3],
        hints:['Переменная — это буква. Посмотри на каждое выражение: где вместо числа стоит буква?','Проверь каждое выражение по очереди: в нём только числа или есть буква?']}],
-      record:'<u>'+exprHTML('35 : a')+'</u>; '+exprHTML('35 : 5')+'; '+exprHTML('37 − 8')+'; <u>'+exprHTML('35 + b')+'</u>'}]},
+      record:'<u>'+exprHTML('35 : a')+'</u>; <span class="no">'+exprHTML('35 : 5')+'; '+exprHTML('37 − 8')+';</span> <u>'+exprHTML('35 + b')+'</u>'}]},
    {n:2,title:'Сравни, не вычисляя',text:'Сравни, не вычисляя.',rule:RULE_CMP,items:[
      signItem('8 · 7','7 · 9','<',['В обоих произведениях есть множитель 7. Сравни другие множители: 8 и 9.','Что больше: 8 раз по 7 или 9 раз по 7?']),
      signItem('36 : 6','36 : 4','<',['Делим одно и то же число 36. На 6 частей или на 4 части — где каждая часть больше?','Представь 36 конфет. Их делят на 6 детей или на 4 детей. Когда каждому достанется больше?']),
