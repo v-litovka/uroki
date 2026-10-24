@@ -5,6 +5,7 @@ import { ProgressService } from '../../core/progress/progress.service';
 import { HeaderService } from '../../core/layout/header.service';
 import { SpeechService } from '../../core/audio/speech.service';
 import { SfxService } from '../../core/audio/sfx.service';
+import { FamilyService } from '../../core/family/family.service';
 import { Exercise, Mode, Topic } from '../../core/models';
 import { ExercisePlayer, ExerciseResult, RoundQueue } from '../../engine';
 import { levelOf } from '../../core/progress/levels';
@@ -35,10 +36,12 @@ export class PlayPage {
   private speech = inject(SpeechService);
   private sfx = inject(SfxService);
   private router = inject(Router);
+  private family = inject(FamilyService);
 
   protected topicObj = computed<Topic | undefined>(() => this.p.pack()?.topics.find((t) => t.id === this.topic()));
   protected modeObj = computed<Mode | undefined>(() => this.topicObj()?.modes.find((m) => m.id === this.mode()));
-  protected mascot = computed(() => this.p.pack()?.mascot ?? 'none');
+  /** питомцы ребёнка, если пак «с питомцами» */
+  protected pets = computed(() => (this.p.pack()?.mascot === 'pets' ? this.family.currentPets() : []));
   private handle = computed(() => {
     const pk = this.p.pack();
     return pk ? this.progress.pack(pk.id, pk.legacyStorageKey) : null;
@@ -84,7 +87,8 @@ export class PlayPage {
   private start(t: Topic) {
     const m = this.modeObj()!;
     this.fin.set(null);
-    this.queue.set(new RoundQueue(m.items ?? t.items, m.roundSize ?? t.roundSize ?? 10, m.shuffle !== false));
+    const size = m.roundSize ?? this.family.current().settings.roundSize ?? t.roundSize ?? 10;
+    this.queue.set(new RoundQueue(m.items ?? t.items, size, m.shuffle !== false));
     this.show();
   }
 
@@ -100,7 +104,7 @@ export class PlayPage {
     const q = this.queue()!;
     const ex = this.current()!;
     if (!q.current.again) {
-      this.progress.logAttempt({ pack: this.p.pack()!.id, topic: this.topic(), mode: this.mode(), item: ex.itemId, ok: !r.missed });
+      this.progress.logAttempt({ pack: this.p.pack()!.id, topic: this.topic(), mode: this.mode(), item: ex.itemId, label: ex.label, ok: !r.missed });
     }
     q.complete(r.missed, r.mistakes);
     this.show();
@@ -113,6 +117,18 @@ export class PlayPage {
     const m = this.modeObj()!;
     const stars = m.stars ? m.stars({ firstTry: q.firstTry, total: q.total, mistakes: q.mistakes }) : q.firstTry;
     const levelUp = h.addStars(stars);
+    const pk = this.p.pack()!;
+    this.progress.logRound({
+      pack: pk.id,
+      topic: this.topic(),
+      mode: this.mode(),
+      packTitle: pk.title,
+      topicTitle: this.topicObj()!.title,
+      modeTitle: m.title,
+      firstTry: q.firstTry,
+      total: q.total,
+      stars,
+    });
     this.sfx.play('fin');
     this.current.set(null);
     this.fin.set({ ok: q.firstTry, n: q.total, stars, levelUp });

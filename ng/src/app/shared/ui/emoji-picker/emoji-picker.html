@@ -1,0 +1,6 @@
+@if (allowNone(); as none) {
+  <button type="button" class="none" [class.on]="!value()" (click)="value.set(undefined)">{{ none }}</button>
+}
+@for (e of items(); track e) {
+  <button type="button" [class.on]="e === value()" (click)="value.set(e)">{{ e }}</button>
+}

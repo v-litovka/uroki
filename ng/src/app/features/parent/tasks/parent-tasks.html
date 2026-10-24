@@ -1,0 +1,52 @@
+<app-section title="Новое задание" note="Задания можно давать по играм на новом движке. Выполнение отмечается само, когда ребёнок проходит раунд.">
+  <app-field label="Игра">
+    <select [ngModel]="entryId()" (ngModelChange)="entryId.set($event)" name="entry" data-test="task-game">
+      <option value="">— выберите —</option>
+      @for (e of catalog.packs(); track e.id) {
+        <option [value]="e.id">{{ e.title }} ({{ e.grade }} кл.)</option>
+      }
+    </select>
+  </app-field>
+  @if (pack(); as p) {
+    <app-field label="Тема">
+      <select [ngModel]="topicId()" (ngModelChange)="topicId.set($event)" name="topic" data-test="task-topic">
+        <option value="">— выберите —</option>
+        @for (t of p.topics; track t.id) {
+          <option [value]="t.id">{{ t.title }}</option>
+        }
+      </select>
+    </app-field>
+  }
+  @if (topic(); as t) {
+    <app-field label="Режим">
+      <select [ngModel]="modeId()" (ngModelChange)="modeId.set($event)" name="mode" data-test="task-mode">
+        <option value="*">Любой режим</option>
+        @for (m of t.modes; track m.id) {
+          <option [value]="m.id">{{ m.icon }} {{ m.title }}</option>
+        }
+      </select>
+    </app-field>
+    <app-field label="Сколько раз пройти">
+      <app-segmented [options]="roundOpts" [(value)]="rounds" />
+    </app-field>
+    <app-field label="Срок (необязательно)">
+      <input type="date" name="due" [(ngModel)]="due" />
+    </app-field>
+    <button app-btn (click)="add()" data-test="task-add">Дать задание</button>
+  }
+</app-section>
+
+<app-section title="Задания ребёнка">
+  @for (s of list(); track s.a.id) {
+    <div class="item">
+      <div class="info">
+        <b>{{ s.complete ? '✅' : s.overdue ? '⏰' : '📌' }} {{ s.a.title }}</b>
+        <span>{{ s.done }} из {{ s.a.rounds }}{{ s.a.due ? ' · срок ' + s.a.due : '' }}</span>
+        <app-progress-bar [value]="s.done / s.a.rounds" />
+      </div>
+      <button type="button" class="del" (click)="assignments.remove(s.a.id)" aria-label="Удалить задание">✕</button>
+    </div>
+  } @empty {
+    <p class="empty">Заданий нет.</p>
+  }
+</app-section>

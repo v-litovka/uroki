@@ -1,0 +1,5 @@
+@for (c of colors(); track c.id) {
+  <button type="button" [class.on]="c.id === value()" [style.--sw]="c.id" [attr.aria-label]="c.name" [title]="c.name" (click)="value.set(c.id)">
+    <i></i><span>{{ c.name }}</span>
+  </button>
+}

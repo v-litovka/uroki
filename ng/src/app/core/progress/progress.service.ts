@@ -1,10 +1,11 @@
 import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import { KV_STORE } from '../storage/key-value-store';
-import { ProfileService } from '../profile/profile.service';
-import { Attempt, PackProgress } from '../models';
+import { FamilyService } from '../family/family.service';
+import { Attempt, PackProgress, RoundRecord } from '../models';
 import { levelOf } from './levels';
 
-const ATTEMPTS_CAP = 2000;
+const ATTEMPTS_CAP = 3000;
+const ROUNDS_CAP = 1000;
 
 export interface PackProgressHandle {
   stars: Signal<number>;
@@ -17,33 +18,41 @@ export interface PackProgressHandle {
 }
 
 /**
- * Прогресс по пакам + журнал попыток.
- * Ключи: ng:<profile>:pack:<packId>, ng:<profile>:attempts.
+ * Прогресс ребёнка: звёзды по пакам, журнал попыток, история раундов.
+ * Ключи: ng:<childId>:pack:<packId>, ng:<childId>:attempts, ng:<childId>:rounds.
  */
 @Injectable({ providedIn: 'root' })
 export class ProgressService {
   private kv = inject(KV_STORE);
-  private profile = inject(ProfileService);
+  private family = inject(FamilyService);
   private handles = new Map<string, PackProgressHandle>();
+  /** растёт при каждой записи — чтобы списки в кабинетах обновлялись */
+  readonly version = signal(0);
 
-  private key(...parts: string[]) {
-    return ['ng', this.profile.current().id, ...parts].join(':');
+  private key(childId: string, ...parts: string[]) {
+    return ['ng', childId, ...parts].join(':');
   }
 
-  /** legacyKey — ключ старой HTML-версии игры: прогресс переносится один раз. */
-  pack(packId: string, legacyKey?: string): PackProgressHandle {
-    const k = this.key('pack', packId);
+  /**
+   * Прогресс по паку для ребёнка (по умолчанию — текущего).
+   * legacyKey — ключ старой HTML-версии: звёзды переносятся один раз и только первому ребёнку ('me').
+   */
+  pack(packId: string, legacyKey?: string, childId = this.family.current().id): PackProgressHandle {
+    const k = this.key(childId, 'pack', packId);
     const cached = this.handles.get(k);
     if (cached) return cached;
 
     let initial = this.kv.get<PackProgress | null>(k, null);
     if (!initial) {
-      const old = legacyKey ? this.kv.get<Partial<PackProgress> | null>(legacyKey, null) : null;
+      const old = legacyKey && childId === 'me' ? this.kv.get<Partial<PackProgress> | null>(legacyKey, null) : null;
       initial = { stars: old?.stars ?? 0, done: { ...(old?.done ?? {}) } };
       this.kv.set(k, initial);
     }
     const state = signal<PackProgress>(initial);
-    const save = () => this.kv.set(k, state());
+    const save = () => {
+      this.kv.set(k, state());
+      this.version.update((v) => v + 1);
+    };
 
     const h: PackProgressHandle = {
       stars: computed(() => state().stars),
@@ -65,15 +74,50 @@ export class ProgressService {
     return h;
   }
 
-  logAttempt(a: Omit<Attempt, 't'>) {
-    const k = this.key('attempts');
+  logAttempt(a: Omit<Attempt, 't'>, childId = this.family.current().id) {
+    const k = this.key(childId, 'attempts');
     const list = this.kv.get<Attempt[]>(k, []);
     list.push({ ...a, t: Date.now() });
     this.kv.set(k, list.slice(-ATTEMPTS_CAP));
+    this.version.update((v) => v + 1);
   }
 
-  /** Для будущих отчётов: попытки (последние сверху). */
-  attempts(): Attempt[] {
-    return this.kv.get<Attempt[]>(this.key('attempts'), []).slice().reverse();
+  logRound(r: Omit<RoundRecord, 't'>, childId = this.family.current().id) {
+    const k = this.key(childId, 'rounds');
+    const list = this.kv.get<RoundRecord[]>(k, []);
+    list.push({ ...r, t: Date.now() });
+    this.kv.set(k, list.slice(-ROUNDS_CAP));
+    this.version.update((v) => v + 1);
+  }
+
+  /** попытки ребёнка (последние сверху) */
+  attempts(childId = this.family.current().id): Attempt[] {
+    this.version();
+    return this.kv.get<Attempt[]>(this.key(childId, 'attempts'), []).slice().reverse();
+  }
+
+  /** пройденные раунды (последние сверху) */
+  rounds(childId = this.family.current().id): RoundRecord[] {
+    this.version();
+    return this.kv.get<RoundRecord[]>(this.key(childId, 'rounds'), []).slice().reverse();
+  }
+
+  /** «Трудные места»: где чаще всего ошибка с первого раза. */
+  hardItems(childId: string, limit = 10) {
+    const m = new Map<string, { label: string; pack: string; wrong: number; total: number }>();
+    for (const a of this.attempts(childId)) {
+      const key = `${a.pack}|${a.item}`;
+      const e = m.get(key) ?? { label: a.label ?? a.item, pack: a.pack, wrong: 0, total: 0 };
+      e.total++;
+      if (!a.ok) e.wrong++;
+      m.set(key, e);
+    }
+    return [...m.values()].filter((e) => e.wrong > 0).sort((x, y) => y.wrong - x.wrong || y.total - x.total).slice(0, limit);
+  }
+
+  /** все звёзды ребёнка по пакам нового движка */
+  totalStars(childId: string, packIds: string[]) {
+    this.version();
+    return packIds.reduce((sum, id) => sum + (this.kv.get<PackProgress | null>(this.key(childId, 'pack', id), null)?.stars ?? 0), 0);
   }
 }

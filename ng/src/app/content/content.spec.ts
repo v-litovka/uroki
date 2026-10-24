@@ -53,7 +53,6 @@ describe('контент', () => {
     for (const load of Object.values(PACKS)) {
       const p = await load();
       if (p.grade === 4) {
-        expect(p.mascot).not.toBe('cats');
         expect(JSON.stringify(p.topics.map((t) => t.items))).not.toMatch(/Вир|Венди/);
       }
     }

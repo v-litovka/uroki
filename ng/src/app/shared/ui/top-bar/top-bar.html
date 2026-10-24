@@ -12,6 +12,7 @@
   @if (s.stars) {
     <app-stars-badge [stars]="s.stars()" [level]="s.level?.() ?? 0" />
   }
+  <a app-icon-btn routerLink="/me" class="me" [attr.aria-label]="'Мой кабинет: ' + family.current().name">{{ family.current().avatar }}</a>
   <button app-icon-btn [muted]="!sfx.on()" [attr.aria-pressed]="sfx.on()" (click)="sfx.toggle()" aria-label="Звук">
     {{ sfx.on() ? '🔊' : '🔇' }}
   </button>

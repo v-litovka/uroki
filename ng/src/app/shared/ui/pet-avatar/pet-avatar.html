@@ -1,0 +1,5 @@
+@if (pet().emoji; as e) {
+  <span class="emoji" [style.font-size.px]="size() * 0.9" role="img" [attr.aria-label]="pet().name">{{ e }}</span>
+} @else {
+  <span class="svg" [innerHTML]="svg()"></span>
+}

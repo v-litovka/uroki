@@ -1,0 +1,11 @@
+.checks { display: grid; gap: 8px; }
+.checks label { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.checks input { width: 22px; height: 22px; flex: none; }
+.acts { display: flex; gap: 10px; flex-wrap: wrap; }
+.kid { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--ghost); padding-bottom: 8px; }
+.av { font-size: 36px; }
+.info { flex: 1; display: grid; }
+.info span { font-size: 13px; color: var(--muted); }
+.link { border: 0; background: none; font-weight: 800; text-decoration: underline; color: var(--ink); }
+.del { border: 0; background: none; font-size: 20px; color: var(--muted); padding: 6px; }
+.msg { margin: 0; font-weight: 700; }

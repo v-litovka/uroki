@@ -1,11 +1,11 @@
 import { Component, computed, effect, inject, input, linkedSignal, output } from '@angular/core';
-import { Exercise, Mascot, Prompt, Step } from '../../core/models';
+import { Exercise, Pet, Prompt, Step } from '../../core/models';
 import { AnswerInput, Card, ConfirmButton, Feedback, Hint, LetterDiff, OptionGrid, OrderTiles, Picked, Typed, WhyStepView } from '../../shared/ui';
 import { PromptView } from '../prompt-view/prompt-view';
 import { SfxService } from '../../core/audio/sfx.service';
 import { diffLetters } from '../../shared/utils/text';
 import { pick } from '../../shared/utils/random';
-import { DEFAULT_PHRASES } from '../phrases';
+import { petPhrase } from '../phrases';
 
 export interface ExerciseResult {
   /** была ли хоть одна ошибка */
@@ -25,7 +25,9 @@ export interface ExerciseResult {
 })
 export class ExercisePlayer {
   readonly exercise = input.required<Exercise>();
-  readonly mascot = input<Mascot>('cats');
+  /** питомцы ребёнка, которые хвалят/подсказывают (пусто — нейтральные фразы) */
+  readonly pets = input<Pet[]>([]);
+  /** свои фразы пака (вместо фраз с питомцами) */
   readonly phrases = input<{ ok: string[]; bad: string[] } | undefined>(undefined);
   readonly finished = output<ExerciseResult>();
 
@@ -38,14 +40,25 @@ export class ExercisePlayer {
     computation: (ex) => ({ ...(ex.steps[0]?.prompt ?? {}) }),
   });
   private readonly run = computed(() => ({ ex: this.exercise(), wrong: 0, mistakes: 0, missed: false, finished: false }));
-  protected readonly fb = linkedSignal<Exercise, { ok: boolean; text: string } | null>({ source: this.exercise, computation: () => null });
+  protected readonly fb = linkedSignal<Exercise, { ok: boolean; text: string; pet: Pet | null } | null>({ source: this.exercise, computation: () => null });
   protected readonly diff = linkedSignal<Exercise, { ch: string; bad: boolean }[] | null>({ source: this.exercise, computation: () => null });
-  protected readonly praise = linkedSignal<Exercise, string | null>({ source: this.exercise, computation: () => null });
+  protected readonly praise = linkedSignal<Exercise, { text: string; pet: Pet | null } | null>({ source: this.exercise, computation: () => null });
 
   protected readonly step = computed<Step | undefined>(() => this.exercise().steps[this.stepIdx()]);
   /** сцена = базовая + всё, что шаги добавили (prompt при активации, after при успехе) */
   protected readonly scene = computed<Prompt>(() => ({ ...this.exercise().prompt, ...this.overlay() }));
-  private ph = computed(() => this.phrases() ?? DEFAULT_PHRASES[this.mascot()]);
+  /** какой питомец говорит (случайный из питомцев ребёнка) */
+  private speaker(): Pet | null {
+    const p = this.pets();
+    return p.length ? pick(p) : null;
+  }
+
+  /** сообщение: своё (из шага) или фраза питомца */
+  private say(ok: boolean, text?: string) {
+    const pet = this.speaker();
+    const own = this.phrases();
+    return { ok, pet, text: text ?? (own ? pick(ok ? own.ok : own.bad) : petPhrase(pet, ok)) };
+  }
 
   constructor() {
     // Хук для e2e-тестов (tools/e2e.mjs): виден, только если тест выставил window.__E2E__.
@@ -55,9 +68,9 @@ export class ExercisePlayer {
     });
   }
 
-  private hint(st: Step) {
+  private hint(st: Step): string | undefined {
     const h = st.hints ?? [];
-    return h.length ? h[Math.min(this.run().wrong - 1, h.length - 1)] : pick(this.ph().bad);
+    return h.length ? h[Math.min(this.run().wrong - 1, h.length - 1)] : undefined;
   }
 
   /** перейти к следующему шагу; после последнего — завершить упражнение */
@@ -84,13 +97,14 @@ export class ExercisePlayer {
     const next = this.exercise().steps[this.stepIdx() + 1];
     if (next?.kind === 'why') {
       this.fb.set(null);
-      this.praise.set(st.okMsg ?? pick(this.ph().ok));
+      const m = this.say(true, st.okMsg);
+      this.praise.set({ text: m.text, pet: m.pet });
       this.goNext();
     } else if (!next) {
-      this.fb.set({ ok: true, text: st.okMsg ?? pick(this.ph().ok) });
+      this.fb.set(this.say(true, st.okMsg));
       this.goNext();
     } else if (st.okMsg) {
-      this.fb.set({ ok: true, text: st.okMsg });
+      this.fb.set(this.say(true, st.okMsg));
       setTimeout(() => {
         this.fb.set(null);
         this.goNext();
@@ -107,7 +121,7 @@ export class ExercisePlayer {
     run.missed = true;
     run.wrong++;
     run.mistakes++;
-    this.fb.set({ ok: false, text: text ?? this.hint(st) });
+    this.fb.set(this.say(false, text ?? this.hint(st)));
     const wp = st.wrongPrompt;
     if (wp?.length) this.overlay.update((o) => ({ ...o, ...wp[Math.min(run.wrong - 1, wp.length - 1)] }));
   }

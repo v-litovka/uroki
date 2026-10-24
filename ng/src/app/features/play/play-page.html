@@ -5,11 +5,11 @@
     [stars]="f.stars"
     [levelUp]="f.levelUp"
     [level]="level()"
-    [mascot]="mascot()"
+    [pets]="pets()"
     [nextMode]="nextMode()"
     (again)="restart()"
   />
 } @else if (current(); as ex) {
   <app-round-header [kicker]="kicker()" [pos]="pos()" [len]="len()" [again]="again()" />
-  <app-exercise-player [exercise]="ex" [mascot]="mascot()" [phrases]="p.pack()?.phrases" (finished)="onDone($event)" />
+  <app-exercise-player [exercise]="ex" [pets]="pets()" [phrases]="p.pack()?.phrases" (finished)="onDone($event)" />
 }

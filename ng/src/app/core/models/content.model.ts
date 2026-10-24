@@ -111,6 +111,8 @@ export type Step = ChoiceStep | InputStep | WhyStep | MemorizeStep | OrderStep;
 export interface Exercise {
   /** id элемента данных — по нему копится статистика ошибок */
   itemId: string;
+  /** как показать элемент взрослому в «трудных местах» (слово, пример) */
+  label?: string;
   prompt: Prompt;
   steps: Step[];
 }
@@ -155,8 +157,12 @@ export interface Topic<T = unknown> {
   roundSize?: number;
 }
 
-/** Кто «хвалит» ребёнка. 3 класс — кошки; 4 класс — без кошек (собака Луна / нейтрально). */
-export type Mascot = 'cats' | 'none';
+/**
+ * Кто «хвалит» ребёнка.
+ * 'pets' — питомцы, которых взрослый назначил ребёнку в кабинете (по умолчанию Вира и Венди);
+ * 'none' — без животных, нейтральные фразы.
+ */
+export type Mascot = 'pets' | 'none';
 
 export interface Pack {
   id: string;

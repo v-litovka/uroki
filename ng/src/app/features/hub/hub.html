@@ -1,6 +1,15 @@
-<app-page-hero title="Игры" size="xl">
+<app-page-hero [title]="child().name === 'Я' ? 'Игры' : 'Привет, ' + child().name + '!'" size="xl">
   <app-tabs label="Класс" [items]="tabs()" />
 </app-page-hero>
+
+@if (task(); as t) {
+  <a class="task" [routerLink]="link(t.a)">
+    <span class="ico">📌</span>
+    <span class="txt"><b>Задание: {{ t.a.title }}</b><span>Сделано {{ t.done }} из {{ t.a.rounds }}{{ t.a.due ? ' · до ' + t.a.due : '' }}</span></span>
+    <span class="go">Начать →</span>
+  </a>
+}
+
 <p class="lead">Выбери игру. Звёзды и уровни у каждой игры свои.</p>
 
 <div class="grid">

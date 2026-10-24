@@ -1,5 +1,5 @@
 <app-card [center]="true">
-  <app-mascot-pair [mascot]="mascot()" size="lg" />
+  <app-pet-group [pets]="pets()" size="lg" />
   <h2>Готово!</h2>
   @if (total() > 1) {
     <p class="stat">С первого раза: {{ ok() }} из {{ total() }} · +{{ stars() }} ⭐</p>

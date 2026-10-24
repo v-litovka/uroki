@@ -1,0 +1,63 @@
+@if (draft(); as d) {
+  <app-section [title]="d.id ? 'Питомец: ' + d.name : 'Новый питомец'">
+    <div class="preview">
+      @if (preview(); as p) {
+        <app-pet-avatar [pet]="p" mood="happy" [size]="110" />
+        <app-pet-avatar [pet]="p" mood="sad" [size]="70" />
+      }
+    </div>
+    <app-field label="Имя">
+      <input type="text" name="name" [ngModel]="d.name" (ngModelChange)="setName($event)" data-test="pet-name" />
+    </app-field>
+    <app-field label="Кто это">
+      <app-segmented [options]="kinds" [value]="d.kind" (valueChange)="setKind($event!)" />
+    </app-field>
+    <app-field label="Для фраз («покаталась / покатался»)">
+      <app-segmented [options]="sexes" [value]="d.sex" (valueChange)="setSex($event!)" />
+    </app-field>
+    <app-field label="Иконка">
+      <app-emoji-picker [items]="EMOJI" allowNone="Рисунок по окрасу" [value]="d.emoji" (valueChange)="setEmoji($event)" />
+    </app-field>
+    @if (!d.emoji) {
+      <app-field label="Телосложение">
+        <app-segmented [options]="builds" [value]="d.look.build" (valueChange)="look('build', $event!)" />
+      </app-field>
+      <app-field label="Окрас">
+        <app-swatches [colors]="COLORS" [value]="d.look.body" (valueChange)="look('body', $event)" />
+      </app-field>
+      <app-field label="Узор">
+        <app-segmented [options]="patterns" [value]="d.look.pattern" (valueChange)="look('pattern', $event!)" />
+      </app-field>
+      @if (d.look.pattern !== 'plain') {
+        <app-field label="Цвет пятен / полосок">
+          <app-swatches [colors]="COLORS" [value]="d.look.marks" (valueChange)="look('marks', $event)" />
+        </app-field>
+      }
+    }
+    <app-field label="С кем играет">
+      <div class="kids">
+        @for (c of family.children(); track c.id) {
+          <label class="kid"><input type="checkbox" [checked]="withKids().includes(c.id)" (change)="toggleKid(c.id)" /> {{ c.avatar }} {{ c.name }}</label>
+        }
+      </div>
+    </app-field>
+    <div class="acts">
+      <button app-btn [disabled]="!d.name.trim()" (click)="save()" data-test="pet-save">Сохранить</button>
+      <button app-btn variant="ghost" (click)="draft.set(null)">Отмена</button>
+    </div>
+  </app-section>
+} @else {
+  <app-section title="Питомцы" note="Питомцы хвалят ребёнка и подсказывают в играх. Для 4 класса — только те, кто подходит (например, собака Луна).">
+    @for (p of family.pets(); track p.id) {
+      <div class="pet">
+        <app-pet-avatar [pet]="p" [size]="56" />
+        <div class="info"><b>{{ p.name }}</b><span>{{ p.kind === 'dog' ? 'собака' : 'кошка' }} · играет: {{ kidsOf(p) }}</span></div>
+        <button type="button" class="link" (click)="edit(p)">Изменить</button>
+        <button type="button" class="del" (click)="remove(p)" [attr.aria-label]="'Удалить ' + p.name">{{ confirmId() === p.id ? 'Точно удалить?' : '✕' }}</button>
+      </div>
+    } @empty {
+      <p class="empty">Питомцев нет — тогда в играх будут нейтральные фразы.</p>
+    }
+    <button app-btn (click)="edit()" data-test="pet-new">+ Добавить питомца</button>
+  </app-section>
+}

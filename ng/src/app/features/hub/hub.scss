@@ -1,3 +1,19 @@
+@use 'mixins' as m;
+
 .lead { margin: 0 0 22px; color: var(--muted); font-size: 18px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
 .extras { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
+.task {
+  @include m.raised(4px, 18px, 3px, #fff6cc);
+  @include m.pressable;
+  @include m.bare-interactive;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+}
+.ico { font-size: 28px; }
+.txt { display: grid; flex: 1; }
+.txt span { font-size: 14px; color: var(--muted); }
+.go { font-weight: 900; white-space: nowrap; }

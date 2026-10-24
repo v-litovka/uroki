@@ -1,0 +1,4 @@
+:host { display: flex; align-items: flex-end; gap: 6px; }
+:host:empty { display: none; }
+figure { margin: 0; display: grid; justify-items: center; gap: 4px; }
+figcaption { font-weight: 800; font-size: 14px; }

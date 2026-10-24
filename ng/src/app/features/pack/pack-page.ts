@@ -6,12 +6,13 @@ import { HeaderService } from '../../core/layout/header.service';
 import { SpeechService } from '../../core/audio/speech.service';
 import { LEGACY_FALLBACK } from '../../core/catalog/entries';
 import { Topic } from '../../core/models';
-import { MascotPair, PageHero, TopicCard } from '../../shared/ui';
+import { PageHero, PetGroup, TopicCard } from '../../shared/ui';
+import { FamilyService } from '../../core/family/family.service';
 
 /** Страница пака: список тем. #/:grade/:subject/:pack */
 @Component({
   selector: 'app-pack-page',
-  imports: [RouterLink, PageHero, MascotPair, TopicCard],
+  imports: [RouterLink, PageHero, PetGroup, TopicCard],
   templateUrl: './pack-page.html',
   styleUrl: './pack-page.scss',
 })
@@ -22,6 +23,8 @@ export class PackPage {
   protected p = usePack(this.grade, this.subject, this.pack);
   private progress = inject(ProgressService);
   private speech = inject(SpeechService);
+  private family = inject(FamilyService);
+  protected pets = computed(() => (this.p.pack()?.mascot === 'pets' ? this.family.currentPets() : []));
   protected legacy = computed(() => (this.p.pack() ? LEGACY_FALLBACK[this.p.pack()!.id] : null));
 
   constructor() {

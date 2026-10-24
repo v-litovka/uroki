@@ -1,11 +1,11 @@
 import { Component, input } from '@angular/core';
-import { Cat } from '../cat/cat';
-import { Mascot } from '../../../core/models';
+import { PetAvatar } from '../pet-avatar/pet-avatar';
+import { Pet } from '../../../core/models';
 
-/** Плашка «верно / подумай ещё» с кошкой (3 класс) или значком (4 класс). */
+/** Плашка «верно / подумай ещё» с питомцем (или значком, если питомца нет). */
 @Component({
   selector: 'app-feedback',
-  imports: [Cat],
+  imports: [PetAvatar],
   templateUrl: './feedback.html',
   styleUrl: './feedback.scss',
   host: { role: 'status', '[class.bad]': '!ok()' },
@@ -13,7 +13,5 @@ import { Mascot } from '../../../core/models';
 export class Feedback {
   readonly ok = input(true);
   readonly text = input('');
-  readonly mascot = input<Mascot>('cats');
-  /** какая кошка — выбирается случайно при создании */
-  protected readonly who: 'vira' | 'wendy' = Math.random() < 0.5 ? 'vira' : 'wendy';
+  readonly pet = input<Pet | null>(null);
 }

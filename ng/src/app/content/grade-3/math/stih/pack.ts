@@ -25,7 +25,7 @@ export const PACK: Pack = {
   title: 'Стишок умножения',
   desc: 'Таблица умножения в стихах с Вирой и Венди. Выбери кусочек: сначала прочитай, потом допиши ответы, найди пары и собери стишок.',
   color: '#13A3A0',
-  mascot: 'cats',
+  mascot: 'pets',
   bookIds: ['math3-muravyova'],
   legacyStorageKey: 'stih-umnozh-v1',
   topics: [

@@ -5,10 +5,7 @@ export interface PackProgress {
   done: Record<string, 1>;
 }
 
-/**
- * Одна попытка — основа будущих отчётов для родителей
- * («в каких словах ошибается», «сколько занималась на неделе»).
- */
+/** Одна попытка (одно задание в раунде) — основа «трудных мест». */
 export interface Attempt {
   /** время, мс */
   t: number;
@@ -16,6 +13,23 @@ export interface Attempt {
   topic: string;
   mode: string;
   item: string;
+  /** человекочитаемо: слово / пример */
+  label?: string;
   /** верно с первого раза */
   ok: boolean;
+}
+
+/** Пройденный раунд — история для кабинетов и статус заданий. */
+export interface RoundRecord {
+  t: number;
+  pack: string;
+  topic: string;
+  mode: string;
+  /** подписи на момент прохождения */
+  packTitle: string;
+  topicTitle: string;
+  modeTitle: string;
+  firstTry: number;
+  total: number;
+  stars: number;
 }

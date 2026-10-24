@@ -1,0 +1,12 @@
+@use 'mixins' as m;
+
+.letters { display: flex; flex-wrap: wrap; gap: 6px; }
+.letters button { @include m.raised(2px, 10px, 2px, #fff); @include m.display(28px, 1); width: 44px; height: 50px; }
+.letters .on { background: #ffe1d8; border-color: var(--trap); color: var(--trap); }
+.msg { margin: 0; font-weight: 700; }
+.word { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--ghost); padding-bottom: 6px; }
+.w { @include m.display(24px); flex: 1; }
+.t { color: var(--trap); text-decoration: underline; }
+.check { color: var(--muted); font-size: 14px; }
+.del { border: 0; background: none; font-size: 20px; color: var(--muted); padding: 6px; }
+.empty { margin: 0; color: var(--muted); }

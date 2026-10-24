@@ -1,6 +1,6 @@
 @if (p.pack(); as pk) {
   <app-page-hero [title]="pk.title" [text]="pk.desc">
-    <app-mascot-pair aside [mascot]="pk.mascot" />
+    <app-pet-group aside [pets]="pets()" />
   </app-page-hero>
 
   <div class="topics">

@@ -1,0 +1,8 @@
+@for (p of shown(); track p.id; let i = $index) {
+  <figure>
+    <app-pet-avatar [pet]="p" [size]="i === 0 ? px() : px() - 8" />
+    @if (names()) {
+      <figcaption>{{ p.name }}</figcaption>
+    }
+  </figure>
+}

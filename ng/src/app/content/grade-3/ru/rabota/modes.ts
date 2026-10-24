@@ -3,6 +3,7 @@ import { Exercise, Mode, Prompt, Seg, Step } from '../../../../core/models';
 import { pick, shuffle } from '../../../../shared/utils/random';
 import { DictItem, SentItem, SoftItem } from './items';
 import { Why } from './data';
+import { writeModes } from '../../../common/word-modes';
 import { WS } from './data';
 
 /* ---------- сцены ---------- */
@@ -40,6 +41,7 @@ export const sentenceModes = (withDictation = false): Mode<SentItem>[] => {
       desc: 'Вопрос, потом окончание',
       build: (it) => ({
         itemId: it.id,
+        label: it.w,
         prompt: { sentence: sentGap(it) },
         steps: [
           askQuestion(it),
@@ -64,6 +66,7 @@ export const sentenceModes = (withDictation = false): Mode<SentItem>[] => {
       desc: 'Вопрос, потом окончание сама',
       build: (it) => ({
         itemId: it.id,
+        label: it.w,
         prompt: { sentence: sentGap(it) },
         steps: [
           askQuestion(it),
@@ -86,6 +89,7 @@ export const sentenceModes = (withDictation = false): Mode<SentItem>[] => {
       desc: 'Всё слово с клавиатуры',
       build: (it) => ({
         itemId: it.id,
+        label: it.w,
         prompt: { sentence: sentGap(it), hint: 'Напиши выделенное слово целиком' },
         steps: [
           { kind: 'input', answer: it.w, placeholder: 'слово', hints: [it.qh + '.', `Вопрос «${it.q}». ${it.h2}`], after: { sentence: sentWord(it) } },
@@ -122,7 +126,8 @@ export const sentenceModes = (withDictation = false): Mode<SentItem>[] => {
             after: { sentence: sentWord(it) },
           });
         steps.push(why(it.why));
-        return { itemId: it.id, prompt: { sentence: sentWord(it, shown), hint: 'Слово написано верно?' }, steps };
+        return { itemId: it.id,
+        label: it.w, prompt: { sentence: sentWord(it, shown), hint: 'Слово написано верно?' }, steps };
       },
     },
   ];
@@ -135,6 +140,7 @@ export const sentenceModes = (withDictation = false): Mode<SentItem>[] => {
       needs: ['tts-ru'],
       build: (it) => ({
         itemId: it.id,
+        label: it.w,
         prompt: { say: it.s.replace('{}', it.w), hint: 'Послушай предложение. Напиши глагол на -тся или -ться.' },
         steps: [
           {
@@ -151,29 +157,6 @@ export const sentenceModes = (withDictation = false): Mode<SentItem>[] => {
   return list;
 };
 
-/* ---------- «запомни и напиши» и диктант по слову (общие для ь и словарных) ---------- */
-const lookWrite = (id: string, w: string, wy: Why): Exercise => ({
-  itemId: id,
-  prompt: {},
-  steps: [
-    { kind: 'memorize', word: w, button: 'Запомнила — спрятать', prompt: { big: w, hint: 'Посмотри на слово и запомни. Потом оно спрячется.' }, after: { big: '• • •', hint: 'Напиши слово по памяти' } },
-    { kind: 'input', answer: w, placeholder: 'слово', showDiff: 'always', hints: ['Красные буквы — с ошибкой:'], after: { big: w } },
-    why(wy),
-  ],
-});
-const sayWrite = (id: string, w: string, wy: Why): Exercise => ({
-  itemId: id,
-  prompt: { say: w, hint: 'Послушай слово и напиши его' },
-  steps: [
-    { kind: 'input', answer: w, placeholder: 'слово', showDiff: 'second', hints: ['Послушай ещё раз и проверь каждую букву.', 'Правильно так:'], after: { say: undefined, hint: undefined, big: w } },
-    why(wy),
-  ],
-});
-const writeModes = <T extends { id: string; w: string }>(wy: (it: T) => Why): Mode<T>[] => [
-  { id: 'write', title: 'Запомни и напиши', icon: '✏️', desc: 'Слово спрячется — напиши его', build: (it) => lookWrite(it.id, it.w, wy(it)) },
-  { id: 'dict', title: 'Диктант', icon: '🎧', desc: 'Слушай и пиши', needs: ['tts-ru'], build: (it) => sayWrite(it.id, it.w, wy(it)) },
-];
-
 /* ---------- разделительный ь ---------- */
 export const softModes = (whySoft: Why): Mode<SoftItem>[] => [
   {
@@ -185,6 +168,7 @@ export const softModes = (whySoft: Why): Mode<SoftItem>[] => [
       const k = it.w.indexOf('ь');
       return {
         itemId: it.id,
+        label: it.w,
         prompt: { sentence: gapWord(it.w.slice(0, k) + '_' + it.w.slice(k + 1)), hint: 'Что пропущено?' },
         steps: [
           { kind: 'choice', options: ['ь', 'и', 'ничего'], answer: 'ь', layout: 'small', hints: ['Скажи слово медленно. Слышишь [й] перед гласной?'], after: { sentence: [it.w] } },
@@ -200,6 +184,7 @@ export const softModes = (whySoft: Why): Mode<SoftItem>[] => [
     desc: 'Выбери верное слово',
     build: (it) => ({
       itemId: it.id,
+        label: it.w,
       prompt: { hint: 'Как написать правильно?' },
       steps: [{ kind: 'choice', options: [it.w, ...it.bad], answer: it.w, hints: ['Где слышится [й] — там нужен ь.'] }, why(whySoft)],
     }),
@@ -218,6 +203,7 @@ export const dictModes = (): Mode<DictItem>[] => [
       const [g, ok, bad, wy] = pick(it.sp);
       return {
         itemId: it.id,
+        label: it.w,
         prompt: { sentence: gapWord(g), hint: 'Какая буква пропущена?' },
         steps: [
           {
@@ -243,6 +229,7 @@ export const dictModes = (): Mode<DictItem>[] => [
       if (wr.length < 2) wr.push(it.w.length > 6 ? it.w.slice(0, -1) : it.w + 'ь');
       return {
         itemId: it.id,
+        label: it.w,
         prompt: { hint: 'Как написать правильно?' },
         steps: [{ kind: 'choice', options: [it.w, ...wr], answer: it.w, hints: ['Посмотри внимательно на каждую букву.'] }, why(it.sp[0][3])],
       };

@@ -1,0 +1,11 @@
+@use 'mixins' as m;
+
+div { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  @include m.raised(2px, 12px, 2px);
+  font-weight: 800;
+  font-size: 15px;
+  padding: 6px 12px;
+  min-height: 40px;
+}
+.on { background: var(--sun); }

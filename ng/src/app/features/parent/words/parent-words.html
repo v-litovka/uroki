@@ -1,0 +1,44 @@
+<app-section title="Добавить слово" note="Напишите слово и нажмите на трудные буквы — где ребёнок ошибается.">
+  <app-field label="Слово">
+    <input type="text" name="w" autocomplete="off" [ngModel]="word()" (ngModelChange)="setWord($event)" data-test="word-input" />
+  </app-field>
+  @if (letters().length) {
+    <div class="letters" role="group" aria-label="Трудные буквы">
+      @for (ch of letters(); track $index) {
+        <button type="button" [class.on]="tricky().includes($index)" (click)="toggle($index)">{{ ch }}</button>
+      }
+    </div>
+    <app-field label="Проверочное слово (если есть)">
+      <input type="text" name="c" autocomplete="off" [(ngModel)]="check" placeholder="например: горы — для «гора»" />
+    </app-field>
+    <button app-btn [disabled]="!tricky().length" (click)="addOne()" data-test="word-add">Добавить</button>
+  }
+</app-section>
+
+<app-section title="Добавить списком" note="Каждое слово с новой строки, трудные буквы — ЗАГЛАВНЫМИ. Проверочное — через тире: «гОра — горы».">
+  <app-field label="Слова">
+    <textarea name="bulk" [(ngModel)]="bulk" placeholder="кОрова&#10;вОрОбей&#10;гОра — горы" data-test="words-bulk"></textarea>
+  </app-field>
+  <button app-btn variant="ghost" (click)="addBulk()" data-test="words-bulk-add">Добавить все</button>
+  @if (bulkMsg()) {
+    <p class="msg">{{ bulkMsg() }}</p>
+  }
+</app-section>
+
+<app-section title="Слова ребёнка" [note]="list().length ? 'Из них собирается игра «Мои словарные слова» на главной.' : ''">
+  @for (w of list(); track w.id) {
+    <div class="word">
+      <span class="w">
+        @for (l of marked(w.word, w.tricky); track $index) {
+          <span [class.t]="l.t">{{ l.ch }}</span>
+        }
+      </span>
+      @if (w.check) {
+        <span class="check">({{ w.check }})</span>
+      }
+      <button type="button" class="del" (click)="remove(w.id)" [attr.aria-label]="'Удалить ' + w.word">✕</button>
+    </div>
+  } @empty {
+    <p class="empty">Слов пока нет.</p>
+  }
+</app-section>

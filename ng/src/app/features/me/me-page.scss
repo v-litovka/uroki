@@ -1,0 +1,17 @@
+@use 'mixins' as m;
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.task { display: flex; align-items: center; gap: 12px; }
+.task.done { opacity: 0.7; }
+.info { flex: 1; display: grid; }
+.info span { font-size: 14px; color: var(--muted); }
+.row { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 15px; border-bottom: 1px solid var(--ghost); padding-bottom: 6px; }
+.when { color: var(--muted); font-size: 13px; }
+.res { grid-column: 2; font-weight: 800; }
+.empty { margin: 0; color: var(--muted); }
+.who { display: flex; flex-wrap: wrap; gap: 10px; }
+.kid { @include m.raised(3px, 14px); display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-weight: 800; }
+.kid span { font-size: 26px; }
+.kid.on { background: var(--sun); }
+.adult { margin-top: 28px; text-align: center; }
+.adult a { color: var(--muted); font-weight: 800; }

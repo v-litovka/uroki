@@ -1,0 +1,7 @@
+<div role="radiogroup" [attr.aria-label]="label()">
+  @for (o of options(); track o.label) {
+    <button type="button" role="radio" [attr.aria-checked]="o.value === value()" [class.on]="o.value === value()" (click)="value.set(o.value)">
+      {{ o.label }}
+    </button>
+  }
+</div>

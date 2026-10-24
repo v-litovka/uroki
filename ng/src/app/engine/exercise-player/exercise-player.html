@@ -17,8 +17,8 @@
         <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" [numeric]="!!st.numeric" (typed)="onType($event)" />
       }
       @case ('why') {
-        @if (praise(); as text) {
-          <app-feedback [ok]="true" [text]="text" [mascot]="mascot()" />
+        @if (praise(); as pr) {
+          <app-feedback [ok]="true" [text]="pr.text" [pet]="pr.pet" />
         }
         <app-why-step-view [ok]="st.ok" [wrong]="st.wrong" (answered)="onWhy($event)" />
       }
@@ -35,7 +35,7 @@
   }
 
   @if (fb(); as f) {
-    <app-feedback [ok]="f.ok" [text]="f.text" [mascot]="mascot()" />
+    <app-feedback [ok]="f.ok" [text]="f.text" [pet]="f.pet" />
   }
   @if (diff(); as d) {
     <app-letter-diff [letters]="d" />

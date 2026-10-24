@@ -1,0 +1,12 @@
+<app-page-hero title="Для взрослых" text="Введите PIN. По умолчанию — как в Домашке; поменять можно в разделе «Дети»." />
+<app-card>
+  <form (ngSubmit)="submit()" class="form">
+    <app-field label="PIN">
+      <input type="password" name="pin" inputmode="numeric" autocomplete="off" [(ngModel)]="pin" data-test="pin" />
+    </app-field>
+    <button app-btn>Войти</button>
+    @if (error()) {
+      <p class="err" role="alert">{{ error() }}</p>
+    }
+  </form>
+</app-card>

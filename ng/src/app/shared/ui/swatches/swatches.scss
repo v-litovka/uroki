@@ -1,0 +1,6 @@
+:host { display: flex; flex-wrap: wrap; gap: 8px; }
+button { display: grid; justify-items: center; gap: 2px; border: 0; background: none; padding: 2px; width: 64px; }
+i { display: block; width: 36px; height: 36px; border-radius: 50%; background: var(--sw); border: 3px solid var(--ghost); }
+span { font-size: 11px; line-height: 1.1; color: var(--muted); }
+.on i { border-color: var(--ink); box-shadow: 0 0 0 3px var(--sun); }
+.on span { color: var(--ink); font-weight: 800; }

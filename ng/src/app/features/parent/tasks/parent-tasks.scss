@@ -1,0 +1,5 @@
+.item { display: flex; gap: 10px; align-items: center; }
+.info { flex: 1; display: grid; }
+.info span { font-size: 14px; color: var(--muted); }
+.del { border: 0; background: none; font-size: 20px; color: var(--muted); padding: 6px; }
+.empty { margin: 0; color: var(--muted); }

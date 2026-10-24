@@ -11,7 +11,7 @@ export const PACK: Pack = {
   title: 'Работа над ошибками',
   desc: 'Русский язык: то, в чём были ошибки в диктанте. В каждой теме — от выбора ответа до письма с клавиатуры, и всегда вопрос «почему?».',
   color: '#E2557A',
-  mascot: 'cats',
+  mascot: 'pets',
   bookIds: ['ru3-antipova-1'],
   legacyStorageKey: 'rabota-oshibki-v1',
   topics: [

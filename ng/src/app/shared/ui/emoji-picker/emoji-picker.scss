@@ -1,0 +1,6 @@
+@use 'mixins' as m;
+
+:host { display: flex; flex-wrap: wrap; gap: 6px; }
+button { @include m.raised(2px, 12px, 2px); width: 46px; height: 46px; font-size: 26px; line-height: 1; padding: 0; }
+.none { width: auto; padding: 0 10px; font-size: 14px; font-weight: 800; }
+.on { background: var(--sun); }

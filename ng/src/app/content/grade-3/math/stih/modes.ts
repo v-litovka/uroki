@@ -42,6 +42,7 @@ export const gapMode: Mode<Fact> = {
   desc: 'Какое число спряталось?',
   build: (f) => ({
     itemId: f.id,
+      label: `${f.x} × ${f.y} = ${f.v}`,
     prompt: { poem: poem(f.block, { gap: f.i, hl: pairOf(f.block, f.i) }), big: NUM(f) },
     steps: [
       {
@@ -82,7 +83,8 @@ export const pairMode: Mode<Fact> = {
         prompt: { poem: [{ t: right }], hint: `Какой пример идёт с этой строчкой? ${f.x} × ${f.y} = ?` },
       };
     }
-    return { itemId: f.id, prompt: {}, steps: [step] };
+    return { itemId: f.id,
+      label: `${f.x} × ${f.y} = ${f.v}`, prompt: {}, steps: [step] };
   },
 };
 
@@ -120,6 +122,7 @@ export const examMode: Mode<Fact> = {
     const P = pairOf(f.block, f.i);
     return {
       itemId: f.id,
+      label: `${f.x} × ${f.y} = ${f.v}`,
       prompt: { big: NUM(f) },
       steps: [
         {

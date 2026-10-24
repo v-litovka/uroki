@@ -1,0 +1,58 @@
+@if (draft(); as d) {
+  <app-section [title]="d.id ? d.name : 'Новый ребёнок'">
+    <app-field label="Имя">
+      <input type="text" name="name" [ngModel]="d.name" (ngModelChange)="patch({ name: $event })" data-test="child-name" />
+    </app-field>
+    <app-field label="Аватар">
+      <app-emoji-picker [items]="AVATARS" [value]="d.avatar" (valueChange)="patch({ avatar: $event ?? d.avatar })" />
+    </app-field>
+    <app-field label="Класс">
+      <app-segmented [options]="grades" [value]="d.grade" (valueChange)="patch({ grade: $event! })" />
+    </app-field>
+    <app-field label="Заданий в раунде">
+      <app-segmented [options]="sizes" [value]="d.settings.roundSize" (valueChange)="setting({ roundSize: $event! })" />
+    </app-field>
+    <app-field label="Какие игры показывать">
+      <div class="checks">
+        @for (g of games(); track g.id) {
+          <label><input type="checkbox" [checked]="!d.settings.hiddenGames.includes(g.id)" (change)="toggleGame(g.id)" /> {{ g.title }}</label>
+        }
+      </div>
+    </app-field>
+    <app-field label="Питомцы">
+      <div class="checks">
+        @for (p of family.pets(); track p.id) {
+          <label class="pet"><input type="checkbox" [checked]="d.petIds.includes(p.id)" (change)="togglePet(p.id)" /> <app-pet-avatar [pet]="p" [size]="30" /> {{ p.name }}</label>
+        }
+      </div>
+    </app-field>
+    <div class="acts">
+      <button app-btn [disabled]="!d.name.trim()" (click)="save()" data-test="child-save">Сохранить</button>
+      <button app-btn variant="ghost" (click)="draft.set(null)">Отмена</button>
+    </div>
+  </app-section>
+} @else {
+  <app-section title="Дети" note="У каждого ребёнка свои звёзды, история, слова и задания.">
+    @for (c of family.children(); track c.id) {
+      <div class="kid">
+        <span class="av">{{ c.avatar }}</span>
+        <div class="info"><b>{{ c.name }}</b><span>{{ c.grade }} класс · {{ c.settings.roundSize }} заданий в раунде{{ c.settings.hiddenGames.length ? ' · скрыто игр: ' + c.settings.hiddenGames.length : '' }}</span></div>
+        <button type="button" class="link" (click)="edit(c)">Изменить</button>
+        @if (family.children().length > 1) {
+          <button type="button" class="del" (click)="remove(c)" [attr.aria-label]="'Удалить ' + c.name">{{ confirmId() === c.id ? 'Точно удалить?' : '✕' }}</button>
+        }
+      </div>
+    }
+    <button app-btn (click)="edit()" data-test="child-new">+ Добавить ребёнка</button>
+  </app-section>
+
+  <app-section title="PIN для взрослых">
+    <app-field label="Новый PIN (4–8 цифр)">
+      <input type="password" name="pin" inputmode="numeric" autocomplete="off" [(ngModel)]="newPin" />
+    </app-field>
+    <button app-btn variant="ghost" (click)="changePin()">Сменить PIN</button>
+    @if (pinMsg()) {
+      <p class="msg">{{ pinMsg() }}</p>
+    }
+  </app-section>
+}

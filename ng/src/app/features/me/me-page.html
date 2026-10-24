@@ -1,0 +1,53 @@
+@let c = child();
+<app-page-hero [title]="c.avatar + ' ' + (c.name === 'Я' ? 'Мой кабинет' : c.name)" [text]="c.grade + ' класс'">
+  <app-pet-group aside [pets]="pets()" [names]="true" />
+</app-page-hero>
+
+<div class="stats">
+  <app-stat-card [value]="'⭐ ' + stars()" label="звёзд в новых играх" />
+  <app-stat-card [value]="level()" label="уровень" />
+  <app-stat-card [value]="rounds().length" label="раундов пройдено" />
+</div>
+
+<app-section title="Мои задания" [note]="tasks().length ? 'Задания дал взрослый. Нажми «Начать».' : ''">
+  @for (t of tasks(); track t.a.id) {
+    <div class="task" [class.done]="t.complete">
+      <div class="info">
+        <b>{{ t.complete ? '✅ ' : '📌 ' }}{{ t.a.title }}</b>
+        <span>{{ t.done }} из {{ t.a.rounds }}{{ t.a.due ? ' · до ' + t.a.due : '' }}{{ t.overdue ? ' · срок прошёл' : '' }}</span>
+        <app-progress-bar [value]="t.done / t.a.rounds" />
+      </div>
+      @if (!t.complete) {
+        <a app-btn [routerLink]="link(t.a)">Начать</a>
+      }
+    </div>
+  } @empty {
+    <p class="empty">Пока заданий нет.</p>
+  }
+</app-section>
+
+<app-section title="Мои раунды">
+  @for (r of recent(); track r.t) {
+    <div class="row">
+      <span class="when">{{ r.t | date: 'd.MM HH:mm' }}</span>
+      <span class="what">{{ r.packTitle }} · {{ r.topicTitle }} · {{ r.modeTitle }}</span>
+      <span class="res">{{ r.firstTry }}/{{ r.total }} · +{{ r.stars }}⭐</span>
+    </div>
+  } @empty {
+    <p class="empty">Здесь появятся пройденные раунды.</p>
+  }
+</app-section>
+
+@if (family.children().length > 1) {
+  <app-section title="Кто играет?">
+    <div class="who">
+      @for (k of family.children(); track k.id) {
+        <button type="button" class="kid" [class.on]="k.id === c.id" (click)="family.switchTo(k.id)">
+          <span>{{ k.avatar }}</span>{{ k.name }}
+        </button>
+      }
+    </div>
+  </app-section>
+}
+
+<p class="adult"><a routerLink="/parent">🔒 Для взрослых</a></p>

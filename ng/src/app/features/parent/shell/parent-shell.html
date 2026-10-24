@@ -1,0 +1,11 @@
+<app-page-hero title="Для взрослых" size="md" />
+<div class="bar">
+  @if (kids().length > 1) {
+    <app-segmented label="Ребёнок" [options]="kids()" [value]="state.childId()" (valueChange)="state.pick($event!)" />
+  } @else {
+    <b>{{ kids()[0].label }}</b>
+  }
+  <button app-btn variant="ghost" class="out" (click)="logout()">Выйти</button>
+</div>
+<app-tabs label="Разделы" [items]="tabs()" />
+<router-outlet />

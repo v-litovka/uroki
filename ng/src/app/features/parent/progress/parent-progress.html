@@ -1,0 +1,58 @@
+<div class="stats">
+  <app-stat-card [value]="'⭐ ' + stars()" label="звёзд (новые игры)" />
+  <app-stat-card [value]="week()" label="раундов за 7 дней" />
+  <app-stat-card [value]="rounds().length" label="раундов всего" />
+  <app-stat-card [value]="tasksDone() + '/' + tasks().length" label="заданий выполнено" />
+</div>
+
+<app-section title="Неделя">
+  <div class="days">
+    @for (d of days(); track d.d) {
+      <div class="day">
+        <i [style.height.%]="(d.n / maxDay()) * 100"></i>
+        <b>{{ d.n }}</b>
+        <span>{{ d.d }}</span>
+      </div>
+    }
+  </div>
+</app-section>
+
+<app-section title="Задания">
+  @for (t of tasks(); track t.a.id) {
+    <div class="task">
+      <b>{{ t.complete ? '✅' : t.overdue ? '⏰' : '📌' }} {{ t.a.title }}</b>
+      <span>{{ t.done }} из {{ t.a.rounds }}{{ t.a.due ? ' · срок ' + t.a.due : '' }}{{ t.completedAt ? ' · выполнено ' : '' }}{{ t.completedAt ? (t.completedAt | date: 'd.MM HH:mm') : '' }}</span>
+      <app-progress-bar [value]="t.done / t.a.rounds" />
+    </div>
+  } @empty {
+    <p class="empty">Заданий нет — их можно дать в разделе «Задания».</p>
+  }
+</app-section>
+
+<app-section title="Трудные места" note="Где чаще всего ошибка с первого раза.">
+  @for (h of hard(); track h.label + h.pack) {
+    <div class="hard"><b>{{ h.label }}</b><span>{{ packTitle(h.pack) }}</span><span class="cnt">{{ h.wrong }} из {{ h.total }}</span></div>
+  } @empty {
+    <p class="empty">Пока ошибок нет (или ещё не играли).</p>
+  }
+</app-section>
+
+<app-section title="История">
+  @for (r of rounds().slice(0, 50); track r.t) {
+    <div class="row">
+      <span class="when">{{ r.t | date: 'd.MM HH:mm' }}</span>
+      <span class="what">{{ r.packTitle }} · {{ r.topicTitle }} · {{ r.modeTitle }}</span>
+      <span class="res">{{ r.firstTry }}/{{ r.total }} с первого раза · +{{ r.stars }}⭐</span>
+    </div>
+  } @empty {
+    <p class="empty">Ещё не играли в новые игры.</p>
+  }
+</app-section>
+
+@if (legacy().length) {
+  <app-section title="Старые игры" note="Эти игры пока не различают детей: звёзды общие для этого устройства.">
+    @for (l of legacy(); track l.title) {
+      <div class="hard"><b>{{ l.title }}</b><span>{{ l.grade }} класс</span><span class="cnt">⭐ {{ l.stars }}</span></div>
+    }
+  </app-section>
+}

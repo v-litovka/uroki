@@ -38,6 +38,8 @@ export interface LegacyEntry extends EntryBase {
   kind: 'legacy';
   /** путь внутри public/legacy/ */
   path: string;
+  /** ключ localStorage старой игры — чтобы показать её звёзды взрослому */
+  storageKey?: string;
 }
 export interface PackEntry extends EntryBase {
   kind: 'pack';

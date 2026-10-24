@@ -26,9 +26,9 @@
 | OptionGrid | `app-option-grid` | `options`, `answer`, `layout: grid/small/list`, `doShuffle`, `lockSec` → `(picked)` | шаг choice, «Почему?» |
 | AnswerInput | `app-answer-input` | `answer`, `placeholder` → `(typed)` | шаг input |
 | WhyStepView | `app-why-step-view` | `ok`, `wrong[]` → `(answered)` | шаг why |
-| Feedback | `app-feedback` | `ok`, `text`, `mascot` | похвала/подсказка |
-| Cat | `app-cat` | `who: vira/wendy`, `mood`, `size` | **только 3 класс** |
-| MascotPair | `app-mascot-pair` | `mascot`, `size: md/lg` | шапка пака, итог |
+| Feedback | `app-feedback` | `ok`, `text`, `pet` | похвала/подсказка |
+| PetAvatar | `app-pet-avatar` | `pet`, `mood: happy/sad/sly/wow`, `size` | везде, где питомец (рисунок по окрасу или эмодзи) |
+| PetGroup | `app-pet-group` | `pets[]`, `size: sm/md/lg`, `names` | шапка пака, итог, кабинет |
 | StarsBadge | `app-stars-badge` | `stars`, `level` | верхняя панель |
 | TopBar | `app-top-bar` | — (берёт из `HeaderService`) | оболочка |
 | Tabs | `app-tabs` | `items: {label, link, active}[]`, `label` | хаб: классы |
@@ -46,6 +46,12 @@
 | LevelUp | `app-level-up` | `level` | итог раунда |
 | Poem | `app-poem` | `lines: PoemLine[]` (mul, hl, gap, good) | сцена: стих |
 | OrderTiles | `app-order-tiles` | `items` (в верном порядке) → `(wrong)`, `(done)` | шаг order |
+| Segmented | `app-segmented` | `options: {value,label}[]`, `[(value)]` | кабинет взрослого |
+| Swatches | `app-swatches` | `colors: {id,name}[]`, `[(value)]` | окрас питомца |
+| EmojiPicker | `app-emoji-picker` | `items[]`, `[(value)]`, `allowNone` | аватар, иконка питомца |
+| StatCard | `app-stat-card` | `value`, `label` | кабинеты |
+| Section | `app-section` | `title`, `note` + контент | кабинеты |
+| Field | `app-field` | `label` + поле внутри | формы |
 | ConfirmButton | `app-confirm-button` | `label`, `lockSec` → `(confirmed)` | шаг memorize («Прочитала!») |
 
 Компоненты экранов (не общие): `features/play/round-header`, `features/play/round-finish`, `engine/prompt-view`, `engine/exercise-player`.

@@ -1,0 +1,13 @@
+@use 'mixins' as m;
+
+.preview { display: flex; align-items: flex-end; justify-content: center; gap: 16px; min-height: 140px; background: var(--sky2); border-radius: 14px; padding: 8px; }
+.kids { display: flex; flex-wrap: wrap; gap: 12px; }
+.kid { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.kid input { width: 22px; height: 22px; }
+.acts { display: flex; gap: 10px; flex-wrap: wrap; }
+.pet { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--ghost); padding-bottom: 8px; }
+.info { flex: 1; display: grid; }
+.info span { font-size: 13px; color: var(--muted); }
+.link { border: 0; background: none; font-weight: 800; text-decoration: underline; color: var(--ink); }
+.del { border: 0; background: none; font-size: 20px; color: var(--muted); padding: 6px; }
+.empty { margin: 0; color: var(--muted); }
