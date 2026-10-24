@@ -8,18 +8,27 @@
 
 ## Где что лежит
 
+**Сначала прочитай `docs/architecture.md`** — слои, модель контента, рецепты «как добавить класс/учебник/игру/тип шага».
+
 | Путь | Что это |
 |---|---|
-| `src/app/core/games.ts` | Каталог игр (класс, предмет, цвет, legacy-путь / Angular-маршрут). Хаб строится из него. |
-| `src/app/core/progress.ts` | Звёзды/уровни (`lvlAt`, `levelOf`), безопасный `store` для localStorage, `ProgressService`. |
-| `src/app/hub/` | Хаб «Игры» с вкладками «3 класс / 4 класс». |
-| `public/legacy/<игра>/index.html` | **Рабочие** игры. Каждая — один файл: HTML+CSS+JS+шрифты внутри, работает офлайн. Сейчас это источник правды. |
-| `legacy-src/` | Исходники, из которых собирались некоторые legacy-игры (см. `legacy-src/README.md`). |
-| `docs/games.md` | Суть каждой игры: режимы, данные, педагогические правила. **Читать перед правками игры.** |
-| `docs/migration.md` | План переноса на Angular и общие компоненты. |
-| `docs/open-items.md` | Что не доделано и что Волха должна проверить. |
-| `tools/publish.mjs` | Сборка и выкладка на GitHub Pages. |
-| `tools/smoke.mjs` | Дымовой тест: все игры открываются, кнопка «назад» ведёт в хаб. |
+| `src/app/core/` | модели, каталог (`catalog/entries.ts` — плитки хаба, `books.ts`), хранилище `KV_STORE`, профиль, прогресс/уровни, звук, озвучка |
+| `src/app/shared/ui/` | общие компоненты: варианты ответа, ввод, «Почему?», похвала, кошки, правило, верхняя панель |
+| `src/app/engine/` | проигрыватель упражнений (шаги) и очередь раунда |
+| `src/app/content/` | **паки контента** (данные + режимы), `registry.ts`. Образец: `grade-3/ru/rabota/` |
+| `src/app/features/` | экраны: хаб → пак → тема → раунд; `admin/` — задел |
+| `public/legacy/<игра>/index.html` | старые игры, ещё не перенесённые (один HTML-файл на игру, работает офлайн) |
+| `legacy-src/` | исходники, из которых собирались некоторые legacy-игры |
+| `docs/games.md` | суть каждой игры: режимы, данные, педагогика |
+| `docs/migration.md` | как переносить legacy-игру + статус общих компонентов |
+| `docs/open-items.md` | что не доделано и что Волха должна проверить |
+| `tools/publish.mjs` · `tools/smoke.mjs` · `tools/e2e.mjs` | выкладка · все игры открываются · все паки проходятся до конца |
+
+## Правила кода
+
+- Новая игра = **пак контента** (данные + режимы), а не новый компонент. Не хватает типа шага — добавь тип шага (рецепт в architecture.md).
+- `content/` не импортирует Angular/engine/features. Хранение — только через `KV_STORE`, не напрямую в localStorage.
+- После изменений: `npm test` (проверяет ВСЕ режимы на ВСЕХ элементах всех паков) и `npm run e2e`.
 
 ## Публикация (после КАЖДОГО изменения)
 
@@ -64,7 +73,7 @@
 - Правь прямо `public/legacy/<игра>/index.html` (это минифицированно-читаемый один файл; ищи по `const STREETS`, `const ITEMS`, `const TOPICS`, `const BLOCKS`).
 - Ссылка «← Игры» внутри игр ведёт на `../../#/3` (3 класс) или `../../../#/4` (4 класс) — не ломай.
 - Проверяй на ширине **390 px** (телефон) и на iPad. Playwright: `tools/smoke.mjs` + свои сценарии.
-- Новая игра: лучше сразу на Angular (см. migration.md), плитку добавить в `games.ts`.
+- Новая игра — сразу паком на Angular (см. architecture.md), плитка — в `core/catalog/entries.ts`.
 
 ## Команды
 
@@ -74,5 +83,5 @@ npm start            # http://localhost:4200
 npm test             # vitest
 npm run build
 npm run publish      # сборка под Pages + копия в ../app
-npm i -D playwright && npx playwright install chromium && npx ng build && npm run e2e
+npm i -D playwright && npx playwright install chromium && npx ng build && npm run e2e   # smoke + полное прохождение паков
 ```

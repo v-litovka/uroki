@@ -17,9 +17,9 @@ Angular 21. Обновить до свежего: `npx ng update @angular/core @
 
 ## Как устроено
 
-- Хаб «Игры» — Angular (`src/app/hub`), список игр — `src/app/core/games.ts`.
-- Сами игры пока — готовые офлайн-HTML в `public/legacy/` (копируются в сборку как есть).
-- Переписывать игры на Angular можно по одной: см. `docs/migration.md`.
+- Слои: `core` (модели, прогресс, хранилище) → `shared/ui` + `engine` (проигрыватель упражнений) → `content` (паки: данные + режимы) → `features` (экраны). Подробно: `docs/architecture.md`.
+- Плитки хаба — `src/app/core/catalog/entries.ts`. На Angular уже работает «Работа над ошибками»; остальные игры пока готовые офлайн-HTML в `public/legacy/`.
+- Переносить игры можно по одной: `docs/migration.md`.
 
 Подробно для работы с Claude: **`CLAUDE.md`**. Описание игр: `docs/games.md`. Хвосты: `docs/open-items.md`.
 

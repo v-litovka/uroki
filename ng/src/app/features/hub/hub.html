@@ -1,0 +1,29 @@
+<h1 class="title">Игры</h1>
+<nav class="tabs" aria-label="Класс">
+  @for (gr of grades; track gr) {
+    <a [routerLink]="['/', gr]" [class.on]="g() === gr">{{ gr }} класс</a>
+  }
+</nav>
+<p class="lead">Выбери игру. Звёзды и уровни у каждой игры свои.</p>
+
+<div class="grid">
+  @for (x of entries(); track x.id) {
+    @if (x.kind === 'legacy') {
+      <a class="g" [href]="'legacy/' + x.path" [style.--c]="x.color">
+        <span class="tag">{{ subjects[x.subject].title }}</span><b>{{ x.title }}</b><span>{{ x.desc }}</span>
+      </a>
+    } @else {
+      <a class="g" [routerLink]="['/', x.grade, x.subject, x.id]" [style.--c]="x.color">
+        <span class="tag">{{ subjects[x.subject].title }}</span><b>{{ x.title }}</b><span>{{ x.desc }}</span>
+      </a>
+    }
+  }
+</div>
+
+@if (extras().length) {
+  <div class="small">
+    @for (e of extras(); track e.path) {
+      <a [href]="'legacy/' + e.path">{{ e.title }}</a>
+    }
+  </div>
+}

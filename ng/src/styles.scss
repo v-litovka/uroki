@@ -1,17 +1,2 @@
-:root {
-  --ink: #26224f;
-  --muted: #5b5785;
-  --paper: #fffdf8;
-  --sun: #ffd23f;
-  color-scheme: light;
-}
-* { box-sizing: border-box; }
-html, body { min-height: 100%; }
-body {
-  margin: 0;
-  background: linear-gradient(180deg, #f5f1ff 0%, #d9ecff 100%);
-  background-attachment: fixed;
-  color: var(--ink);
-  font-family: 'Nunito', system-ui, sans-serif;
-  font-weight: 600;
-}
+@use 'styles/tokens';
+@use 'styles/kit';
