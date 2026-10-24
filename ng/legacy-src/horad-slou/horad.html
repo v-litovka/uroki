@@ -1,0 +1,933 @@
+<title>Горад Слоў</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pangolin&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: одна колонка: шапка с таймером, карточка-задание, кнопки ответов; улицы — тематические разделы учебника */
+:root{
+  --sky:#E3DAFF; --sky2:#F5F1FF; --ink:#26224F; --paper:#FFFDF8; --sun:#FFD23F;
+  --grass:#8FCB8A; --grass2:#6DB56B; --good:#1F9D57; --trap:#E8452C; --muted:#5B5785;
+  --ghost:#D4D0EC; --almost:#FFC23C; --accent:#7A4FE0; --tile:#F1ECFF;
+  --display:'Pangolin','Comic Sans MS','Segoe Print',cursive;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:linear-gradient(180deg,var(--sky2) 0%,var(--sky) 80%);background-attachment:fixed;color:var(--ink);font-family:var(--body);font-weight:600;font-size:16px;line-height:1.45}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+.ground{position:fixed;left:0;right:0;bottom:0;height:56px;pointer-events:none;z-index:0;
+  background:radial-gradient(120px 46px at 12% 100%,var(--grass2) 98%,transparent 100%),radial-gradient(180px 50px at 50% 100%,var(--grass) 98%,transparent 100%),radial-gradient(150px 44px at 88% 100%,var(--grass2) 98%,transparent 100%)}
+.app{position:relative;z-index:1;max-width:680px;margin:0 auto;padding-inline:16px;padding-block:10px 90px}
+
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.top .name{font-family:var(--display);font-size:22px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.playing .top .name{display:none}
+.iconbtn{width:46px;height:46px;border-radius:14px;border:3px solid var(--ink);background:var(--paper);display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink);flex:none}
+.iconbtn svg{width:24px;height:24px}
+#sfx .mute{display:none}#sfx[aria-pressed="false"]{background:var(--ghost)}#sfx[aria-pressed="false"] .mute{display:inline}#sfx[aria-pressed="false"] .wave{display:none}
+.stars{display:flex;align-items:center;gap:6px;height:46px;padding:0 14px;border-radius:999px;border:3px solid var(--ink);background:var(--sun);box-shadow:3px 3px 0 var(--ink);font-weight:900;font-size:20px;font-variant-numeric:tabular-nums;flex:none}
+.stars svg{width:22px;height:22px}
+.star{display:inline-block;width:1em;height:1em;vertical-align:-0.12em}
+.strip{flex:1;min-width:0;min-height:46px;display:flex;align-items:center;gap:10px;padding:4px 12px;border:3px solid var(--ink);border-radius:14px;background:var(--paper);box-shadow:3px 3px 0 var(--ink)}
+.clock{display:flex;align-items:center;gap:5px;font-weight:900;font-size:22px;font-variant-numeric:tabular-nums;min-width:4.4em;flex:none}
+.clock svg{width:22px;height:22px}
+.clock.soon{color:#C26A00}.clock.over{color:var(--trap)}.clock.done{color:var(--good)}
+.goal{flex:1;min-width:0;display:grid;gap:3px;font-size:13px;font-weight:800;line-height:1.15}
+.gbar{height:12px;border:2px solid var(--ink);border-radius:99px;background:var(--ghost);overflow:hidden}
+.gbar i{display:block;height:100%;background:var(--good);transition:width .4s}
+
+/* меню */
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(40px,10vw,60px);line-height:1;margin:6px 0 8px;text-wrap:balance}
+.hero p{margin:0 0 18px;max-width:50ch;color:var(--muted);font-size:17px}
+.streets{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.street{position:relative;text-align:left;border:3px solid var(--ink);border-radius:18px;background:var(--paper);padding:12px 14px 14px;box-shadow:4px 4px 0 var(--ink);display:grid;gap:6px;transition:transform .15s;min-width:0}
+.street .sign{justify-self:start;padding:2px 10px;border-radius:8px;border:2px solid var(--ink);background:var(--c);color:#fff;font-weight:900;font-size:13px;letter-spacing:.04em}
+.street .sname{font-family:var(--display);font-size:23px;line-height:1.05}
+.street .sdesc{font-size:13px;color:var(--muted);line-height:1.3}
+.street .cnt{font-size:13px;color:var(--muted)}
+.street .bar{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--ghost);border:2px solid var(--ink)}
+.street .bar i{display:block;height:100%}
+.street .check{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;border:3px solid var(--ink);background:var(--paper);display:grid;place-items:center}
+.street[aria-pressed="true"]{transform:translate(-2px,-3px);box-shadow:6px 7px 0 var(--ink);background:#FFF8DC}
+.street[aria-pressed="true"] .check{background:var(--good);color:#fff}
+.street[aria-pressed="false"] .check svg{visibility:hidden}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:16px 0 18px;font-size:14px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:4px;border:2px solid var(--ink)}
+.menu-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.link{background:none;border:0;text-decoration:underline;color:var(--muted);font-size:14px;padding:6px}
+.settings{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;margin:0 0 18px;padding:14px 16px;border:3px dashed var(--muted);border-radius:18px;background:rgba(255,253,248,.75)}
+.set{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.setl{font-family:var(--display);font-size:22px}
+.setu{color:var(--muted);font-size:14px}
+.step{display:flex;align-items:center;border:3px solid var(--ink);border-radius:14px;background:var(--paper);overflow:hidden}
+.step button{width:44px;height:44px;border:0;background:var(--sun);font-weight:900;font-size:24px}
+.step output{min-width:4.4em;text-align:center;font-weight:900;font-size:20px;font-variant-numeric:tabular-nums}
+.settings .note{flex-basis:100%}
+.hist{margin-top:22px;overflow-x:auto}
+.hist h3,.col h3{margin:0 0 8px;font-family:var(--display);font-weight:400;font-size:22px}
+.hist table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums;background:var(--paper);border:3px solid var(--ink)}
+.hist th,.hist td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--ghost);white-space:nowrap}
+.hist th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.okc{color:var(--good);font-weight:900}
+
+/* кнопки */
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 24px;border:3px solid var(--ink);border-radius:16px;background:var(--sun);box-shadow:4px 4px 0 var(--ink);font-family:var(--display);font-size:24px;transition:transform .1s, box-shadow .1s}
+.btn:active:not(:disabled){transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.big{font-size:28px;min-height:64px;padding:0 32px}
+.btn.wide{width:100%}
+.btn:disabled{cursor:wait;background:#FFF0B3}
+.btn .lbl{position:relative}
+.btn.locking::before{content:"";position:absolute;inset:0;background:var(--sun);transform-origin:left;transform:scaleX(0);animation:fill var(--t,5s) linear forwards}
+@keyframes fill{to{transform:scaleX(1)}}
+
+/* карточка задания */
+.card{background:var(--paper);border:4px solid var(--ink);border-radius:24px;box-shadow:6px 6px 0 var(--ink);padding:20px;display:grid;gap:14px}
+.card{grid-template-columns:minmax(0,1fr)}.card>*{min-width:0}
+.kicker{margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;color:var(--accent);display:flex;align-items:center;gap:8px}
+.kicker.red{color:var(--trap)}
+.ask{margin:0;font-family:var(--display);font-size:26px;line-height:1.15;text-wrap:balance}
+.ask b{color:var(--accent);font-weight:400;background:#F1ECFF;border-radius:8px;padding:0 6px}
+.card h2{margin:0;font-family:var(--display);font-weight:400;font-size:32px;line-height:1.05}
+.rule{margin:0;font-size:18px;max-width:56ch}
+.rule b{color:var(--accent)}
+.sub{margin:4px 0 0;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.taskline{margin:0;font-size:17px;font-weight:800;color:var(--muted)}
+.taskline b{color:var(--ink);font-size:20px}
+
+.word{font-family:var(--display);font-size:clamp(40px,11vw,62px);line-height:1.1;text-align:center;letter-spacing:.02em;overflow-wrap:anywhere}
+.sent .gap{display:inline-block;padding:0 .15em;margin:0 .05em;border-bottom:4px solid var(--trap);color:var(--trap);background:#FFF1E8;border-radius:8px 8px 0 0;font-weight:900}
+.word .gap{display:inline-block;min-width:.75em;padding:0 .08em;border-bottom:5px solid var(--trap);color:var(--trap);background:#FFF1E8;border-radius:8px 8px 0 0}
+.word .ok{color:var(--good);background:#E3F6EA;border-radius:8px;padding:0 .06em}
+.word .pre{border:3px solid var(--accent);border-radius:10px;padding:0 .08em}
+.seg{display:inline-block;padding:0 .04em}
+.seg.hl{background:#FFE9A8;border:3px solid var(--ink);border-radius:10px}
+.sent{font-size:clamp(22px,5.4vw,28px);font-weight:800;line-height:1.7;text-align:center;text-wrap:balance}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 8px;font-size:clamp(20px,5vw,26px);font-weight:800}
+.chip{border:3px solid var(--ink);border-radius:12px;background:#fff;padding:4px 12px;box-shadow:2px 2px 0 var(--ink)}
+.chip:hover{background:#FFF8DC}
+.chip.p{background:#E7F1FF;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:6px}
+.chip.s{background:#E3F6EA;text-decoration:underline double;text-decoration-thickness:3px;text-underline-offset:6px}
+.chip.no{background:#FFE9E3}
+.punct{align-self:end;font-size:1.1em;margin-left:-6px}
+.u1{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:6px}
+.chip.d{background:#FFF3D6;text-decoration:underline dashed;text-decoration-thickness:3px;text-underline-offset:6px}
+.u3{text-decoration:underline dashed;text-decoration-thickness:3px;text-underline-offset:6px}
+.hlw{background:#FFE9A8;border-radius:6px;padding:0 3px}
+.u2{text-decoration:underline double;text-decoration-thickness:3px;text-underline-offset:6px}
+.addr{background:#FFE9A8;border-radius:6px;padding:0 4px}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px}
+.opts.long{grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr))}
+.opt{min-width:0;overflow-wrap:anywhere;hyphens:auto}
+.opts.letters{grid-template-columns:repeat(auto-fit,minmax(96px,1fr));max-width:340px;margin:0 auto;width:100%}
+.opt{position:relative;min-height:64px;padding:8px 14px 8px 40px;border:3px solid var(--ink);border-radius:16px;background:#fff;box-shadow:3px 3px 0 var(--ink);font-weight:900;font-size:21px;line-height:1.15;text-align:left}
+.opts.letters .opt{font-family:var(--display);font-size:38px;text-align:center;padding:4px 10px 6px}
+.opt .k{position:absolute;left:10px;top:8px;width:22px;height:22px;border-radius:6px;background:var(--tile);border:2px solid var(--ink);font-size:13px;display:grid;place-items:center;font-family:var(--body)}
+.opt:hover{background:#FFF8DC}
+.opt:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.opt.right{background:#D8F3E2;border-color:var(--good)}
+.opt.bad{background:#FFE1D8}
+.opt:disabled{cursor:default}
+
+.verdict{font-family:var(--display);font-size:30px;line-height:1.1;margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.verdict.ok{color:var(--good)}.verdict.bad{color:var(--trap)}
+.why{margin:0;font-size:18px;font-weight:800;text-align:center;color:var(--muted)}
+.why b{color:var(--good)}
+.note{margin:0;font-size:14px;color:var(--muted)}
+.exs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.ex{border:2px dashed var(--muted);border-radius:14px;padding:10px 12px;background:#F7F4FF;font-weight:800;font-size:19px;display:grid;gap:4px;min-width:0}
+.ex small{font-size:14px;color:var(--muted)}
+.ex .ok{color:var(--good)}
+.memo{text-align:center;padding:10px;border:3px solid var(--ink);border-radius:18px;background:#FFF1C2}
+.progress-dots{display:flex;gap:6px}
+.progress-dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:var(--paper)}
+.progress-dots i.on{background:var(--good)}
+
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+/* ввод проверочного слова и уровень */
+.inrow{display:flex;gap:10px;flex-wrap:wrap}.inrow .btn{flex:1 0 auto}
+.inp{flex:1 1 180px;min-width:0;width:100%;height:60px;padding:0 14px;border:3px solid var(--ink);border-radius:16px;background:#fff;font-family:var(--display);font-size:32px;color:var(--ink)}
+.inp:focus{outline:4px solid var(--accent);outline-offset:2px}
+.inp.right{background:#D8F3E2;border-color:var(--good)}.inp.bad{background:#FFE1D8}
+.soft{margin:0;min-height:1.2em;font-weight:800;color:#B05A00}
+.lvl{display:inline-block;vertical-align:middle;font-family:var(--body);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:8px;background:var(--ink);color:#fff}
+.seg2{display:flex;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--paper)}
+.seg2 button{border:0;background:transparent;padding:10px 16px;font-weight:900;font-size:16px}
+.seg2 button+button{border-left:3px solid var(--ink)}
+.seg2 button[aria-pressed="true"]{background:var(--sun)}
+.seg2 button:disabled{color:var(--ghost);cursor:not-allowed}
+.rulebox{display:grid;gap:4px;padding:12px 16px;border:3px solid var(--ink);border-radius:18px;background:#FFF1C2}
+.rulebox .tag{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.rulebox>b{font-family:var(--display);font-weight:400;font-size:24px}
+.rulebox p{margin:0;font-size:18px}
+.rulebox p b{color:var(--accent)}
+.blank{display:inline-block;width:1.1em;height:1.15em;vertical-align:-0.2em;margin-left:4px;border:3px dashed var(--trap);border-radius:8px;background:#FFF1E8}
+/* итоги и добавочное время */
+.center{text-align:center;justify-items:center}
+.need{display:flex;align-items:center;gap:14px;text-align:left;font-weight:800;font-size:18px;line-height:1.2}
+.need b{font-family:var(--display);font-weight:400;font-size:84px;line-height:.9;color:var(--trap)}
+.sum{display:grid;gap:14px}
+.sum h1{font-family:var(--display);font-weight:400;font-size:clamp(36px,9vw,52px);line-height:1;margin:0;text-wrap:balance}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{border:3px solid var(--ink);border-radius:16px;background:var(--paper);padding:10px 12px;display:grid;gap:2px;box-shadow:3px 3px 0 var(--ink)}
+.tile b{font-size:30px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;color:var(--muted);font-weight:800}
+.tile.good{background:#E3F6EA}.tile.good b{color:var(--good)}
+.tile.bad{background:#FFE9E3}.tile.bad b{color:var(--trap)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.col{background:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:14px 16px;min-width:0}
+.eqlist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.eqlist li{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:#FFF1EC;font-weight:900;font-size:17px}
+.eqlist.ok li{background:#E3F6EA}
+.eqlist em{font-style:normal;color:var(--trap);font-size:15px;flex:none}
+.prizebox{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 16px;border:3px solid var(--ink);border-radius:18px;background:var(--paper);font-weight:800}
+.prizebox span{font-size:15px;color:var(--muted)}
+.prizebox .pbar{flex:1 1 160px;height:14px;border:2px solid var(--ink);border-radius:99px;background:var(--ghost);overflow:hidden}
+.prizebox .pbar i{display:block;height:100%;background:var(--sun)}
+.prizebox.won{background:#FFF1C2}
+.prizebox.won div{display:grid;gap:2px}
+.prizebox.won b{font-family:var(--display);font-weight:400;font-size:30px;line-height:1}
+.burst{width:64px;height:64px;flex:none;animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-width:420px){
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .clock{font-size:18px;min-width:3.6em}.clock svg{width:18px;height:18px}.strip{padding:4px 8px;gap:8px}.goal{font-size:11px}
+  .card{padding:16px}
+  .need b{font-size:64px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .btn.locking::before{animation-duration:var(--t,5s)!important}
+}
+.lvb{font-size:13px;font-weight:900;padding:2px 7px;border-radius:99px;background:var(--ink);color:#fff;margin-left:2px}.lvb:empty{display:none}@media(max-width:480px){body.playing .lvb{display:none}}
+.lvtoast{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:12px;padding:12px 20px;border:4px solid var(--ink);border-radius:20px;background:#FFF1C2;box-shadow:5px 5px 0 var(--ink);font-family:var(--display);font-size:28px;white-space:nowrap;animation:lvin .4s ease-out}
+.lvtoast svg{width:44px;height:44px;animation:spin 6s linear infinite}
+@keyframes lvin{from{transform:translate(-50%,-30px);opacity:0}}
+.stw{display:grid;gap:6px;align-content:start;min-width:0}
+.lvrow{display:flex;border:3px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--paper)}
+.lvb2{flex:1;border:0;border-right:2px solid var(--ink);background:var(--paper);font-weight:900;font-size:13px;padding:7px 4px;min-height:36px}
+.lvb2:last-child{border-right:0}.lvb2[aria-pressed="true"]{background:var(--sun)}
+.lvd{margin:0;font-size:12px;color:var(--muted);line-height:1.25;padding:0 4px}
+.tli{flex:0 1 140px;text-align:center}
+.cells{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0}
+.cell{width:clamp(28px,calc((100vw - 110px) / 9),44px);height:56px;padding:0;border:0;border-bottom:5px solid var(--ink);border-radius:10px 10px 0 0;background:#fff;text-align:center;font-family:var(--display);font-size:34px;color:var(--ink)}
+.cell:focus{outline:3px solid var(--accent);outline-offset:1px}
+.cell.ok{border-color:var(--good);color:var(--good);background:#E3F6EA}
+.cell.no{border-color:var(--trap);color:var(--trap);background:#FFE3DC}
+.cgap{width:14px}
+</style>
+
+<div class="ground" aria-hidden="true"></div>
+<div class="app">
+  <header class="top">
+    <button class="iconbtn" id="home" aria-label="На галоўную (скончыць занятак)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </button>
+    <div class="name">Горад Слоў</div>
+    <div class="strip" id="strip" hidden></div>
+    <div class="stars" aria-label="Зоркі"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z" fill="#fff" stroke="#26224F" stroke-width="2" stroke-linejoin="round"/></svg><span id="starN">0</span><span class="lvb" id="lvlN"></span></div>
+    <button class="iconbtn" id="sfx" aria-label="Гукі" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M16 9l6 6M22 9l-6 6"/></svg>
+    </button>
+  </header>
+  <main id="stage"></main>
+</div>
+
+<script>
+(function(){
+'use strict';
+const KEY='horad-slou-v1';
+const STAR='<svg class="star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z" fill="#FFD23F" stroke="#26224F" stroke-width="2" stroke-linejoin="round"/></svg>';
+const CHECK='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
+const CLOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>';
+const BOOK='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M3 5c3-1 6-1 9 1v14c-3-2-6-2-9-1zM21 5c-3-1-6-1-9 1v14c3-2 6-2 9-1z"/></svg>';
+const LESSON_LOCK=15,PRIZE=100;
+const PAIR={'о':'а','а':'о','е':'и','и':'е','я':'е','ю':'у'};
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* =================== ЗАДАННІ ===================
+   Тэмы — па змесце вучэбнага дапаможніка «Беларуская мова, 3 клас, частка 1» (В. І. Свірыдзенка, 2023).
+   Слоўнікавыя словы — са спіса ў канцы дапаможніка. Астатнія прыклады складзены асобна. */
+
+/* слоўнікавыя словы: слова з пропускам, літара, няправільны варыянт */
+const DICT=[['асц_рожны','я','е'],['бл_шчаць','і','е'],['вобл_ка','а','о'],['вос_ньскі','е','я'],['г_радскі','а','о'],['г_сцінец','а','о'],
+ ['п_вук','а','о'],['п_нал','е','я'],['св_ціць','я','е'],['см_яцца','я','е'],['_шытак','с','з'],['шчас_е','ц','т']];
+const DICT2=[["кал_дор", "і", "е"], ["лес_іца", "в", "ф"], ["від_лец", "э", "е"], ["кват_ра", "э", "е"], ["до_дж", "ж", "ш"], ["_веры", "дз", "д"], ["та_ерка", "л", "р"], ["рю_зак", "к", "г"], ["с_сед", "у", "о"], ["с_южа", "ц", "т"], ["ё_", "сць", "сть"], ["Р_спубліка", "э", "е"], ["аквары_м", "у", "ю"], ["г_рой", "е", "э"], ["кал_ктыў", "е", "э"], ["т_атр", "э", "е"], ["мес_ц", "я", "е"], ["м_тро", "е", "э"], ["мя_і", "кк", "к"], ["пам_ць", "я", "е"], ["стад_ён", "ы", "і"], ["_вёрды", "ц", "т"], ["ча_вер", "ц", "т"], ["мя_ведзь", "дз", "д"], ["мядзве_ь", "дз", "д"], ["м_даль", "е", "э"]];
+/* аканне і яканне: слова, літара, пад націскам?, іншы варыянт, слова з націскам */
+const AK=[['в_да','а',0,'о','вада́'],['г_ра','а',0,'о','гара́'],['с_ва','а',0,'о','сава́'],['с_сна','а',0,'о','сасна́'],['н_га','а',0,'о','нага́'],
+ ['ст_лы','а',0,'о','сталы́'],['н_сы','а',0,'о','насы́'],['др_ўляны','а',0,'э','драўля́ны'],['с_рдэчны','а',0,'э','сардэ́чны'],
+ ['в_ўк','о',1,'а','во́ўк'],['м_рква','о',1,'а','мо́рква'],['р_за','о',1,'а','ро́за'],['к_ні','о',1,'а','ко́ні'],['п_ле','о',1,'а','по́ле'],['др_ва','э',1,'а','дрэ́ва'],['с_рца','э',1,'а','сэ́рца'],
+ ['з_мля','я',0,'е','зямля́'],['в_сна','я',0,'е','вясна́'],['б_роза','я',0,'е','бяро́за'],['л_сок','я',0,'е','лясо́к'],['с_ло','я',0,'е','сяло́'],['п_ро','я',0,'е','пяро́'],
+ ['ц_пло','я',0,'е','цяпло́'],['п_сок','я',0,'е','пясо́к'],['з_лёны','я',0,'е','зялёны'],
+ ['в_цер','е',1,'я','ве́цер'],['л_с','е',1,'я','ле́с'],['с_на','е',1,'я','се́на'],['м_сца','е',1,'я','ме́сца'],['б_раг','е',1,'я','бе́раг'],['в_чар','е',1,'я','ве́чар']];
+/* у або ў: тэкст з пропускам, літара, што стаіць перад гукам */
+const UV=[['за_сёды','ў','галосны гук'],['ла_ка','ў','галосны гук'],['во_к','ў','галосны гук'],['пра_да','ў','галосны гук'],['сло_нік','ў','галосны гук'],
+ ['Мама _зяла кошык.','ў','галосны гук'],['Я _бачыў зайца.','ў','галосны гук'],['Дарога _ лес.','ў','галосны гук'],['Віра _бачыла мыш.','ў','галосны гук'],
+ ['Брат _зяў мяч.','у','зычны гук'],['Кот _бачыў мыш.','у','зычны гук'],['Ён пайшоў _ школу.','у','зычны гук'],['Пятрусь _цёк.','у','зычны гук'],['Стыў _бачыў крыпера.','у','зычны гук'],
+ ['_ладзік прыйшоў дадому.','У','знак прыпынку або пачатак сказа'],['Пачаўся дождж, _се схаваліся.','у','знак прыпынку або пачатак сказа'],
+ ['Вендзі, _стань з клавіятуры!','у','знак прыпынку або пачатак сказа']];
+const UV_OPTS=['галосны гук','зычны гук','знак прыпынку або пачатак сказа'];
+/* прыстаўкі з- і с-: слова, літара, гук пасля прыстаўкі */
+const ZS=[['_хапіла','с','глухі'],['_казаў','с','глухі'],['_пісаць','с','глухі'],['_пячы','с','глухі'],['_тварыў','с','глухі'],['_ціснуць','с','глухі'],
+ ['_кінуць','с','глухі'],['_палохацца','с','глухі'],['_фатаграфаваць','с','глухі'],
+ ['_рабіў','з','звонкі'],['_бегчы','з','звонкі'],['_найсці','з','звонкі'],['_біць','з','звонкі'],['_ламаць','з','звонкі'],['_вязаць','з','звонкі'],
+ ['_гатаваць','з','звонкі'],['_мыць','з','звонкі'],['_будаваць','з','звонкі'],['_варыць','з','звонкі']];
+/* дз і ц або д і т: слова, літара, іншы варыянт, пасля — е, ё, ю, я, і, ь? */
+const DZC=[['_ень','дз','д',1],['_ётка','ц','т',1],['ве_ер','ц','т',1],['_ядзька','дз','д',1],['ко_ік','ц','т',1],['_іхі','ц','т',1],['хо_іць','дз','д',1],
+ ['дзе_і','ц','т',1],['_ятлы','дз','д',1],['ліс_е','ц','т',1],['ра_асць','д','дз',0],['_ата','т','ц',0],['ву_а','д','дз',0],['_ом','д','дз',0],['_орт','т','ц',0],['ка_ок','т','ц',0]];
+/* зацвярдзелыя: слова, літара, няправільны варыянт */
+const ZAC=[['гр_бень','э','е'],['ж_вёла','ы','і'],['ч_рвоны','ы','і'],['ш_сць','э','е'],['р_чка','э','е'],['ч_лавек','а','я'],['ц_рк','ы','і'],['дж_м','э','е'],
+ ['ш_шка','ы','і'],['тавар_ш','ы','і'],['ж_лезны','а','е'],['расч_ска','о','ё'],['гарач_ня','ы','і'],['р_ха','э','е'],['ш_ры','э','е']];
+/* падоўжаныя: слова, правільна, няправільна, паміж галоснымі? */
+const DVO=[['жы_ё','цц','ц',1],['вясе_е','лл','л',1],['насе_е','нн','н',1],['збо_а','жж','ж',1],['пыта_е','нн','н',1],['кало_е','сс','с',1],['ла_я','ддз','дз',1],
+ ['зарэ_а','чч','ч',1],['заці_а','шш','ш',1],['навако_е','лл','л',1],['га_ё','лл','л',1],['ко_ка','с','сс',0],['кора_ь','н','нн',0],['рэ_ка','ч','чч',0],['мы_','ш','шш',0],['жы_ь','ц','цц',0]];
+/* апостраф або ь: слова, знак, цвёрды/мяккі */
+const APOS=[['сям_я','’','цвёрды'],['аб_ява','’','цвёрды'],['вераб_і','’','цвёрды'],['п_еса','’','цвёрды'],['бар_ер','’','цвёрды'],['інтэрв_ю','’','цвёрды'],
+ ['аб_ём','’','цвёрды'],['кур_ер','’','цвёрды'],['міл_ён','ь','мяккі'],['брыл_янт','ь','мяккі'],['вал_ера','ь','мяккі'],['кал_е','ь','мяккі'],['Іл_я','ь','мяккі'],
+ ['шампін_ён','ь','мяккі'],['кампан_ён','ь','мяккі']];
+/* парныя зычныя: слова, літара, іншы варыянт, праверачнае, два «неправерачныя» */
+const PAR=[['зага_ка','д','т','загадаць','загадкі','загадкавы'],['лу_','г','х','лугі','лук','лужок'],['дзя_ька','дз','ц','дзядзя','дзядзькі','дзядзькаў'],
+ ['прыка_ка','з','с','казаць','прыказкі','казка'],['ду_','б','п','дубы','дубкі','дупло'],['сне_','г','х','снягі','снежны','снежань'],['хле_','б','п','хлябы','хлебца','хлебзавод'],
+ ['ры_ка','б','п','рыба','рыбкі','рыбцы'],['гры_','б','п','грыбы','грыбкі','грыпа'],['са_','д','т','сады','садкі','салата'],['маро_','з','с','марозы','марожанае','мора'],
+ ['лы_ка','ж','ш','лыжачка','лыжкі','лыжку'],['ка_ка','з','с','казачны','казкі','казку']];
+/* тыпы сказаў: сказ, тып, знак, якія знакі прымаем */
+const TYPE=[['Восенню лісце жоўкне','апавядальны','.',['.']],['Віра спіць на падаконніку','апавядальны','.',['.']],['Стыў знайшоў алмаз у шахце','апавядальны','.',['.']],
+ ['Вендзі ўпусціла кубак са стала','апавядальны','.',['.']],['Лунцік жыве на Зямлі','апавядальны','.',['.']],['Ура, мы перамаглі','апавядальны','!',['!']],
+ ['Як прыгожа ў лесе','апавядальны','!',['!']],['Колькі алмазаў','апавядальны','!',['!']],
+ ['Дзе Віра схавала мышку','пытальны','?',['?']],['Хто з’еў усе алмазы','пытальны','?',['?']],['Чаму Вендзі сядзіць на клавіятуры','пытальны','?',['?']],
+ ['Калі пачнуцца канікулы','пытальны','?',['?']],['Колькі ног у павука','пытальны','?',['?']],['Хто зноў рассыпаў корм','пытальны','?!',['?!']],['Няўжо ты не бачыў крыпера','пытальны','?!',['?!']],
+ ['Пакармі Вендзі','пабуджальны','.',['.','!']],['Пабудуй мне домік у Майнкрафце','пабуджальны','.',['.','!']],['Не чапай крыпера','пабуджальны','!',['.','!']],
+ ['Смешарыкі, ідзіце абедаць','пабуджальны','!',['.','!']],['Зачыні, калі ласка, акно','пабуджальны','.',['.','!']],['Паклічце Віру вячэраць','пабуджальны','.',['.','!']]];
+/* дзейнік і выказнік */
+const MEM=[['Рыжая вавёрка грызе арэх.','вавёрка','грызе'],['Раніцай на паляну прыбег заяц.','заяц','прыбег'],['Уначы ціха падаў снег.','снег','падаў'],
+ ['Каля акна сядзіць Віра.','Віра','сядзіць'],['Вендзі ловіць муху.','Вендзі','ловіць'],['Зялёны крыпер падкраўся да Стыва.','крыпер','падкраўся'],
+ ['У шахце Стыў знайшоў алмазы.','Стыў','знайшоў'],['Тоўстая Віра спіць на канапе.','Віра','спіць'],['Мядзведзь варыць кашу.','Мядзведзь','варыць'],
+ ['Маша гучна смяецца.','Маша','смяецца'],['Восенню з дрэў ападае лісце.','лісце','ападае'],['Над ракой ляцяць птушкі.','птушкі','ляцяць']];
+/* сінонімы і антонімы: слова, адказ, два няправільныя */
+const SYN=[['смелы','адважны','баязлівы','хуткі'],['вялікі','вялізны','малы','круглы'],['ісці','крочыць','стаяць','скакаць'],['вясёлы','радасны','сумны','гучны'],
+ ['сумны','маркотны','вясёлы','ціхі'],['прыгожы','цудоўны','страшны','высокі'],['сябар','друг','вораг','сусед'],['лес','бор','поле','кветка'],['гаварыць','размаўляць','маўчаць','спаць'],['хутка','шпарка','павольна','ціха']];
+const ANT=[['дзень','ноч','раніца','сонца'],['гарачы','халодны','цёплы','смачны'],['высокі','нізкі','вялікі','доўгі'],['сябар','вораг','таварыш','сусед'],['пачатак','канец','сярэдзіна','старт'],
+ ['лёгкі','цяжкі','просты','мяккі'],['шырокі','вузкі','вялікі','доўгі'],['светлы','цёмны','ясны','белы'],['знайсці','згубіць','шукаць','узяць'],['сухі','мокры','цвёрды','цёплы'],['смелы','баязлівы','адважны','моцны']];
+/* прамое або пераноснае значэнне */
+const FIG=[['калючы вожык','прамое'],['калючы вецер','пераноснае'],['салодкі торт','прамое'],['салодкі сон','пераноснае'],['залаты пярсцёнак','прамое'],['залатыя рукі','пераноснае'],
+ ['гарыць вогнішча','прамое'],['гараць вочы','пераноснае'],['каменны дом','прамое'],['каменнае сэрца','пераноснае']];
+/* словы, аднолькавыя па гучанні: слова, сказ, значэнне, два іншыя значэнні */
+const HOM=[['каса','Дзяўчынка заплятае доўгую касу.','заплеценыя валасы','прылада, каб касіць траву','бераг ракі'],
+ ['каса','Дзед узяў касу і пайшоў на луг.','прылада, каб касіць траву','заплеценыя валасы','скрынка для грошай'],
+ ['ключ','Тата адчыніў дзверы ключом.','каб адмыкаць замок','крыніца вады','клін птушак'],
+ ['ключ','З-пад каменя б’е халодны ключ.','крыніца вады','каб адмыкаць замок','музычны знак'],
+ ['кран','На будоўлі працуе высокі кран.','машына, якая падымае грузы','з яго цячэ вада','птушка'],
+ ['кран','Закруці кран, каб не цякла вада.','з яго цячэ вада','машына, якая падымае грузы','інструмент'],
+ ['лук','Хлопчык зрабіў лук і стрэлы.','зброя для стральбы','агародніна','мост'],
+ ['лук','Бабуля пасадзіла на градцы лук.','агародніна','зброя для стральбы','дуга']];
+/* корань і канчатак */
+const PARTS=[[['сасн','а'],1,'канчатак'],[['сасн','ы'],1,'канчатак'],[['ног','і'],1,'канчатак'],[['рак','а'],0,'корань'],[['рук','і'],1,'канчатак'],[['вад','а'],0,'корань'],
+ [['зямл','я'],1,'канчатак'],[['кніг','а'],0,'корань'],[['стал','ы'],1,'канчатак'],[['ляс','нік'],0,'корань'],[['грыб','ы'],1,'канчатак'],[['дом','ік'],0,'корань'],
+ [['птушк','і'],1,'канчатак'],[['праўд','у'],1,'канчатак'],[['грыб','нік'],0,'корань'],[['кніг','і'],1,'канчатак']];
+const ODD=[[['лес','ляснік','лясны','лесвіца'],'лесвіца','лес'],[['вада','водны','вадзіца','вадзіцель'],'вадзіцель','вад'],[['кот','коцік','кацяня','каток'],'каток','кот'],
+ [['гара','горны','прыгорак','гора'],'гора','гар'],[['мора','марскі','марак','морква'],'морква','мор'],[['ліса','лісіца','лісяня','лісток'],'лісток','ліс'],
+ [['грыб','грыбны','грыбнік','грыва'],'грыва','грыб'],[['сад','садок','садоўнік','садзіцца'],'садзіцца','сад']];
+
+const LEX_ALT={
+ 'syn:смелы':['храбры','мужны','бясстрашны'],'syn:вялікі':['вялізарны','велізарны','агромністы'],'syn:ісці':['ступаць','тупаць'],'syn:вясёлы':['шчаслівы','жыццярадасны'],
+ 'syn:сумны':['журботны','засмучаны','тужлівы'],'syn:прыгожы':['пекны','выдатны'],'syn:сябар':['таварыш','прыяцель'],'syn:лес':['гай','пушча'],
+ 'syn:гаварыць':['казаць','гутарыць'],'syn:хутка':['імкліва','жвава'],
+ 'ant:гарачы':['ледзяны','прахалодны'],'ant:высокі':['невысокі'],'ant:сябар':['непрыяцель','супраціўнік'],'ant:пачатак':['фініш','заканчэнне'],
+ 'ant:лёгкі':['складаны'],'ant:светлы':['змрочны'],'ant:знайсці':['страціць'],'ant:сухі':['вільготны','сыры'],'ant:смелы':['палахлівы','нясмелы']};
+const NORM=s=>String(s).toLowerCase().replace(/\u0301/g,'').replace(/ё/g,'е').replace(/[иi]/g,'і').replace(/ў/g,'у').replace(/[^а-яі]/g,'');
+const T={syn:w=>`Напішы сінонім да слова «${w}»`,ant:w=>`Напішы антонім да слова «${w}»`,better:b=>`Залічана! Але лепш падыдзе: «${b}»`,
+ typo:'Амаль! У слове памылка',remember:'Запомні, як пішацца. Зараз слова схаваецца.',retypeBtn:'Напісаць без падказкі',retypeAsk:'Напішы гэта слова без памылак',
+ fixed:'Выпраўлена: напісана без памылак',unknown:'Такога слова няма ў маім спісе. Падумай і напішы іншае.',lockFix:'Запамінай',note:'Напішы адно слова і націсні «Праверыць»',
+ also:'яшчэ падыходзяць',lvl:'Сінонімы і антонімы',easy:'лёгкі',hard:'складаны',lvlNote:'Лёгкі: выбраць з трох. Складаны: надрукаваць слова самой.'};
+/* ---------- зборка заданняў ---------- */
+const ITEMS=[];
+function add(street,it){it.street=street;it.id=street+':'+ITEMS.length;ITEMS.push(it);}
+const fillGap=(w,l,cls)=>w.replace('_',`<span class="${cls||'ok'}">${l}</span>`);
+const plain=(w,l)=>w.replace('_',l);
+DICT.forEach(([w,l,alt])=>add('dict',{type:'dict',w,l,alt,label:`${w} → ${plain(w,l)}`}));
+DICT2.forEach(([w,l,alt])=>add('dict2',{type:'dict',w,l,alt,label:`${w} → ${plain(w,l)}`}));
+AK.forEach(([w,l,st,alt,acc])=>add('ak',{type:'ak',w,l,st:!!st,alt,acc,label:`${w} → ${acc.replace(/́/g,'')} (${st?'пад націскам':'без націску'})`}));
+UV.forEach(([w,l,bef])=>add('uv',{type:'uv',w,l,bef,alt:l==='У'?'Ў':(l==='у'?'ў':'у'),label:`${w} → ${plain(w,l)}`}));
+ZS.forEach(([w,l,snd])=>add('zs',{type:'zs',w,l,snd,alt:l==='з'?'с':'з',label:`${w} → ${plain(w,l)} (пасля — ${snd})`}));
+DZC.forEach(([w,l,alt,soft])=>add('dzc',{type:'dzc',w,l,alt,soft:!!soft,label:`${w} → ${plain(w,l)}`}));
+ZAC.forEach(([w,l,alt])=>add('zac',{type:'zac',w,l,alt,label:`${w} → ${plain(w,l)}`}));
+DVO.forEach(([w,l,alt,btw])=>add('dvo',{type:'dvo',w,l,alt,btw:!!btw,label:`${w} → ${plain(w,l)}`}));
+APOS.forEach(([w,l,hs])=>add('apos',{type:'apos',w,l,hs,alt:l==='’'?'ь':'’',label:`${w} → ${plain(w,l)}`}));
+PAR.forEach(([w,l,alt,ch,d1,d2])=>add('par',{type:'par',w,l,alt,ch,wrong:[d1,d2],label:`${w} → ${plain(w,l)} (${ch})`}));
+TYPE.forEach(([s,g,m,okv])=>add('sent',{type:'type',s,g,m,okv,label:`«${s}${m}» — ${g}`}));
+MEM.forEach(([s,subj,pred])=>add('mem',{type:'mem',s,subj,pred,label:`«${s}» ${subj} / ${pred}`}));
+SYN.forEach(([w,a,d1,d2])=>add('lex',{type:'syn',w,a,d:[d1,d2],alts:LEX_ALT['syn:'+w]||[],label:`${w} — ${a}`}));
+ANT.forEach(([w,a,d1,d2])=>add('lex',{type:'ant',w,a,d:[d1,d2],alts:LEX_ALT['ant:'+w]||[],label:`${w} — ${a}`}));
+FIG.forEach(([s,v])=>add('mean',{type:'fig',s,v,label:`${s} — ${v}`}));
+HOM.forEach(([w,s,a,d1,d2])=>add('mean',{type:'hom',w,s,a,d:[d1,d2],label:`${w}: ${a}`}));
+PARTS.forEach(([parts,hl,kind])=>add('parts',{type:'part',parts,hl,kind,label:`${parts.join('')}: «${parts[hl]}» — ${kind}`}));
+ODD.forEach(([words,odd,root])=>add('parts',{type:'odd',words,odd,root,label:`лішняе: ${odd}`}));
+/* «Знайдзі памылку»: гатовыя словы, часам з памылкай */
+[...DICT.map(([w,l,alt])=>[w,l,alt,'dict']),...AK.filter(x=>!x[2]&&x[0]!=='з_млі').map(([w,l,st,alt])=>[w,l,alt,'ak']),...ZS.filter(x=>x[0]!=='_варыць').map(([w,l])=>[w,l,l==='з'?'с':'з','zs']),...DZC.map(([w,l,alt])=>[w,l,alt,'dzc']),
+ ...ZAC.map(([w,l,alt])=>[w,l,alt,'zac']),...DVO.map(([w,l,alt])=>[w,l,alt,'dvo']),...APOS.map(([w,l])=>[w,l,l==='’'?'ь':'’','apos']),
+ ...PAR.filter(x=>!['ка_ка','гры_'].includes(x[0])).map(([w,l,alt])=>[w,l,alt,'par'])].forEach(([w,l,alt,src],i)=>{
+  const bad=i%2===0, shown=plain(w,bad?alt:l);
+  add('err',{type:'err',w,l,shown,bad,src,label:`${shown} — ${bad?'памылка, правільна '+plain(w,l):'правільна'}`});
+});
+
+/* второстепенные члены: предложение, подлежащее, сказуемое, [от слова, вопрос, слово, предлог] */
+const SEC=[["Рыжая вавёрка грызе арэх.", "вавёрка", "грызе", [["вавёрка", "якая?", "Рыжая", ""], ["грызе", "што?", "арэх", ""]]], ["Раніцай на паляну прыбег заяц.", "заяц", "прыбег", [["прыбег", "калі?", "Раніцай", ""], ["прыбег", "куды?", "паляну", "на"]]], ["Тоўстая Віра спіць на канапе.", "Віра", "спіць", [["Віра", "якая?", "Тоўстая", ""], ["спіць", "дзе?", "канапе", "на"]]], ["Вендзі ловіць муху.", "Вендзі", "ловіць", [["ловіць", "каго?", "муху", ""]]], ["Стары дуб расце каля дарогі.", "дуб", "расце", [["дуб", "які?", "Стары", ""], ["расце", "дзе?", "дарогі", "каля"]]], ["Стыў знайшоў алмазы ў шахце.", "Стыў", "знайшоў", [["знайшоў", "што?", "алмазы", ""], ["знайшоў", "дзе?", "шахце", "ў"]]], ["Мядзведзь варыць смачную кашу.", "Мядзведзь", "варыць", [["варыць", "што?", "кашу", ""], ["кашу", "якую?", "смачную", ""]]], ["Уначы ціха падаў снег.", "снег", "падаў", [["падаў", "калі?", "Уначы", ""], ["падаў", "як?", "ціха", ""]]], ["Маленькае кацяня п’е малако.", "кацяня", "п’е", [["кацяня", "якое?", "Маленькае", ""], ["п’е", "што?", "малако", ""]]], ["Восенню птушкі ляцяць на поўдзень.", "птушкі", "ляцяць", [["ляцяць", "калі?", "Восенню", ""], ["ляцяць", "куды?", "поўдзень", "на"]]], ["Вясёлыя дзеці гуляюць у мяч.", "дзеці", "гуляюць", [["дзеці", "якія?", "Вясёлыя", ""], ["гуляюць", "у што?", "мяч", "у"]]], ["Над ракой ляцяць птушкі.", "птушкі", "ляцяць", [["ляцяць", "дзе?", "ракой", "Над"]]], ["Маша гучна смяецца.", "Маша", "смяецца", [["смяецца", "як?", "гучна", ""]]]];
+const QCAT={"adj": ["які?", "якая?", "якое?", "якія?", "якую?"], "obj": ["што?", "каго?", "у што?"], "place": ["дзе?", "куды?"], "time": ["калі?"], "man": ["як?"]},QREP={"adj": "які?", "obj": "што?", "place": "дзе?", "time": "калі?", "man": "як?"};
+const MNOG=[["ключ", "З-пад зямлі б’е халодны ключ.", "крыніца", ["прадмет, якім адчыняюць замок", "знак у нотах"]], ["ключ", "Вендзі схавала ключ ад дзвярэй.", "прадмет, якім адчыняюць замок", ["крыніца", "знак у нотах"]], ["нос", "У карабля востры нос.", "пярэдняя частка карабля", ["частка твару", "дзюба птушкі"]], ["ножка", "У крэсла зламалася ножка.", "апора мэблі", ["ніжняя частка грыба", "нага дзіцяці"]], ["ножка", "У грыба тоўстая ножка.", "ніжняя частка грыба", ["апора мэблі", "нага дзіцяці"]], ["ліст", "Вазьмі чысты ліст паперы.", "кавалак паперы", ["частка дрэва", "пісьмо"]], ["ліст", "З бярозы ўпаў жоўты ліст.", "частка дрэва", ["кавалак паперы", "пісьмо"]], ["ліст", "Бабуля даслала нам доўгі ліст.", "пісьмо", ["частка дрэва", "кавалак паперы"]], ["ідзе", "На вуліцы ідзе дождж.", "падае", ["крочыць", "пасуе, прыгожа"]], ["ідзе", "Табе ідзе гэтая сукенка.", "пасуе, прыгожа", ["крочыць", "падае"]], ["ідзе", "Хлопчык ідзе ў школу.", "крочыць", ["падае", "пасуе, прыгожа"]], ["ручка", "Ручка не піша — скончыліся чарніла.", "прадмет для пісьма", ["тое, за што трымаюць дзверы", "маленькая рука"]], ["ручка", "Малы працягнуў ручку.", "маленькая рука", ["прадмет для пісьма", "тое, за што трымаюць дзверы"]], ["іголкі", "У вожыка вострыя іголкі.", "калючкі на спіне", ["тое, чым шыюць", "лісце елкі"]], ["корань", "У слове «леснік» корань -лес-.", "частка слова", ["частка расліны", "частка зуба"]], ["мышка", "Націсні кнопку мышкі, каб адкрыць гульню.", "прылада для камп’ютара", ["маленькая мыш", "цацка для коткі"]]];
+const TRIO=[["ключ", ["скрыпічны …", "… ад замка", "з-пад зямлі б’е …"]], ["нос", ["… карабля", "… самалёта", "… чалавека"]], ["ліст", ["… паперы", "… клёна", "доўгі … ад бабулі"]], ["ножка", ["… стала", "… грыба", "… дзіцяці"]], ["іголка", ["… для шыцця", "… вожыка", "… елкі"]], ["корань", ["… дрэва", "… слова", "… зуба"]], ["крыло", ["… птушкі", "… самалёта", "… млына"]], ["ручка", ["… дзвярэй", "… для пісьма", "… малога"]]];
+SEC.forEach(([s,subj,pred,sec])=>add('sec',{type:'sec',s,subj,pred,sec,label:`«${s}» — ${sec.map(x=>x[0]+' ('+x[1]+') '+(x[3]?x[3]+' ':'')+x[2].toLowerCase()).join(', ')}`}));
+MNOG.forEach(([w,s,a,d])=>add('mnog',{type:'mnog',w,s,a,d,label:`${s} — ${w}: ${a}`}));
+TRIO.forEach(([w,ph])=>add('mnog',{type:'trio',w,ph,label:`${ph.join(', ')} — ${w}`}));
+const qWrong=q=>{const c=Object.keys(QCAT).find(k=>QCAT[k].includes(q));return shuffle(Object.keys(QREP).filter(k=>k!==c).map(k=>QREP[k])).slice(0,2);};
+const secWords=x=>x[3]?[x[3],x[2]]:[x[2]];
+function secSent(it,upto,hl){const marks={};marks[it.pred]='u2';marks[it.subj]='u1';
+  it.sec.slice(0,upto).forEach(x=>secWords(x).forEach(w=>marks[w]='u3'));
+  return `<div class="sent">${words(it.s).map(w=>{const b=bare(w);let h=marks[b]?`<span class="${marks[b]}">${w}</span>`:w;if(hl&&hl.includes(b))h=`<span class="hlw">${h}</span>`;return h;}).join(' ')}</div>`;}
+const STREETS=[
+  {id:'dict',name:'Слоўнікавыя словы',sign:'Запомні',c:'#E2557A',desc:'12 слоў з дапаможніка: асцярожны, павук, сшытак…'},
+  {id:'dict2',name:'Слоўнікавыя словы 2 класа',sign:'Паўтары',c:'#D9480F',desc:'Паўтарэнне: тэатр, мядзведзь, чацвер…'},
+  {id:'ak',name:'Аканне і яканне',sign:'Націск',c:'#2D6CDF',desc:'Спачатку: пад націскам ці не? Потым літара.'},
+  {id:'uv',name:'Літара ў',sign:'у · ў',c:'#13A3A0',desc:'Што стаіць перад гукам: галосны, зычны ці знак?'},
+  {id:'zs',name:'Прыстаўкі з- і с-',sign:'з · с',c:'#00897B',desc:'Зрабіў, але схапіла. Па-руску — інакш!'},
+  {id:'dzc',name:'Дз і ц',sign:'дз · ц',c:'#7A4FE0',desc:'Дзень, цётка — але дом, тата.'},
+  {id:'zac',name:'Зацвярдзелыя',sign:'р ж ш ч',c:'#3D8B3A',desc:'Пасля р, ж, ш, ч, дж — а, о, у, ы, э.'},
+  {id:'dvo',name:'Падоўжаныя',sign:'нн · лл',c:'#FF8A1C',desc:'Жыццё, вяселле, насенне.'},
+  {id:'apos',name:'Апостраф і ь',sign:'’ · ь',c:'#B4489F',desc:'Сям’я, аб’ява — але мільён, Ілья.'},
+  {id:'par',name:'Парныя зычныя',sign:'Правер',c:'#0F7FB0',desc:'Спачатку праверачнае слова, потым літара.'},
+  {id:'err',name:'Знайдзі памылку',sign:'Увага',c:'#E8452C',desc:'Ці правільна напісана слова? Правярай як настаўнік.'},
+  {id:'sent',name:'Тыпы сказаў',sign:'Сказ',c:'#5A3FC0',desc:'Апавядальны, пытальны, пабуджальны, клічны. Знак у канцы.'},
+  {id:'mem',name:'Дзейнік і выказнік',sign:'— і ═',c:'#2E7D32',desc:'Дзейнік — адна лінія, выказнік — дзве.'},
+  {id:'lex',name:'Сінонімы і антонімы',sign:'Слова',c:'#C2185B',desc:'Блізкія і супрацьлеглыя па значэнні словы.'},
+  {id:'mean',name:'Значэнне слова',sign:'Сэнс',c:'#8A6A12',desc:'Прамое і пераноснае. Каса і каса.'},
+  {id:'sec',name:'Даданыя члены',sign:'- - -',c:'#5E7C16',desc:'Пытанні ад галоўных слоў. Пункцір.'},
+  {id:'mnog',name:'Мнагазначныя словы',sign:'Значэнні',c:'#C2185B',desc:'Ключ ад дзвярэй і ключ-крыніца.'},
+  {id:'parts',name:'Склад слова',sign:'Корань',c:'#D35400',desc:'Корань і канчатак. Лішняе слова.'}
+];
+
+/* ---------- правілы ---------- */
+const RULES={
+  dict:{title:'Слоўнікавае слова',text:'Слоўнікавае слова <b>нельга праверыць</b> — яго трэба <b>запомніць</b>. Прачытай слова па складах так, як яно пішацца.'},
+  ak:{title:'Аканне і яканне',text:'Літары <b>о, э</b> пішуцца толькі <b>пад націскам</b>. Без націску замест іх пішам <b>а</b>: во́ды — вада́, дрэ́ва — драўля́ны.<br>Літары <b>е, ё</b> пішуцца пад націскам. У першым складзе <b>перад націскам</b> пішам <b>я</b>: зе́млі — зямля́, вёсны — вясна́.'},
+  uv:{title:'Літара ў',text:'<b>ў</b> пішацца <b>пасля галоснага</b>: заўсёды, Віра ўзяла. Пасля <b>зычнага</b> пішам <b>у</b>: брат узяў. <b>ў</b> не пішацца пасля <b>знакаў прыпынку</b> і <b>не бывае вялікай</b>: Уладзік.'},
+  zs:{title:'Прыстаўкі з- і с-',text:'Прыстаўка пішацца так, як чуецца. Калі пасля яе <b>глухі</b> гук (к, п, т, ф, х, ц, ч, ш, с) — пішам <b>с</b>: <b>с</b>хапіла, <b>с</b>казаў. Калі <b>звонкі</b> — пішам <b>з</b>: <b>з</b>рабіў, <b>з</b>бегчы.<br><b>Увага!</b> У рускай мове інакш: там заўсёды <b>с</b> (сделал). А па-беларуску — <b>з</b>рабіў.'},
+  dzc:{title:'Дз і ц',text:'Перад <b>е, ё, ю, я, і, ь</b> пішам <b>дз</b> і <b>ц</b>: дзень, цётка, вецер. Перад іншымі літарамі — <b>д</b> і <b>т</b>: дом, тата, радасць.'},
+  zac:{title:'Зацвярдзелыя гукі',text:'Гукі <b>[р], [ж], [ш], [ч], [дж]</b> — заўсёды <b>цвёрдыя</b>. Пасля іх пішам <b>а, о, у, ы, э</b> і ніколі — я, е, ё, ю, і: рэчка, жывёла, шэсць. Цвёрды гук <b>[ц]</b> таксама: цырк.'},
+  dvo:{title:'Падоўжаныя зычныя',text:'Паміж <b>галоснымі</b> зычныя могуць <b>падаўжацца</b> — тады пішам <b>дзве літары</b>: жыццё, вяселле, насенне, ладдзя. Калі побач <b>няма галоснага</b>, падаўжэння няма: жыць, корань, рэчка.'},
+  apos:{title:'Апостраф і мяккі знак',text:'Перад <b>е, ё, ю, я, і</b> пасля <b>цвёрдага</b> зычнага пішам <b>апостраф ’</b>: сям’я, аб’ява, вераб’і. Пасля <b>мяккіх л, н, з, с, ц, дз</b> пішам <b>мяккі знак ь</b>: мільён, Ілья, вальера.'},
+  par:{title:'Парныя зычныя',text:'Парны зычны ў канцы слова і перад іншым зычным <b>правяраем</b>: змяняем слова так, каб пасля зычнага стаяў <b>галосны</b>: дуб — дубы, загадка — загадаць.'},
+  err:{title:'Правярай як настаўнік',text:'Не спяшайся. Знайдзі ў слове <b>небяспечнае месца</b> і <b>правер яго правілам</b>.'},
+  type:{title:'Тыпы сказаў',text:'<b>Апавядальны</b> — паведамляе, у канцы <b>кропка</b>. <b>Пытальны</b> — пытае, у канцы <b>?</b> <b>Пабуджальны</b> — просьба, загад, парада, у канцы <b>кропка або клічнік</b>. Сказ з <b>моцным пачуццём</b> — <b>клічны</b>: у канцы <b>!</b>, а ў пытальным клічным — <b>?!</b>'},
+  mem:{title:'Дзейнік і выказнік',text:'1. Знайдзі <b>дзеянне</b>: што робіць? што зрабіў? — гэта <b>выказнік</b>, <b>дзве лініі</b>.<br>2. Спытай: <b>хто? што?</b> гэта робіць — гэта <b>дзейнік</b>, <b>адна лінія</b>.<br>3. Слова <b>з прыназоўнікам</b> (каля акна, на паляну) дзейнікам не бывае. Слова пасля дзеяння, якое адказвае на <b>каго? што?</b> (ловіць муху), — таксама не дзейнік.'},
+  syn:{title:'Сінонімы',text:'<b>Сінонімы</b> — словы з <b>аднолькавым або блізкім значэннем</b>: смелы — адважны, ісці — крочыць.'},
+  ant:{title:'Антонімы',text:'<b>Антонімы</b> — словы з <b>супрацьлеглым значэннем</b>: дзень — ноч, гарачы — халодны.'},
+  fig:{title:'Прамое і пераноснае значэнне',text:'<b>Прамое</b> значэнне — як ёсць на самой справе: калючы вожык (у яго іголкі). <b>Пераноснае</b> — падобна па нейкай прымеце: калючы вецер (як быццам коле).'},
+  sec:{title:'Даданыя члены сказа',text:'Даданыя члены <b>тлумачаць</b> галоўныя ці іншыя даданыя. 1. Знайдзі <b>аснову</b>: выказнік і дзейнік. 2. Задавай <b>пытанні ад галоўных слоў</b>: які? што? каго? дзе? калі? куды? як? 3. Слова, якое адказвае на пытанне, — даданы член. Падкрэсліваем <b>пункцірам</b>. Прыназоўнік (на, у, каля) падкрэсліваем разам са словам.'},
+  mnog:{title:'Мнагазначныя словы',text:'У <b>мнагазначнага</b> слова <b>некалькі значэнняў</b>: ключ ад дзвярэй і ключ — крыніца. Якое значэнне — падкажуць <b>суседнія словы</b> ў сказе.'},trio:{title:'Мнагазначныя словы',text:'Адно <b>мнагазначнае</b> слова называе розныя, але <b>чымсьці падобныя</b> прадметы: нос чалавека і нос карабля (абодва наперадзе). Падстаў слова ва ўсе тры — павінна падысці ўсюды.'},
+  hom:{title:'Аднолькавыя па гучанні',text:'Некаторыя словы <b>гучаць і пішуцца аднолькава</b>, але маюць <b>рознае значэнне</b>: каса (валасы) і каса (прылада). Значэнне падкажа <b>сказ</b>.'},
+  part:{title:'Корань і канчатак',text:'<b>Корань</b> — агульная частка роднасных слоў: <b>грыб</b>, <b>грыб</b>нік. <b>Канчатак</b> — зменная частка слова, служыць для сувязі слоў: сасн<b>а</b>, сасн<b>ы</b>, сасн<b>е</b>.'},
+  odd:{title:'Роднасныя словы',text:'У роднасных (аднакаранёвых) слоў <b>агульны корань і агульны сэнс</b>. Ляснік працуе ў лесе — роднаснае слова. А лесвіца да лесу не мае дачынення — лішняе.'}
+};
+
+/* ---------- як выглядае заданне ---------- */
+const gapWord=w=>`<div class="word">${fillGap(w,'?','gap')}</div>`;
+const gapSent=w=>`<div class="sent">${fillGap(w,'?','gap')}</div>`;
+const isSent=w=>/\s/.test(w);
+function mainSpecs(it){
+  const ph=it.type==='uv'?'у/ў':'?';
+  const show=it.w?(isSent(it.w)?`<div class="sent">${fillGap(it.w,ph,'gap')}</div>`:`<div class="word">${fillGap(it.w,ph,'gap')}</div>`):'';
+  const letter=(ask)=>({ask:ask||'Цяпер устаў літару',show,opts:shuffle([it.l,it.alt]),ans:it.l,letters:1});
+  switch(it.type){
+    case 'dict':return LV(it.street)===0?[letter('Устаў літару')]:dictType(it,show);
+    case 'ak':return [letter('Устаў літару'),{ask:'Гэты галосны пад націскам ці без націску?',show:`<div class="word">${fillGap(it.w,it.l)}</div>`,opts:['пад націскам','без націску'],ans:it.st?'пад націскам':'без націску',note:'Вымаві слова ўголас і паслухай, дзе націск'}];
+    case 'uv':return [{ask:'Што стаіць перад гукам [у]?',show,opts:UV_OPTS.slice(),ans:it.bef},letter()];
+    case 'zs':return [letter('Устаў літару ў прыстаўку'),{ask:'Гук пасля прыстаўкі звонкі ці глухі?',show:`<div class="word">${fillGap(it.w,it.l)}</div>`,opts:['звонкі','глухі'],ans:it.snd,note:'Глухія: к, п, т, ф, х, ц, ч, ш, с'}];
+    case 'dzc':{const hd=it.soft?it.alt:it.l,sf=it.soft?it.l:it.alt;return [{ask:`Што пісаць: <b>${hd}</b> ці <b>${sf}</b>? Спачатку паглядзі на літару пасля пропуску. Гэта е, ё, ю, я, і або ь?`,show,opts:['так','не'],ans:it.soft?'так':'не'},letter()];}
+    case 'zac':return [letter('Устаў літару')];
+    case 'dvo':return [{ask:`Што пісаць: <b>${[it.l,it.alt].sort((x,y)=>x.length-y.length).join('</b> ці <b>')}</b>? Спачатку паглядзі: зычны стаіць паміж галоснымі?`,show,opts:['так','не'],ans:it.btw?'так':'не'},letter()];
+    case 'apos':return [{ask:'Што пісаць: <b>апостраф (’)</b> ці <b>мяккі знак (ь)</b>? Спачатку паглядзі: перад пропускам цвёрды ці мяккі зычны?',show,opts:['цвёрды','мяккі'],ans:it.hs},letter('Цяпер устаў апостраф або мяккі знак')];
+    case 'par':return [{ask:'Спачатку правер: якое слова праверачнае?',show,opts:shuffle([it.ch,...it.wrong]),ans:it.ch,note:'У праверачным слове пасля зычнага стаіць галосны'},letter()];
+    case 'err':return [{ask:'Слова напісана правільна?',show:`<div class="word">${it.shown}</div>`,opts:['Правільна','Ёсць памылка'],ans:it.bad?'Ёсць памылка':'Правільна'}]
+      .concat(it.bad?[{ask:'Як напісаць правільна?',show:'',opts:shuffle([plain(it.w,it.l),it.shown]),ans:plain(it.w,it.l)}]:[]);
+    case 'type':return [{ask:'Які гэта сказ па мэце выказвання?',show:`<div class="sent">${it.s}…</div>`,opts:['апавядальны','пытальны','пабуджальны'],ans:it.g},
+      {ask:'Які знак паставіць у канцы?',show:`<div class="sent">${it.s} <span class="blank" aria-label="пропуск"></span></div>`,opts:['.','?','!','?!'],ans:it.m,okv:it.okv,letters:1}];
+    case 'mem':return [{ask:'Знайдзі выказнік (што робіць?) — дзве лініі',tap:words(it.s),ans:it.pred,mark:'s'},{ask:'Знайдзі дзейнік (хто? што?) — адна лінія',tap:words(it.s),ans:it.subj,mark:'p'}];
+    case 'syn':case 'ant':if(LV('lex'))return [{ask:T[it.type](it.w),show:'',input:true,free:true,best:it.a,alts:it.alts,reject:[...it.d,it.w],ans:it.a,note:T.note}];
+      if(it.type==='ant')return [{ask:`Знайдзі антонім да слова «${it.w}»`,show:'',opts:shuffle([it.a,...it.d]),ans:it.a}];
+      return [{ask:`Знайдзі сінонім да слова «${it.w}»`,show:'',opts:shuffle([it.a,...it.d]),ans:it.a}];
+    case 'ant':return [{ask:`Знайдзі антонім да слова «${it.w}»`,show:'',opts:shuffle([it.a,...it.d]),ans:it.a}];
+    case 'fig':return [{ask:'Значэнне прамое ці пераноснае?',show:`<div class="sent">${it.s}</div>`,opts:['прамое','пераноснае'],ans:it.v}];
+    case 'sec':{const sp=[{ask:'Знайдзі выказнік (што робіць?) — дзве лініі',tap:words(it.s),ans:it.pred,mark:'s'},{ask:'Знайдзі дзейнік (хто? што?) — адна лінія',tap:words(it.s),ans:it.subj,mark:'p'}];
+      it.sec.forEach((x,k)=>{const ww=secWords(x);
+        if(k%2===0||Math.random()<.3)sp.push({ask:`Задай пытанне: <b>{f}</b> ({q}) … — націсні на гэтае слова`.replace('{f}',x[0].toLowerCase()).replace('{q}',x[1]),tap:words(it.s),ans:x[2],okw:ww,mw:ww,mark:'d'});
+        else sp.push({ask:`Якое пытанне задаём ад слова «{f}» да слова «{w}»?`.replace('{f}',x[0].toLowerCase()).replace('{w}',ww.join(' ').toLowerCase()),show:secSent(it,k,[x[0],...ww]),opts:shuffle([x[1],...qWrong(x[1])]),ans:x[1],mw:ww,mark:'d'});});
+      return sp;}
+    case 'mnog':return [{ask:`Што значыць слова «{w}» у гэтым сказе?`.replace('{w}',it.w),show:`<div class="sent">${it.s.replace(new RegExp('(^|[^а-яёіў])('+it.w+')','i'),'$1<span class="hlw">$2</span>')}</div>`,opts:shuffle([it.a,...it.d]),ans:it.a,long:1}];
+    case 'trio':return [{ask:'Якое слова падыходзіць да ўсіх трох?',show:`<div class="sent">${it.ph.join('<br>')}</div>`,opts:shuffle([it.w,...shuffle(TRIO.filter(t=>t[0]!==it.w)).slice(0,2).map(t=>t[0])]),ans:it.w,letters:0}];
+    case 'hom':return [{ask:`Што значыць слова «${it.w}» у гэтым сказе?`,show:`<div class="sent">${it.s}</div>`,opts:shuffle([it.a,...it.d]),ans:it.a}];
+    case 'part':return [{ask:'Якая частка слова выдзелена?',show:partShow(it,true),opts:['корань','канчатак'],ans:it.kind}];
+    case 'odd':return [{ask:'Якое слова лішняе? Астатнія — роднасныя',show:'',opts:shuffle(it.words.slice()),ans:it.odd}];
+  }
+}
+function partShow(it,hl){return `<div class="word">${it.parts.map((p,i)=>`<span class="seg${hl&&i===it.hl?' hl':''}">${p}</span>`).join('')}</div>`}
+function words(s){return s.split(' ')}
+const bare=w=>w.replace(/[.,!?…]/g,'');
+
+/* правіла на экране «Правільна!»: для слоў — пра гэта слова, для астатніх — правіла тэмы */
+function wordRule(it,src){
+  const r=RULES[src];
+  return {title:r.title,text:`Правільна: <b class="big">${plain(it.w,`<u>${it.l}</u>`)}</b>. ${r.text}`};
+}
+function ruleFor(it){
+  if(it.type==='err')return wordRule(it,it.src);
+  if(['dict','ak','uv','zs','dzc','zac','dvo','apos','par'].includes(it.type))return wordRule(it,it.type);
+  return RULES[it.type];
+}
+/* як паказаць вырашанае заданне */
+function solved(it){
+  const full=it.w?(isSent(it.w)?`<div class="sent">${fillGap(it.w,it.l)}</div>`:`<div class="word">${fillGap(it.w,it.l)}</div>`):'';
+  switch(it.type){
+    case 'dict':return `${full}<p class="why">слоўнікавае слова — запомні!</p>`;
+    case 'ak':return `${full}<p class="why">${it.acc} — ${it.st?'пад націскам':'без націску'}</p>`;
+    case 'uv':return `${full}<p class="why">перад гукам: <b>${it.bef}</b></p>`;
+    case 'zs':return `${full}<p class="why">пасля прыстаўкі — <b>${it.snd}</b> гук, таму <b>${it.l}</b></p>`;
+    case 'dzc':return `${full}<p class="why">${it.soft?'пасля — е, ё, ю, я, і або ь':'пасля — іншая літара'}</p>`;
+    case 'zac':return full;
+    case 'dvo':return `${full}<p class="why">${it.btw?'паміж галоснымі — падаўжаецца':'побач няма галоснага — не падаўжаецца'}</p>`;
+    case 'apos':return `${full}<p class="why">${it.hs==='цвёрды'?'пасля цвёрдага — апостраф':'пасля мяккага — мяккі знак'}</p>`;
+    case 'par':return `${full}<p class="why">праверка: <b>${it.ch}</b></p>`;
+    case 'err':return `${full}<p class="why">${it.bad?'было з памылкай: '+it.shown:'напісана правільна'}</p>`;
+    case 'type':return `<div class="sent">${it.s}<b style="color:var(--good)">${it.m}</b></div><p class="why"><b>${it.g}</b>${it.m==='!'||it.m==='?!'?', клічны':''}</p>`;
+    case 'mem':return `<div class="sent">${words(it.s).map(w=>bare(w)===it.subj?`<span class="u1">${w}</span>`:bare(w)===it.pred?`<span class="u2">${w}</span>`:w).join(' ')}</div><p class="why">дзейнік <b>${it.subj}</b> — адна лінія, выказнік <b>${it.pred}</b> — дзве</p>`;
+    case 'syn':case 'ant':return `<p class="why" style="font-size:24px">${it.w} — <b>${it.a}</b></p>${it.alts&&it.alts.length?`<p class="why">${T.also}: ${it.alts.join(', ')}</p>`:''}`;
+    case 'fig':return `<div class="sent">${it.s}</div><p class="why"><b>${it.v}</b> значэнне</p>`;
+    case 'sec':return secSent(it,it.sec.length)+`<p class="why">${it.sec.map(x=>x[0].toLowerCase()+' ('+x[1]+') <b>'+secWords(x).join(' ').toLowerCase()+'</b>').join('<br>')}</p><p class="note" style="text-align:center">галоўныя — адна і дзве лініі, даданыя — пункцір</p>`;
+    case 'mnog':return `<div class="sent">${it.s}</div><p class="why">«${it.w}» — <b>${it.a}</b></p>`;
+    case 'trio':return `<div class="sent">${it.ph.map(p=>p.replace('…','<b style="color:var(--good)">'+it.w+'</b>')).join('<br>')}</div><p class="why">${it.w} — <b>мнагазначнае слова</b></p>`;
+    case 'hom':return `<div class="sent">${it.s}</div><p class="why">«${it.w}» — <b>${it.a}</b></p>`;
+    case 'part':return `${partShow(it,true)}<p class="why">«${it.parts[it.hl]}» — <b>${it.kind}</b></p>`;
+    case 'odd':return `<p class="why">роднасныя: ${it.words.filter(w=>w!==it.odd).join(', ')} (корань <b>${it.root}</b>)<br>лішняе: <b>${it.odd}</b></p>`;
+  }
+}
+/* заданне без адказу (для экрана ўрока) */
+function taskView(it){
+  switch(it.type){
+    case 'err':return `<div class="word" style="font-size:40px">${it.shown}</div>`;
+    case 'type':return `<div class="sent">${it.s} <span class="blank" aria-label="пропуск"></span></div>`;
+    case 'sec':case 'mnog':return `<div class="sent">${it.s}</div>`;
+    case 'trio':return `<div class="sent">${it.ph.join('<br>')}</div>`;
+    case 'mem':case 'fig':case 'hom':return `<div class="sent">${it.s}</div>`;
+    case 'syn':case 'ant':return `<div class="sent">${it.w}</div>`;
+    case 'part':return partShow(it,true);
+    case 'odd':return `<div class="sent">${it.words.join(', ')}</div>`;
+    default:return isSent(it.w)?gapSent(it.w):`<div class="word" style="font-size:40px">${fillGap(it.w,'?','gap')}</div>`;
+  }
+}
+/* урок: правіла + 2 прыклады на іншых заданнях таго ж тыпу (слоўнікавае — само слова) */
+function lessonHTML(it){
+  const r=RULES[it.type];
+  let ex='';
+  if(it.type==='dict'){
+    ex=`<p class="sub">Запомні гэта слова</p><div class="memo">${solved(it)}</div>`;
+  }else{
+    const others=shuffle(ITEMS.filter(x=>x.type===it.type&&x.id!==it.id)).slice(0,2);
+    if(others.length)ex=`<p class="sub">Глядзі, як гэта працуе</p><div class="exs">${others.map(o=>`<div class="ex">${solved(o)}</div>`).join('')}</div>`;
+  }
+  return {title:r.title,text:r.text,ex};
+}
+
+/* =================== ДВИЖОК =================== */
+const store={get(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}},set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}};
+const S=Object.assign({box:{},stars:0,streets:['ak','uv'],minutes:15,goal:20,history:[],sfx:true},store.get()||{});
+if(!S.lv)S.lv={vow:S.vowHard?1:0,err:S.vowHard?1:0,lex:S.lexHard?1:0};
+function save(){store.set(S)}
+const $=s=>document.querySelector(s);
+const stage=$('#stage'),strip=$('#strip');
+let NEXT=null,LOCKED=false,TIMERS=[],SES=null,TICK=null,LAST=null,KEYS=null,FREE_NOTE='';
+function lev(a,b){const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+
+/* звуки */
+let AC=null,OUT=null;
+function ac(){try{if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=AC.createDynamicsCompressor();comp.threshold.value=-10;comp.knee.value=6;comp.ratio.value=12;comp.attack.value=.002;comp.release.value=.15;
+  OUT=AC.createGain();OUT.gain.value=3.2;OUT.connect(comp).connect(AC.destination);}
+  if(AC.state==='suspended')AC.resume();}catch(e){AC=null}return AC}
+function tone(freq,start,dur,type,vol,slideTo){
+  const c=ac();if(!c)return;const t=c.currentTime+start;
+  const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,t);
+  if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||.2,t+.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(OUT);o.start(t);o.stop(t+dur+.05);
+}
+const SFX={
+  key(){tone(880,0,.06,'triangle',.16)},
+  next(){tone(520,0,.07,'triangle',.18);tone(780,.06,.08,'triangle',.16)},
+  right(){[[784,0,.2],[1047,.12,.22],[1319,.24,.42]].forEach(([f,s,d])=>{tone(f,s,d,'triangle',.5);tone(f*2,s,d*.7,'sine',.12)})},
+  wrong(){tone(220,0,.26,'sawtooth',.3,150);tone(110,0,.26,'square',.12,80);tone(165,.28,.42,'sawtooth',.3,100);tone(82,.28,.42,'square',.12,55)},
+  step(){tone(988,0,.11,'triangle',.3)},
+  stepWrong(){tone(200,0,.18,'sawtooth',.18,150)},
+  over(){tone(660,0,.2,'triangle',.45);tone(660,.27,.2,'triangle',.45);tone(523,.54,.45,'triangle',.45)},
+  finish(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.13,.28,'triangle',.45));tone(1319,.55,.8,'triangle',.45)}
+};
+function play(n){if(S.sfx===false)return;try{SFX[n]()}catch(e){}}
+
+/* кнопка «дальше» с блокировкой */
+function clearTimers(){TIMERS.forEach(clearInterval);TIMERS=[];LOCKED=false;}
+function nextBtn(label){return `<button class="btn wide" id="next"><span class="lbl">${label}</span></button>`}
+function armNext(btn,fn,secs,lockLbl){
+  NEXT=fn;LOCKED=false;KEYS=null;
+  btn.addEventListener('click',tryNext);
+  const lbl=btn.querySelector('.lbl'),base=lbl.textContent;
+  if(secs){
+    LOCKED=true;btn.disabled=true;btn.classList.add('locking');btn.style.setProperty('--t',secs+'s');
+    let left=secs;lbl.textContent=(lockLbl||'Чытай')+'… '+left;
+    const iv=setInterval(()=>{left--;
+      if(left<=0){clearInterval(iv);LOCKED=false;btn.disabled=false;btn.classList.remove('locking');lbl.textContent=base;btn.focus({preventScroll:true});}
+      else lbl.textContent=(lockLbl||'Чытай')+'… '+left;},1000);
+    TIMERS.push(iv);
+  }
+}
+function tryNext(){if(NEXT&&!LOCKED){const f=NEXT;NEXT=null;play('next');f();}}
+function shake(el){if(!el)return;el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key==='Enter'&&NEXT){e.preventDefault();tryNext();return;}
+  if(KEYS&&/^[1-9]$/.test(e.key)){const b=KEYS[+e.key-1];if(b){e.preventDefault();b.click();}}
+});
+
+/* звёзды и коробки */
+
+/* уровни: 20, 50, 90, 140… — каждый следующий шаг на 10 звёзд больше */
+const lvlAt=n=>5*n*(n+3);
+function levelOf(st){let n=0;while(lvlAt(n+1)<=st)n++;return n;}
+const BURST='<svg class="burst" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4l8 22 22-10-10 22 22 8-22 8 10 22-22-10-8 22-8-22-22 10 10-22-22-8 22-8-10-22 22 10z" fill="#FFD23F" stroke="#26224F" stroke-width="3" stroke-linejoin="round"/></svg>';
+const starW=n=>{const m=n%10,h=n%100;return m===1&&h!==11?'зорка':(m>=2&&m<=4&&(h<12||h>14)?'зоркі':'зорак');};
+function lvToast(n){try{const d=document.createElement('div');d.className='lvtoast';d.setAttribute('role','status');d.innerHTML=BURST+'<span>Новы ўзровень '+n+'!</span>';document.body.appendChild(d);setTimeout(()=>d.remove(),3200);}catch(e){}}
+function levelBox(before,after){
+  const n=levelOf(after),a=lvlAt(n),b=lvlAt(n+1),have=after-a,need=b-a,left=b-after;
+  if(n>levelOf(before))return `<div class="prizebox won">${BURST}<div><b>Узровень ${n}!</b><span>Ты перайшла на новы ўзровень! Да наступнага — ${left} ${starW(left)}.</span></div></div>`;
+  return `<div class="prizebox"><div class="pbar"><i style="width:${have/need*100}%"></i></div><span>Узровень ${n}. Да ўзроўню ${n+1}: ${have} з ${need}, засталося ${left} ${starW(left)}</span></div>`;
+}
+function updateStars(){$('#starN').textContent=S.stars;const n=levelOf(S.stars);$('#lvlN').textContent=n?'узр. '+n:'';}
+function addStar(){const b=levelOf(S.stars);S.stars++;save();updateStars();if(SES)SES.stars++;const n=levelOf(S.stars);if(n>b){lvToast(n);setTimeout(()=>play('finish'),300);}}
+const LVS={"dict": ["лёгкі", "сярэдні", "складаны"], "dict2": ["лёгкі", "сярэдні", "складаны"], "lex": ["лёгкі", "складаны"]},LVD={"dict": ["Выбраць літару з дзвюх", "Надрукаваць літару самой", "Літара, потым усё слова па памяці"], "dict2": ["Выбраць літару з дзвюх", "Надрукаваць літару самой", "Літара, потым усё слова па памяці"], "lex": ["Выбраць з трох", "Надрукаваць слова самой"]};
+function LV(k){return (S.lv&&S.lv[k])||0}
+let SPELL_ERR=false;
+function boxId(it){if(it.type==='dict'&&LV(it.street))return 'D'+LV(it.street)+it.id;if((it.type==='syn'||it.type==='ant')&&LV('lex'))return 'L'+it.id;return (it.type==='vow'&&LV('vow'))||(it.type==='err'&&it.vw&&LV('err'))?'H'+it.id:it.id}
+function setBox(id,ok){const b=S.box[id]||0;S.box[id]=ok?Math.min(2,b+1):0;save();
+  if(SES&&ok&&b<2&&S.box[id]===2)SES.learned.add(id);if(SES&&!ok)SES.learned.delete(id);return S.box[id];}
+
+
+/* ---------- словарные: средний (печатаем букву) и сложный (потом всё слово) ---------- */
+const T2={"typeAsk": "Надрукуй прапушчаную літару", "ph": "літара", "ready": "Паглядзі на слова і запомні. Гатова? Зараз яно схаваецца — напішаш яго цалкам.", "readyBtn": "Гатова! Пісаць слова", "spellAsk": "Напішы слова цалкам", "check": "Праверыць", "look": "Паглядзець слова", "fixed": "Выпраўлена! Гэта слова яшчэ паўторым", "wrongCells": "Чырвоныя літары — няправільныя. Выпраў толькі іх.", "look2": "Не атрымліваецца? Можна падгледзець слова."};
+function dictType(it,show){
+  const sp=[{ask:T2.typeAsk,show,typeL:true,ans:it.l}];
+  if(LV(it.street)===2)sp.push({ask:T2.spellAsk,show:'',spell:true,ans:plain(it.w,it.l),word:plain(it.w,it.l),gw:it.w,gl:it.l});
+  return sp;
+}
+const nch=c=>String(c).toLowerCase().replace(/ё/g,'е');
+function typeLUI(sp,done,fail){
+  const box=document.getElementById('tl');
+  box.innerHTML=`<form class="inrow" id="tlf" autocomplete="off"><input id="tli" class="inp tli" type="text" maxlength="${sp.ans.length}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${T2.ph}" aria-label="${T2.ph}"><button class="btn" type="submit"><span class="lbl">${T2.check}</span></button></form>`;
+  const inp=document.getElementById('tli');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
+  document.getElementById('tlf').addEventListener('submit',e=>{e.preventDefault();const v=nch(inp.value.trim());if(!v){inp.focus();return}
+    if(v===nch(sp.ans)){inp.disabled=true;inp.classList.add('right');done()}else{inp.classList.add('bad');fail(inp.value.trim())}});
+}
+function spellUI(sp,done){
+  const box=document.getElementById('tl'),w=sp.word,chars=[...w];let tries=0;
+  const qa=document.querySelector('#qcard .ask');
+  if(qa)qa.textContent=T2.spellAsk;
+  box.innerHTML=`<div class="word">${esc(w)}</div><p class="note">${T2.ready}</p><button class="btn big" id="rdy"><span class="lbl">${T2.readyBtn}</span></button>`;
+  document.getElementById('rdy').addEventListener('click',phaseB);
+  function phaseB(){
+    box.innerHTML=`<div class="cells" id="cells">${chars.map((c,j)=>c===' '||c==='-'?`<span class="cgap">${c===' '?'&nbsp;':'-'}</span>`:`<input class="cell" data-j="${j}" maxlength="2" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="буква ${j+1}">`).join('')}</div>
+      <p class="soft" id="cmsg" aria-live="polite"></p><div class="inrow"><button class="btn" id="cchk"><span class="lbl">${T2.check}</span></button></div><div id="lookw"></div>`;
+    const cells=[...box.querySelectorAll('.cell')];
+    const nextFree=(k,dir)=>{for(let m=k+dir;m>=0&&m<cells.length;m+=dir)if(!cells[m].disabled)return cells[m];return null};
+    cells.forEach((c,k)=>{
+      c.addEventListener('input',()=>{const v=c.value;c.value=v.slice(-1);c.classList.remove('no');if(c.value){const n=nextFree(k,1);if(n)n.focus()}});
+      c.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!c.value){const p=nextFree(k,-1);if(p){p.value='';p.focus();e.preventDefault()}}
+        else if(e.key==='Enter'){e.preventDefault();check()}});
+    });
+    setTimeout(()=>{try{cells[0].focus()}catch(e){}},60);
+    document.getElementById('cchk').addEventListener('click',check);
+    function check(){
+      if(cells.some(c=>!c.disabled&&!c.value)){const f=cells.find(c=>!c.disabled&&!c.value);f.focus();shake(f);return}
+      let bad=0;cells.forEach(c=>{const j=+c.dataset.j;if(nch(c.value)===nch(chars[j])){c.disabled=true;c.classList.add('ok');c.classList.remove('no')}else{bad++;c.classList.add('no')}});
+      if(!bad){if(tries)SPELL_ERR=true;done();return}
+      tries++;play('stepWrong');document.getElementById('cmsg').textContent=T2.wrongCells;
+      const f=cells.find(c=>!c.disabled);if(f){f.focus();f.select&&f.select()}
+      if(tries>=2&&!document.getElementById('lkb')){document.getElementById('lookw').innerHTML=`<p class="note">${T2.look2}</p><button class="link" id="lkb">${T2.look}</button>`;
+        document.getElementById('lkb').addEventListener('click',()=>{const c=document.getElementById('cells');if(document.getElementById('peek'))return;c.hidden=true;
+          c.insertAdjacentHTML('beforebegin',`<div class="word" id="peek">${esc(w)}</div>`);
+          setTimeout(()=>{const p=document.getElementById('peek');if(p)p.remove();c.hidden=false;const f2=cells.find(x=>!x.disabled);if(f2)f2.focus()},3000)})}
+    }
+  }
+}
+
+/* ---------- одна или несколько ступенек вопроса ---------- */
+/* specs выполняются по очереди; cb(true) — всё верно; cb(false, ступенька) — ошибка */
+function runSpecs(specs,head,cb){
+  SPELL_ERR=false;let i=0;const vals=[];
+  function draw(){
+    const sp=specs[i];window.__CUR=sp;
+    stage.innerHTML=`<div class="card" id="qcard">
+      ${head}
+      ${specs.length>1?`<div class="progress-dots">${specs.map((_,j)=>`<i class="${j<i?'on':''}"></i>`).join('')}</div>`:''}
+      <p class="ask">${sp.ask}</p>
+      ${typeof sp.show==='function'?sp.show(vals):(sp.show||'')}
+      ${sp.typeL||sp.spell?'<div id="tl"></div>':sp.input?`<form class="inrow" id="inform" autocomplete="off"><input id="inp" class="inp" type="text" lang="be" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="слова" aria-label="Праверачнае слова"><button class="btn" type="submit"><span class="lbl">Праверыць</span></button></form><p class="soft" id="soft" aria-live="polite"></p>`:sp.tap?`<div class="chips" id="chips">${sp.tap.map((w,j)=>`<button class="chip${sp.done&&sp.done[j]?' '+sp.done[j]:''}" data-j="${j}">${esc(bare(w))}</button>`).join('')}</div>`
+        :`<div class="opts${sp.letters?' letters':''}${sp.long||sp.opts.some(o=>o.length>11)?' long':''}" id="opts" lang="ru">${sp.opts.map((o,j)=>`<button class="opt" data-v="${esc(o)}"><span class="k">${j+1}</span>${esc(o)}</button>`).join('')}</div>`}
+      ${sp.note?`<p class="note">${sp.note}</p>`:''}
+    </div>`;
+    if(sp.typeL||sp.spell){KEYS=null;if(sp.spell)spellUI(sp,()=>{vals[i]=sp.ans;ok()});else typeLUI(sp,()=>{vals[i]=sp.ans;ok()},v=>bad(v));}
+    else if(sp.input){
+      KEYS=null;const inp=$('#inp');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
+      $('#inform').addEventListener('submit',e=>{
+        e.preventDefault();const raw=inp.value.trim();
+        if(sp.free){const v=NORM(raw);if(!v){inp.focus();return;}freeSubmit(sp,raw,v,inp);return;}
+        const v=normW(raw);
+        if(!v){inp.focus();return;}
+        if(sp.accept.includes(v)){vals[i]=raw;inp.disabled=true;inp.classList.add('right');ok();}
+        else if(sp.reject.includes(v)||v.length<2){vals[i]=raw;inp.classList.add('bad');bad(raw);}
+        else{play('stepWrong');shake(inp);$('#soft').textContent=`«${raw}» не падыходзіць. Падбяры іншае слова.`;inp.select();}
+      });
+    }else if(sp.tap){
+      const prev=specs.slice(0,i).filter(s=>s.mark);
+      const chips=[...stage.querySelectorAll('.chip')];
+      prev.forEach(s=>(s.mw||[s.ans]).forEach(a=>{const j=sp.tap.findIndex(w=>bare(w)===a);if(chips[j])chips[j].classList.add(s.mark);}));
+      KEYS=null;
+      chips.forEach(b=>b.addEventListener('click',()=>{
+        const w=bare(sp.tap[+b.dataset.j]);
+        if((sp.okw||[sp.ans]).includes(w)){(sp.mw||[w]).forEach(a=>{const j=sp.tap.findIndex(x=>bare(x)===a);if(chips[j])chips[j].classList.add(sp.mark||'s');});ok();}else{b.classList.add('no');bad(w);}
+      }));
+    }else{
+      const btns=[...stage.querySelectorAll('.opt')];KEYS=btns;
+      btns.forEach(b=>b.addEventListener('click',()=>{
+        btns.forEach(x=>x.disabled=true);
+        if((sp.okv||[sp.ans]).includes(b.dataset.v)){b.classList.add('right');ok();}else{b.classList.add('bad');bad(b.dataset.v);}
+      }));
+    }
+  }
+  function ok(){KEYS=null;if(vals[i]===undefined&&specs[i].ans!==undefined)vals[i]=specs[i].ans;i++;if(i<specs.length){play('step');setTimeout(draw,350);}else cb(true);}
+  function bad(v){KEYS=null;shake($('#qcard'));cb(false,v);}
+  /* свободный ввод (синонимы/антонимы): лучший, близкий, опечатка, неверно */
+  function freeSubmit(sp,raw,v,inp){
+    const all=[sp.best,...sp.alts];
+    if(sp.fixWord){if(v===NORM(sp.fixWord)){vals[i]=raw;FREE_NOTE=T.fixed+(sp.fixWord===sp.best?'':' · '+T.better(sp.best));inp.disabled=true;inp.classList.add('right');ok();}else showFix(sp,sp.fixWord);return;}
+    if(v===NORM(sp.best)){vals[i]=raw;FREE_NOTE='';inp.disabled=true;inp.classList.add('right');ok();return;}
+    if(sp.alts.map(NORM).includes(v)){vals[i]=raw;FREE_NOTE=T.better(sp.best);inp.disabled=true;inp.classList.add('right');ok();return;}
+    const rej=sp.reject.map(NORM);
+    if(rej.includes(v)){inp.classList.add('bad');bad(raw);return;}
+    const near=all.find(w=>{const n=NORM(w);return lev(v,n)<=(n.length>5?2:1);});
+    if(near){showFix(sp,near);return;}
+    sp.unk=(sp.unk||0)+1;
+    if(sp.unk>=2){inp.classList.add('bad');bad(raw);return;}
+    play('stepWrong');shake(inp);$('#soft').textContent=T.unknown;inp.select();
+  }
+  function showFix(sp,word){
+    play('stepWrong');KEYS=null;
+    stage.innerHTML=`<div class="card" id="qcard"><p class="verdict" style="color:#B05A00">${T.typo}</p><div class="word">${esc(word)}</div><p class="note">${T.remember}</p>${nextBtn(T.retypeBtn)}</div>`;
+    armNext($('#next'),()=>{sp.fixWord=word;sp.ask=T.retypeAsk;sp.note='';draw();},4,T.lockFix);
+  }
+  draw();
+}
+
+/* ---------- раунд ---------- */
+function pickItem(){
+  /* сначала улица (все выбранные улицы поровну), потом задание в ней */
+  const sts=S.streets.filter(id=>ITEMS.some(x=>x.street===id));
+  const st=sts[Math.floor(Math.random()*sts.length)];
+  const pool=ITEMS.filter(x=>x.street===st);
+  const cand=pool.length>1?pool.filter(x=>x.id!==LAST):pool;
+  const w=[6,3,1];let tot=cand.reduce((s,x)=>s+w[S.box[boxId(x)]||0],0),r=Math.random()*tot;
+  for(const x of cand){r-=w[S.box[boxId(x)]||0];if(r<=0){LAST=x.id;return x;}}
+  LAST=cand[0].id;return cand[0];
+}
+function streetOf(it){return STREETS.find(s=>s.id===it.street)}
+function newRound(){
+  clearTimers();NEXT=null;FREE_NOTE='';
+  if(checkFinish())return;
+  const it=pickItem(),st=streetOf(it);
+  runSpecs(mainSpecs(it),`<p class="kicker" style="color:${st.c}">${st.name}</p>`,(ok,v)=>answered(it,ok,v));
+}
+function answered(it,ok,v){
+  if(ok&&SPELL_ERR){SPELL_ERR=false;setBox(boxId(it),false);noteAnswer(false,it);play('step');
+    stage.innerHTML=`<div class="card"><p class="verdict" style="color:#B05A00">${T2.fixed}</p>${solved(it)}${nextBtn('Далей')}</div>`;armNext($('#next'),newRound,2,'Далей');return}
+  const box=setBox(boxId(it),ok);
+  noteAnswer(ok,it);
+  if(!ok){
+    play('wrong');
+    $('#qcard').insertAdjacentHTML('beforeend','<p class="verdict bad">Пастка! Разбяромся</p>');
+    setTimeout(()=>lesson(it,false),1100);
+    return;
+  }
+  addStar();play('right');
+  let unlock='';
+  if(it.type==='vow'&&!S.vowHard&&!S.vowHardUnlocked&&ITEMS.filter(x=>x.type==='vow').every(x=>(S.box[x.id]||0)===2)){
+    S.vowHardUnlocked=true;S.vowHard=true;save();play('finish');
+    unlock=`<div class="memo"></div>`;
+  }
+  stage.innerHTML=`<div class="card">
+    <p class="verdict ok">Правільна! +1 ${STAR}</p>
+    ${FREE_NOTE?`<p class="why" style="color:#B05A00">${FREE_NOTE}</p>`:''}
+    ${unlock}
+    ${solved(it)}
+    ${(r=>`<div class="rulebox"><span class="tag">${BOOK}Правіла</span><b>${r.title}</b><p>${r.text}</p></div>`)(ruleFor(it))}
+    <p class="note">Заданне ў скрынцы «${['не ведаю','амаль ведаю','ведаю'][box]}»</p>
+    ${nextBtn('Далей')}</div>`;
+  FREE_NOTE='';armNext($('#next'),newRound,3,'Прачытай правіла');
+}
+/* урок после ошибки: читаем 15 секунд, потом решаем сами без подсказок */
+function lesson(it,again){
+  clearTimers();NEXT=null;KEYS=null;
+  const L=lessonHTML(it);
+  stage.innerHTML=`<div class="card">
+    <p class="kicker red">Прачытай правіла ўголас</p>
+    ${again?'<p class="verdict bad">Не атрымалася — прачытай яшчэ раз</p>':''}
+    <p class="taskline">Заданне:</p>${taskView(it)}
+    <h2>${L.title}</h2>
+    <p class="rule">${L.text}</p>
+    ${L.ex}
+    ${nextBtn('Вырашаю сама!')}</div>`;
+  armNext($('#next'),()=>retry(it),LESSON_LOCK,'Прачытай правіла ўголас');
+}
+function retry(it){
+  runSpecs(mainSpecs(it),'<p class="kicker">Рашы сама</p>',(ok)=>{
+    if(!ok){play('stepWrong');if(SES)SES.retries++;setTimeout(()=>lesson(it,true),900);return;}
+    play('step');if(SES)SES.hacks++;
+    stage.innerHTML=`<div class="card"><p class="verdict ok">Атрымалася!</p>${solved(it)}${nextBtn('Далей')}</div>`;
+    armNext($('#next'),newRound,0);
+  });
+}
+
+/* ---------- занятие: таймер, цель, итоги ---------- */
+function mmss(ms){const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function plural(n,a,b,c){const m=n%10,h=n%100;return m===1&&h!==11?a:(m>=2&&m<=4&&(h<12||h>14)?b:c)}
+function startSession(){
+  SES={start:Date.now(),limit:S.minutes*60000,goal:S.goal,correct:0,wrong:0,hacks:0,retries:0,stars:0,miss:{},learned:new Set(),over:false,timeUp:false};
+  clearInterval(TICK);TICK=setInterval(tick,500);tick();newRound();
+}
+function noteAnswer(ok,it){if(!SES)return;if(ok)SES.correct++;else{SES.wrong++;SES.miss[it.label]=(SES.miss[it.label]||0)+1;}tick();}
+function tick(){
+  document.body.classList.toggle('playing',!!SES);
+  if(!SES){strip.hidden=true;return;}
+  const left=SES.limit-(Date.now()-SES.start);
+  if(left<=0&&!SES.timeUp){SES.timeUp=true;SES.timeUpAt=Date.now();}
+  const need=Math.max(0,SES.goal-SES.correct),pct=Math.min(100,SES.correct/SES.goal*100);
+  let clock,cls='',label;
+  if(!SES.timeUp){clock=mmss(left);label=need?`${SES.correct} з ${SES.goal} правільных`:`Мэта ёсць! ${SES.correct} правільных`;cls=left<60000?'soon':'';}
+  else if(need){clock='+'+mmss(Date.now()-SES.timeUpAt);cls='over';label=`Час скончыўся. Яшчэ ${need} ${plural(need,'правільны','правільныя','правільных')} да фінішу`;}
+  else{clock='0:00';cls='done';label=`Гатова! ${SES.correct} правільных`;}
+  strip.hidden=false;
+  strip.innerHTML=`<div class="clock ${cls}">${CLOCK}<span>${clock}</span></div><div class="goal"><div class="gbar"><i style="width:${pct}%"></i></div><span>${label}</span></div>`;
+}
+function checkFinish(){
+  if(!SES||!SES.timeUp)return false;
+  if(SES.correct>=SES.goal){finishSession('done');return true;}
+  if(!SES.over){SES.over=true;showOvertime();return true;}
+  return false;
+}
+function showOvertime(){
+  clearTimers();NEXT=null;KEYS=null;play('over');
+  const need=SES.goal-SES.correct;
+  stage.innerHTML=`<div class="card center">
+    <p class="kicker red">Час скончыўся</p>
+    <h2>За ${S.minutes} хв — ${SES.correct} ${plural(SES.correct,'правільны адказ','правільныя адказы','правільных адказаў')}</h2>
+    <div class="need"><b>${need}</b><span>${plural(need,'правільны адказ','правільныя адказы','правільных адказаў')}<br>${plural(need,'застаўся','засталіся','засталося')}, каб скончыць</span></div>
+    <p class="rule">Мэта на сёння — ${SES.goal}. Дабіваем, і занятак скончыцца сам.</p>
+    ${nextBtn('Дабіваем!')}</div>`;
+  armNext($('#next'),newRound,0);
+}
+function finishSession(kind){
+  if(!SES)return;
+  clearInterval(TICK);clearTimers();NEXT=null;KEYS=null;
+  const s=SES;SES=null;strip.hidden=true;document.body.classList.remove('playing');if(kind!=='stop')play('finish');
+  const total=Date.now()-s.start,tot=s.correct+s.wrong,acc=tot?Math.round(s.correct/tot*100):0;
+  const extra=s.timeUp?(Date.now()-s.timeUpAt):0;
+  S.history=[{d:Date.now(),c:s.correct,w:s.wrong,g:s.goal,t:total,k:kind}].concat(S.history||[]).slice(0,8);save();
+  let head,sub;
+  if(kind==='stop'){head='Занятак спынены';sub=`Зроблена ${s.correct} з ${s.goal} правільных за ${mmss(total)}.`;}
+  else if(extra>15000){head='Мэта выканана!';sub=`${s.correct} правільных: ${S.minutes} хв і яшчэ ${mmss(extra)} дадатковага часу.`;}
+  else{head='Мэта выканана своечасова!';sub=`${s.correct} правільных за ${S.minutes} хв.`;}
+  const prizeHTML=levelBox(S.stars-s.stars,S.stars);
+  const miss=Object.entries(s.miss).sort((a,b)=>b[1]-a[1]);
+  const learned=[...s.learned].map(id=>ITEMS.find(x=>x.id===id.replace(/^H/,''))).filter(Boolean);
+  stage.innerHTML=`<section class="sum">
+    <p class="kicker">Вынікі занятку</p><h1>${head}</h1><p class="rule">${sub}</p>${prizeHTML}
+    <div class="tiles">
+      <div class="tile good"><b>${s.correct}</b><span>правільных</span></div>
+      <div class="tile bad"><b>${s.wrong}</b><span>${plural(s.wrong,'памылка','памылкі','памылак')}</span></div>
+      <div class="tile"><b>${acc}%</b><span>дакладнасць</span></div>
+      <div class="tile"><b>${mmss(total)}</b><span>час</span></div>
+      <div class="tile"><b>${s.hacks}</b><span>${plural(s.hacks,'правіла разабрана','правілы разабраны','правіл разабрана')}</span></div>
+      <div class="tile"><b>${s.retries}</b><span>${plural(s.retries,'паўтор урока','паўторы урока','паўтораў урока')}</span></div>
+    </div>
+    <div class="cols">
+      <div class="col"><h3>Над чым папрацаваць</h3>${miss.length?`<ul class="eqlist">${miss.map(([e,n])=>`<li><span>${esc(e)}</span>${n>1?`<em>× ${n}</em>`:''}</li>`).join('')}</ul>`:'<p class="note">Памылак не было.</p>'}</div>
+      <div class="col"><h3>Пераехалі ў «ведаю»</h3>${learned.length?`<ul class="eqlist ok">${learned.map(x=>`<li><span>${esc(x.label)}</span></li>`).join('')}</ul>`:'<p class="note">Пакуль ніводнага — заданне пераязджае пасля двух правільных адказаў запар.</p>'}</div>
+    </div>
+    <div class="menu-actions"><button class="btn big" id="again"><span class="lbl">Яшчэ занятак</span></button><button class="btn" id="tomenu"><span class="lbl">На галоўную</span></button></div>
+  </section>`;
+  $('#again').addEventListener('click',startSession);$('#tomenu').addEventListener('click',renderMenu);
+}
+
+/* ---------- меню ---------- */
+function renderMenu(){
+  clearTimers();NEXT=null;KEYS=null;clearInterval(TICK);SES=null;strip.hidden=true;document.body.classList.remove('playing');
+  const hist=(S.history||[]).slice(0,5);
+  stage.innerHTML=`<section class="hero"><h1>Горад Слоў</h1>
+    <p>Вуліцы — гэта тэмы падручніка. Выберы, па якіх вуліцах гуляць сёння. Памылішся — адкрыецца правіла, а потым вырашыш сама.</p></section>
+    <div class="streets">${STREETS.map(st=>{
+      const xs=ITEMS.filter(x=>x.street===st.id),t=xs.length;
+      const k=xs.filter(x=>(S.box[boxId(x)]||0)===2).length,a=xs.filter(x=>(S.box[boxId(x)]||0)===1).length;
+      const on=S.streets.includes(st.id);
+      const lvs=LVS[st.id],cur=LV(st.id);
+      return `<div class="stw"><button class="street" data-s="${st.id}" aria-pressed="${on}" style="--c:${st.c}">
+        <span class="check">${CHECK}</span><span class="sign">${st.sign}</span>
+        <span class="sname">${st.name}</span><span class="sdesc">${st.desc}</span>
+        <span class="bar"><i style="width:${k/t*100}%;background:var(--good)"></i><i style="width:${a/t*100}%;background:var(--almost)"></i></span>
+        <span class="cnt">ведаю ${k} з ${t}${a?`, амаль — ${a}`:''}</span></button>${lvs?`<div class="lvrow" role="group" aria-label="Узровень">${lvs.map((n,j)=>`<button class="lvb2" data-s="${st.id}" data-l="${j}" aria-pressed="${cur===j}">${n}</button>`).join('')}</div><p class="lvd">${LVD[st.id][cur]}</p>`:''}</div>`;}).join('')}</div>
+    <div class="legend"><span><i style="background:var(--ghost)"></i>не ведаю</span><span><i style="background:var(--almost)"></i>амаль ведаю</span><span><i style="background:var(--good)"></i>ведаю</span></div>
+    <div class="settings">
+      <div class="set"><span class="setl">Час</span><div class="step"><button id="tMinus" aria-label="Менш хвілін">−</button><output id="tVal"></output><button id="tPlus" aria-label="Больш хвілін">+</button></div></div>
+      <div class="set"><span class="setl">Мэта</span><div class="step"><button id="gMinus" aria-label="Менш адказаў">−</button><output id="gVal"></output><button id="gPlus" aria-label="Больш адказаў">+</button></div><span class="setu">правільных</span></div>
+      <p class="note" id="setNote"></p>
+
+    </div>
+    <div class="menu-actions"><button class="btn big" id="play"><span class="lbl">Пачаць занятак</span></button><button class="link" id="reset">Пачаць нанава</button></div>
+    ${hist.length?`<div class="hist"><h3>Мінулыя заняткі</h3><table><thead><tr><th>Калі</th><th>Правільных</th><th>Памылак</th><th>Час</th></tr></thead><tbody>${hist.map(h=>{
+      const d=new Date(h.d);return `<tr><td>${d.toLocaleDateString('be',{day:'numeric',month:'short'})}, ${d.toLocaleTimeString('be',{hour:'2-digit',minute:'2-digit'})}</td><td class="${h.c>=h.g?'okc':''}">${h.c} з ${h.g}</td><td>${h.w}</td><td>${mmss(h.t)}${h.k==='stop'?' · спынены':''}</td></tr>`;}).join('')}</tbody></table></div>`:''}`;
+  stage.querySelectorAll('.street').forEach(el=>el.addEventListener('click',()=>{
+    const id=el.dataset.s,i=S.streets.indexOf(id);
+    if(i>=0){if(S.streets.length===1)return shake(el);S.streets.splice(i,1);}else S.streets.push(id);
+    save();el.setAttribute('aria-pressed',S.streets.includes(id));}));
+  const syncSet=()=>{$('#tVal').textContent=S.minutes+' хв';$('#gVal').textContent=S.goal;
+    $('#setNote').textContent=`Калі за ${S.minutes} хв будзе менш за ${S.goal} правільных, гульня дасць дадатковы час і пакажа, колькі адказаў засталося да фінішу.`;save();};
+  const bump=(id,f)=>$(id).addEventListener('click',()=>{f();syncSet();});
+  bump('#tMinus',()=>S.minutes=Math.max(5,S.minutes-5));bump('#tPlus',()=>S.minutes=Math.min(60,S.minutes+5));
+  bump('#gMinus',()=>S.goal=Math.max(5,S.goal-5));bump('#gPlus',()=>S.goal=Math.min(100,S.goal+5));
+  syncSet();
+  stage.querySelectorAll('.lvb2').forEach(b=>b.addEventListener('click',()=>{S.lv[b.dataset.s]=+b.dataset.l;if(b.dataset.s==='vow'&&+b.dataset.l)S.vowHardUnlocked=true;save();renderMenu();}));
+  $('#play').addEventListener('click',startSession);
+  const rs=$('#reset');let armed=false;
+  rs.addEventListener('click',()=>{
+    if(!armed){armed=true;rs.textContent='Дакладна? Зоркі, скрынкі і гісторыя абнулюцца — націсні яшчэ раз';setTimeout(()=>{armed=false;rs.textContent='Пачаць нанава'},4000);return;}
+    S.box={};S.stars=0;S.history=[];S.vowHard=false;S.vowHardUnlocked=false;S.lv={};save();updateStars();renderMenu();});
+}
+
+/* ---------- старт ---------- */
+const sfxBtn=$('#sfx');sfxBtn.setAttribute('aria-pressed',S.sfx!==false);
+sfxBtn.addEventListener('click',()=>{S.sfx=S.sfx===false;save();sfxBtn.setAttribute('aria-pressed',S.sfx);if(S.sfx)play('right');});
+document.addEventListener('click',e=>{if(e.target.closest('.opt,.chip'))play('key');},true);
+$('#home').addEventListener('click',()=>{if(SES)finishSession('stop');else renderMenu();});
+updateStars();renderMenu();
+window.__TEST__={NORM,ITEMS,mainSpecs,solved,taskView,lessonHTML,STREETS,ruleFor,S};
+})();
+</script>

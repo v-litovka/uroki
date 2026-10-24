@@ -1,0 +1,170 @@
+<title>Шпаргалка по схемам</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pangolin&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#26224F;--muted:#5B5785;--paper:#FFFDF8;color-scheme:light}
+html,body{height:100%}
+body{background:#F1F8FF;color:var(--ink);font-family:'Nunito',system-ui,sans-serif;font-weight:600;line-height:1.4}
+*{box-sizing:border-box}
+.wrap{max-width:1000px;margin:0 auto;padding:16px 16px 40px}
+h1{font-family:'Pangolin',cursive;font-weight:400;font-size:clamp(34px,8vw,52px);line-height:1;margin:8px 0 6px}
+.lead{margin:0 0 14px;color:var(--muted);max-width:62ch}
+.pr{border:3px solid var(--ink);border-radius:14px;background:#FFD23F;box-shadow:3px 3px 0 var(--ink);font:inherit;font-weight:900;padding:8px 16px;cursor:pointer;margin-bottom:12px}
+@media print{body{background:#fff}.pr{display:none}.cc{box-shadow:none;break-inside:avoid}.wrap{max-width:none;padding:0}}
+</style>
+<div class="wrap">
+<h1>Шпаргалка по схемам</h1>
+<p class="lead">Для домашки по математике, 3 класс. Каждая карточка: «волшебные слова» в задаче → какая схема → какое действие. Красный «?» на схеме — то, что ищем.</p>
+<button class="pr" onclick="window.print()">Распечатать</button>
+<div id="c"></div>
+</div>
+<script>
+/* ===== общая часть: рисование схем (отрезков) как в учебнике ===== */
+/* desc = {rows:[{name:'Г.',segs:[{v:5,dash:0}],note:''}], up:[{r,a,b,t}], down:[{r,a,b,t}], right:'?'}
+   a..b — номера отрезков в строке (включительно) */
+function plural(n,a,b,c){const m=n%10,h=n%100;return m===1&&h!==11?a:(m>=2&&m<=4&&(h<12||h>14)?b:c)}
+function nf(n,f){return n+' '+plural(n,f[0],f[1],f[2])}
+function raza(k){return plural(k,'раз','раза','раз')}
+function drawScheme(d,opt){
+  opt=opt||{};
+  const X0=d.rows.some(r=>r.name)?34:8,MAXW=opt.w||230,MIN=24;
+  const maxV=Math.max(...d.rows.map(r=>r.segs.reduce((s,g)=>s+g.v,0)));
+  const k=MAXW/maxV;
+  const rows=d.rows.map((r,ri)=>{let x=X0;const xs=[x];r.segs.forEach(g=>{x+=Math.max(MIN,g.v*k);xs.push(x)});return {r,xs,ri};});
+  let y=0;const parts=[];
+  const lbl=(x,yy,t)=>{const q=/\?/.test(t);return `<text x="${x}" y="${yy}" text-anchor="middle" class="${q?'sq':'sl'}">${t}</text>`};
+  const brace=(x1,x2,yy,dir,t)=>{
+    if(t===''||t==null)return '';
+    const s=dir; /* -1 вверх, 1 вниз */
+    const y0=yy+s*5,yb=yy+s*11,yp=yy+s*16,m=(x1+x2)/2;
+    let p;
+    if(x2-x1<26)p=`M${x1} ${y0}V${yb}H${x2}V${y0}`;
+    else p=`M${x1} ${y0}Q${x1} ${yb} ${x1+6} ${yb}H${m-6}Q${m} ${yb} ${m} ${yp}Q${m} ${yb} ${m+6} ${yb}H${x2-6}Q${x2} ${yb} ${x2} ${y0}`;
+    return `<path d="${p}" class="br${/\?/.test(t)?' bq':''}"/>`+lbl(m,s<0?yy-21:yy+33,t);
+  };
+  const lineY=[];
+  rows.forEach(R=>{
+    const hasUp=(d.up||[]).some(b=>b.r===R.ri),hasDown=(d.down||[]).some(b=>b.r===R.ri);
+    y+=hasUp?36:18;const ly=y;lineY.push(ly);
+    if(R.r.name)parts.push(`<text x="2" y="${ly+5}" class="nm">${R.r.name}</text>`);
+    R.r.segs.forEach((g,i)=>{parts.push(`<line x1="${R.xs[i]}" y1="${ly}" x2="${R.xs[i+1]}" y2="${ly}" class="sg${g.dash?' ds':''}"/>`)});
+    R.xs.forEach((x,i)=>{const dash=(i>0&&R.r.segs[i-1].dash)&&(i===R.xs.length-1);parts.push(`<circle cx="${x}" cy="${ly}" r="3.6" class="${dash?'dt ho':'dt'}"/>`)});
+    (d.up||[]).filter(b=>b.r===R.ri).forEach(b=>parts.push(brace(R.xs[b.a]+1,R.xs[b.b+1]-1,ly,-1,b.t)));
+    (d.down||[]).filter(b=>b.r===R.ri).forEach(b=>parts.push(brace(R.xs[b.a]+1,R.xs[b.b+1]-1,ly,1,b.t)));
+    if(R.r.note)parts.push(`<text x="${R.xs[R.xs.length-1]+10}" y="${ly+5}" class="sq" text-anchor="start">${R.r.note}</text>`);
+    y+=hasDown?38:14;
+  });
+  let maxX=Math.max(...rows.map(R=>R.xs[R.xs.length-1]+(R.r.note?70:0)));
+  if(d.right){
+    const xr=Math.max(...rows.map(R=>R.xs[R.xs.length-1]))+12,y1=lineY[0]-6,y2=lineY[lineY.length-1]+6,m=(y1+y2)/2;
+    parts.push(`<path d="M${xr} ${y1}Q${xr+6} ${y1} ${xr+6} ${y1+6}V${m-6}Q${xr+6} ${m} ${xr+12} ${m}Q${xr+6} ${m} ${xr+6} ${m+6}V${y2-6}Q${xr+6} ${y2} ${xr} ${y2}" class="br bq"/>`);
+    parts.push(`<text x="${xr+17}" y="${m+6}" class="sq" text-anchor="start">${d.right}</text>`);
+    maxX=Math.max(maxX,xr+40);
+  }
+  const H=y+2,W=maxX+8;
+  return `<svg class="scheme" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="схема">${parts.join('')}</svg>`;
+}
+const SCHEME_CSS=`.scheme{display:block;max-width:100%;height:auto;margin:0 auto;overflow:visible}
+.scheme .sg{stroke:#2B3A9E;stroke-width:4;stroke-linecap:round}
+.scheme .ds{stroke-dasharray:6 5;stroke-width:3}
+.scheme .dt{fill:#2B3A9E}.scheme .dt.ho{fill:#fff;stroke:#2B3A9E;stroke-width:2}
+.scheme .br{fill:none;stroke:#26224F;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.scheme .br.bq{stroke:#E8452C}
+.scheme text{font-family:'Nunito',system-ui,sans-serif;font-weight:900;font-size:17px;fill:#26224F}
+.scheme .sq{fill:#E8452C;font-size:19px}
+.scheme .nm{font-size:15px;fill:#5B5785}`;
+
+/* ===== готовые схемы по типам задач ===== */
+const SCH={
+  /* целое из частей: ищем целое */
+  sum:(a,b,qWhole,qa,qb)=>({rows:[{segs:[{v:a},{v:b}]}],up:[{r:0,a:0,b:1,t:qWhole}],down:[{r:0,a:0,b:0,t:qa},{r:0,a:1,b:1,t:qb}]}),
+  /* сравнение двух: второй больше на d */
+  more:(n1,n2,a,d,ta,td,tq)=>({rows:[{name:n1,segs:[{v:a}]},{name:n2,segs:[{v:a},{v:d}]}],up:[{r:0,a:0,b:0,t:ta},{r:1,a:1,b:1,t:td}],down:[{r:1,a:0,b:1,t:tq}]}),
+  /* второй меньше на d */
+  less:(n1,n2,a,d,ta,td,tq)=>({rows:[{name:n1,segs:[{v:a}]},{name:n2,segs:[{v:a-d},{v:d,dash:1}]}],up:[{r:0,a:0,b:0,t:ta},{r:1,a:1,b:1,t:td}],down:[{r:1,a:0,b:0,t:tq}]}),
+  /* второй больше в k раз */
+  times:(n1,n2,a,k,ta,tq)=>({rows:[{name:n1,segs:[{v:a}]},{name:n2,segs:Array.from({length:k},()=>({v:a}))}],up:[{r:0,a:0,b:0,t:ta}],down:[{r:1,a:0,b:k-1,t:tq}]}),
+  /* второй меньше в k раз */
+  part:(n1,n2,b,k,tb,tq)=>({rows:[{name:n1,segs:Array.from({length:k},()=>({v:b/k}))},{name:n2,segs:[{v:b/k}]}],up:[{r:0,a:0,b:k-1,t:tb}],down:[{r:1,a:0,b:0,t:tq}]}),
+  /* на сколько больше: ? на разнице */
+  diff:(n1,n2,big,small,tb,ts)=>({rows:[{name:n1,segs:[{v:small},{v:big-small}]},{name:n2,segs:[{v:small}]}],up:[{r:0,a:0,b:1,t:tb},{r:1,a:0,b:0,t:ts}],down:[{r:0,a:1,b:1,t:'?'}]}),
+  /* во сколько раз: большее делим на кусочки по меньшему */
+  ratio:(n1,n2,big,small,k,tb,ts)=>({rows:[{name:n1,segs:Array.from({length:k},()=>({v:small})),note:'? раз'},{name:n2,segs:[{v:small}]}],up:[{r:0,a:0,b:k-1,t:tb},{r:1,a:0,b:0,t:ts}],down:[]}),
+  /* две строки + «вместе» справа */
+  both:(base,right)=>Object.assign({},base,{right})
+};
+
+/* ===== шпаргалка по схемам ===== */
+const CHEAT=[
+  {g:'Один отрезок: части и целое'},
+  {t:'Ищем целое (всего)',w:'всего, вместе, сколько стало, сколько было',ex:'В вазе 7 роз и 5 тюльпанов. Сколько всего цветов?',s:SCH.sum(7,5,'?','7','5'),a:'7 + 5 = 12',r:'Целое = часть + часть'},
+  {t:'Ищем часть (осталось)',w:'осталось, сколько …, если всего …',ex:'Было 12 книг, выдали 5. Сколько осталось?',s:SCH.sum(5,7,'12','5','?'),a:'12 − 5 = 7',r:'Часть = целое − другая часть'},
+  {t:'Ловушка «сколько было?»',w:'когда продали … осталось … Сколько было?',ex:'Когда продали 5 кг, осталось 7 кг. Сколько было?',s:SCH.sum(5,7,'?','5','7'),a:'5 + 7 = 12',r:'«Продали» не значит минус: ищем целое — складываем'},
+  {g:'Два отрезка: на … больше / меньше (+ или −)'},
+  {t:'На … больше',w:'«на 3 больше» = столько же и ещё 3',ex:'У Гали 5 заколок, у Оли — на 3 больше.',s:SCH.more('Г.','О.',5,3,'5','3','?'),a:'5 + 3 = 8',r:'Второй отрезок = первый + кусочек'},
+  {t:'На … меньше',w:'«на 3 меньше» = столько же, но без 3',ex:'9 мальчиков, девочек — на 3 меньше.',s:SCH.less('М.','Д.',9,3,'9','3','?'),a:'9 − 3 = 6',r:'Второй короче, недостающее — пунктиром'},
+  {g:'Два отрезка: в … раз больше / меньше (· или :)'},
+  {t:'В … раз больше',w:'«в 3 раза больше» = повторить 3 раза',ex:'У Гали 5 заколок, у Оли — в 3 раза больше.',s:SCH.times('Г.','О.',5,3,'5','?'),a:'5 · 3 = 15',r:'Второй отрезок — из 3 одинаковых кусков'},
+  {t:'В … раз меньше',w:'«в 3 раза меньше» = разделить на 3 части и взять одну',ex:'9 мальчиков, девочек — в 3 раза меньше.',s:SCH.part('М.','Д.',9,3,'9','?'),a:'9 : 3 = 3',r:'Первый режем на 3 равных куска, второй — один кусок'},
+  {g:'Сравнение: на сколько? во сколько раз?'},
+  {t:'На сколько больше / меньше?',w:'вопрос «на сколько?»',ex:'У Феди 17 машинок, у Максима 9. На сколько больше у Феди?',a:'17 − 9 = 8',r:'Из большего вычитаем меньшее'},
+  {t:'Во сколько раз больше / меньше?',w:'вопрос «во сколько раз?»',ex:'Папе 35 лет, сыну 7. Во сколько раз папа старше?',a:'35 : 7 = 5',r:'Большее делим на меньшее'},
+  {g:'Хитрые задачи: «это …, чем …»'},
+  {t:'«Это на … меньше, чем …»',w:'сначала спроси: у кого больше?',ex:'У Наташи 15 фото. Это на 7 меньше, чем у Миланы. Сколько у Миланы?',s:SCH.more('Н.','М.',15,7,'15','7','?'),a:'15 + 7 = 22',r:'«Меньше, чем у Миланы» → у Миланы БОЛЬШЕ → плюс. Переворачиваем!'},
+  {t:'«Это в … раз больше, чем …»',w:'сначала спроси: чего меньше?',ex:'Гречки 12 кг. Это в 3 раза больше, чем риса. Сколько риса?',s:SCH.part('Г.','Р.',12,3,'12','?'),a:'12 : 3 = 4',r:'«Больше, чем риса» → риса МЕНЬШЕ → делим'},
+  {g:'Два действия'},
+  {t:'Сколько вместе?',w:'второе число не дано — сначала найди его',ex:'У Стива 6 алмазов, у Алекса на 3 больше. Сколько вместе?',s:SCH.both(SCH.more('С.','А.',6,3,'6','3',''),'?'),a:'1) 6 + 3 = 9 &nbsp; 2) 6 + 9 = 15',r:'Скобка справа — на оба отрезка'}
+];
+const CHEAT_K=`<table class="kt"><thead><tr><th><span>К1</span>в одной</th><th><span>К</span>количество</th><th><span>ОК</span>всего</th></tr></thead><tbody><tr><td><b>6</b></td><td><b>4</b></td><td><b class="q">?</b></td></tr></tbody></table>`;
+function cheatHTML(){
+  return `<div class="cheat">
+  <div class="algo"><b>Как решать любую задачу</b><ol>
+    <li>Прочитай задачу <b>два раза</b>.</li>
+    <li>Что <b>известно</b>? Что надо <b>найти</b>? Подчеркни вопрос.</li>
+    <li>Если сравнивают двоих — спроси: <b>у кого больше?</b> Больше — длиннее отрезок.</li>
+    <li>Найди «волшебные слова»: <b>на</b> … больше/меньше, <b>в</b> … раз больше/меньше, <b>на сколько</b>?, <b>во сколько раз</b>?, <b>по</b> … в каждой, <b>поровну</b>.</li>
+    <li>Нарисуй схему. «?» — то, что ищем.</li>
+    <li>Выбери действие, посчитай, напиши <b>ответ полностью</b>.</li>
+  </ol></div>
+  ${CHEAT.map(c=>c.g?`<h3 class="cg">${c.g}</h3>`:`<div class="cc"><b class="ct">${c.t}</b><span class="cw">${c.w}</span><p class="cex">${c.ex}</p>${c.s?drawScheme(c.s):''}<p class="ca">${c.a}</p><p class="cr">${c.r}</p></div>`).join('')}
+  <h3 class="cg">Таблица К1 · К = ОК</h3>
+  <div class="cc wide"><span class="cw">К1 — сколько в одной (коробке, пачке, ведре, «по 6 в каждой»). К — количество (сколько коробок). ОК — общее количество (всего).</span>
+    ${CHEAT_K}
+    <div class="kf"><div><b>ОК = К1 · К</b><span>ищем всего — умножаем<br>В 4 коробках по 6 — сколько всего? 6 · 4 = 24</span></div>
+    <div><b>К1 = ОК : К</b><span>ищем, сколько в одной — делим на количество<br>24 разложили <u>поровну</u> в 4 коробки: 24 : 4 = 6</span></div>
+    <div><b>К = ОК : К1</b><span>ищем количество — делим на то, сколько в одной<br>24 разложили <u>по 6</u> в коробку: 24 : 6 = 4</span></div></div></div>
+  <div class="cc wide"><b class="ct">Шпаргалка-запоминалка</b>
+    <table class="kw"><tr><th>Слова в задаче</th><th>Действие</th></tr>
+    <tr><td>всего, вместе; на … больше; сколько было (когда ушло и осталось)</td><td><b>+</b></td></tr>
+    <tr><td>осталось; на … меньше; на сколько больше/меньше?</td><td><b>−</b></td></tr>
+    <tr><td>в … раз больше; по … в каждой, сколько всего?</td><td><b>·</b></td></tr>
+    <tr><td>в … раз меньше; во сколько раз?; поровну; по … в каждой, сколько коробок?</td><td><b>:</b></td></tr>
+    <tr><td>«это …, чем …»</td><td class="sm">сначала <b>переверни</b>!</td></tr></table></div>
+  </div>`;
+}
+const CHEAT_CSS=`.cheat{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.cheat .cg{grid-column:1/-1;margin:10px 0 0;font-family:'Pangolin',cursive;font-weight:400;font-size:24px}
+.cheat .algo{grid-column:1/-1;border:3px solid #26224F;border-radius:18px;background:#FFF1C2;padding:12px 16px}
+.cheat .algo>b{font-family:'Pangolin',cursive;font-weight:400;font-size:24px}.cheat .algo ol{margin:6px 0 0;padding-left:22px;display:grid;gap:4px;font-size:16px}
+.cc{border:3px solid #26224F;border-radius:18px;background:#FFFDF8;padding:12px 14px;display:grid;gap:6px;align-content:start;min-width:0;box-shadow:3px 3px 0 #26224F}
+.cc.wide{grid-column:1/-1}
+.cc .ct{font-family:'Pangolin',cursive;font-weight:400;font-size:22px;line-height:1.1}
+.cc .cw{font-size:14px;color:#5B5785;font-weight:800}
+.cc .cex{margin:0;font-size:15px}
+.cc .ca{margin:0;font-weight:900;font-size:20px;color:#1F9D57;text-align:center}
+.cc .cr{margin:0;font-size:14px;font-weight:800;background:#F1ECFF;border-radius:10px;padding:6px 10px}
+.kt{border-collapse:collapse;margin:4px auto;font-size:15px;background:#fff;max-width:100%}
+.kt th,.kt td{border:3px solid #26224F;padding:6px 10px;text-align:center;vertical-align:top}
+.kt th{background:#F1ECFF;font-weight:800;font-size:13px;line-height:1.2;max-width:9em}
+.kt th span{display:block;font-family:'Pangolin',cursive;font-size:24px;font-weight:400;color:#7A4FE0}
+.kt td{font-size:26px;font-weight:900;height:52px;min-width:3.4em}
+.kt .q{color:#E8452C}
+.kf{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.kf div{display:grid;gap:2px;border:2px dashed #5B5785;border-radius:12px;padding:8px 10px;background:#F7F4FF}
+.kf b{font-size:20px}.kf span{font-size:14px}
+.kw{border-collapse:collapse;width:100%;font-size:15px}
+.kw th,.kw td{border-bottom:2px solid #D4D0EC;padding:6px 8px;text-align:left}
+.kw td:last-child{font-size:30px;text-align:center;width:4.5em}.kw td.sm{font-size:15px}`;
+
+(function(){const st=document.createElement('style');st.textContent=SCHEME_CSS+CHEAT_CSS;document.head.appendChild(st);document.getElementById('c').innerHTML=cheatHTML();})();
+</script>

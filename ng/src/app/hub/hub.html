@@ -1,0 +1,30 @@
+<div class="wrap">
+  <h1>Игры</h1>
+  <nav class="tabs" aria-label="Класс">
+    <a routerLink="/3" [class.on]="g() === 3">3 класс</a>
+    <a routerLink="/4" [class.on]="g() === 4">4 класс</a>
+  </nav>
+  <p class="lead">Выбери игру. Звёзды и уровни у каждой игры свои.</p>
+
+  <div class="grid">
+    @for (x of games(); track x.id) {
+      @if (x.status === 'legacy') {
+        <a class="g" [href]="'legacy/' + x.legacy" [style.--c]="x.color">
+          <span class="tag">{{ subjects[x.subject] }}</span><b>{{ x.title }}</b><span>{{ x.desc }}</span>
+        </a>
+      } @else {
+        <a class="g" [routerLink]="x.route" [style.--c]="x.color">
+          <span class="tag">{{ subjects[x.subject] }}</span><b>{{ x.title }}</b><span>{{ x.desc }}</span>
+        </a>
+      }
+    }
+  </div>
+
+  @if (extras().length) {
+    <div class="small">
+      @for (e of extras(); track e.legacy) {
+        <a [href]="'legacy/' + e.legacy">{{ e.title }}</a>
+      }
+    </div>
+  }
+</div>

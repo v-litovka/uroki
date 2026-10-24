@@ -1,0 +1,11 @@
+const {chromium}=await import('/opt/node-tools/node_modules/playwright/index.mjs');
+const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:900}});
+await p.goto('file:///home/claude/uroki/english/index.html');
+await p.screenshot({path:'en/w-menu.png',fullPage:true});
+await p.evaluate(()=>{S.voice=false;S.sel=['have'];S.lv.have=2});await p.click('#go');
+await p.evaluate(()=>{let q;do{q=genHave(2)}while(q.kind!=='words');q.topic='have';R.q=q;R.tries=0;render(q)});
+const t=await p.evaluate(()=>R.q.tokens);
+await p.evaluate(t=>{[...document.querySelectorAll('.wt')].find(x=>x.textContent===t[0]).click()},t);
+await p.evaluate(t=>{[...document.querySelectorAll('.wt')].find(x=>!x.disabled&&x.textContent===t[t.length-1]).click()},t);
+await p.waitForTimeout(150);await p.screenshot({path:'en/w-words.png',fullPage:true});
+await b.close();

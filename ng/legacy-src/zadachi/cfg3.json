@@ -1,0 +1,3 @@
+{"title":"Город Задач","key":"gorod-zadach-v1","sky":"--sky:#D9ECFF; --sky2:#F1F8FF;","streets":["na","v","kosv"],
+"hero":"Улицы — это типы задач из учебника. Главное здесь — <b>выбрать правильную схему</b>, потом действие, потом посчитать. Ошибёшься — откроется правило.",
+"cheat":"Шпаргалка по схемам","shared":["math/shared.js"],"content":["math/content.js"],"out":"math/zadachi-g.html"}
