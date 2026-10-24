@@ -1,16 +1,16 @@
 @if (lesson(); as ls) {
 <app-card>
-  <p class="kicker">Прочитай правило вслух</p>
+  <p class="kicker">{{ i18n.t('lessonKicker') }}</p>
   @if (lessonAgain()) {
-    <p class="again">Не получилось — прочитай ещё раз</p>
+    <p class="again">{{ i18n.t('lessonAgain') }}</p>
   }
   @if (exercise().prompt.html) {
-    <p class="taskline">Задание:</p>
+    <p class="taskline">{{ i18n.t('task') }}</p>
     <app-rich-html [html]="exercise().prompt.html!" />
   }
   <h2 class="ltitle">{{ ls.title }}</h2>
   <app-rich-html [html]="ls.html" />
-  <app-confirm-button label="Решаю сама!" [lockSec]="ls.lockSec ?? 15" (confirmed)="retry()" />
+  <app-confirm-button [label]="i18n.t('solveSelf')" [lockSec]="ls.lockSec ?? 15" (confirmed)="retry()" />
 </app-card>
 } @else {
 <app-card>
@@ -53,7 +53,7 @@
       }
       @case ('note') {
         <app-rich-html [html]="st.html" />
-        <app-confirm-button [label]="st.button ?? 'Дальше'" [lockSec]="st.lockSec ?? 0" (confirmed)="memorized()" />
+        <app-confirm-button [label]="st.button ?? i18n.t('next')" [lockSec]="st.lockSec ?? 0" (confirmed)="memorized()" />
       }
       @case ('order') {
         @if (st.note) {

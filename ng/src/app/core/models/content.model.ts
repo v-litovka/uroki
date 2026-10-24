@@ -228,6 +228,8 @@ export interface Pack {
   desc: string;
   color: string;
   mascot: Mascot;
+  /** язык интерфейса игры (кнопки, похвала): 'ru' по умолчанию, 'by' — беларуская */
+  lang?: 'ru' | 'by';
   bookIds?: string[];
   topics: Topic<any>[];
   /** фразы похвалы/ошибки; иначе — по умолчанию для mascot */

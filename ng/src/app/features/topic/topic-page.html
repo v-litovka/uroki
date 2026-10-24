@@ -9,6 +9,6 @@
   </div>
 
   @if (hiddenVoice()) {
-    <p class="note">Диктант появится, если на устройстве есть русский голос.</p>
+    <p class="note">{{ i18n.t('noVoice') }}</p>
   }
 }

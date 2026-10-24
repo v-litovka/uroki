@@ -1,6 +1,7 @@
-import { Component, ElementRef, afterRenderEffect, input, linkedSignal, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, inject, input, linkedSignal, output, signal, viewChild } from '@angular/core';
 import { matches } from '../../utils/text';
 import { Button } from '../button/button';
+import { LangService } from '../../../core/i18n/lang.service';
 
 export interface Typed {
   value: string;
@@ -20,6 +21,7 @@ export class AnswerInput {
   /** цифровая клавиатура на планшете */
   readonly numeric = input(false);
   readonly typed = output<Typed>();
+  protected readonly i18n = inject(LangService);
   /** сброс при новом ответе (новый шаг) */
   protected readonly done = linkedSignal({ source: this.answer, computation: () => false });
   protected readonly shake = signal(false);

@@ -1,8 +1,8 @@
 <app-card [center]="true">
   <app-pet-group [pets]="pets()" size="lg" />
-  <h2>Готово!</h2>
+  <h2>{{ i18n.t('done') }}</h2>
   @if (total() > 1) {
-    <p class="stat">С первого раза: {{ ok() }} из {{ total() }} · +{{ stars() }} ⭐</p>
+    <p class="stat">{{ i18n.t('firstTry', { ok: ok(), n: total() }) }} · +{{ stars() }} ⭐</p>
   } @else {
     <p class="stat">+{{ stars() }} ⭐</p>
   }
@@ -13,7 +13,7 @@
     @if (nextMode(); as nx) {
       <a app-btn [routerLink]="['..', nx.id]">{{ nx.icon }} {{ nx.title }} →</a>
     }
-    <button app-btn variant="ghost" (click)="again.emit()">Ещё раз</button>
-    <a app-btn variant="ghost" routerLink="..">К теме</a>
+    <button app-btn variant="ghost" (click)="again.emit()">{{ i18n.t('more') }}</button>
+    <a app-btn variant="ghost" routerLink="..">{{ i18n.t('toTopic') }}</a>
   </div>
 </app-card>

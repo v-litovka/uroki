@@ -7,14 +7,17 @@ import { createServer } from 'node:http';
 import { readFile, stat, mkdir } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 
-const root = 'dist/uroki-ng/browser';
+// E2E_ROOT — другая папка сборки, E2E_PORT — порт, E2E_ONLY — подстрока адреса пака (например «slovy»)
+const root = process.env.E2E_ROOT || 'dist/uroki-ng/browser';
+const PORT = +(process.env.E2E_PORT || 4319);
+const ONLY = process.env.E2E_ONLY || '';
 const T = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.woff2': 'font/woff2', '.woff': 'font/woff' };
 const srv = createServer(async (q, r) => {
   let p = join(root, decodeURIComponent(q.url.split('?')[0]));
   try { if ((await stat(p)).isDirectory()) p = join(p, 'index.html'); r.writeHead(200, { 'content-type': T[extname(p)] || 'application/octet-stream' }); r.end(await readFile(p)); }
   catch { r.writeHead(404); r.end(); }
-}).listen(4319);
-const base = 'http://localhost:4319/';
+}).listen(PORT);
+const base = `http://localhost:${PORT}/`;
 await mkdir('tools/shots', { recursive: true });
 
 const b = await chromium.launch();
@@ -67,7 +70,7 @@ for (const grade of [3, 4]) {
   await page.goto(base + '#/' + grade);
   await page.waitForSelector('a[app-game-tile]');
   const packs = await page.$$eval('a[app-game-tile]', (a) => a.map((x) => x.getAttribute('href')).filter((h) => h && h.startsWith('#/')));
-  for (const ph of packs) {
+  for (const ph of packs.filter((h) => h.includes(ONLY))) {
     await page.goto(base + ph);
     await page.waitForSelector('a[app-topic-card]');
     await page.screenshot({ path: `tools/shots/pack-${ph.replace(/\W+/g, '_')}.png`, fullPage: true });

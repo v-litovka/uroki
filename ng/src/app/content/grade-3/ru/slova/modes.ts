@@ -3,37 +3,41 @@ import { Exercise, Mode, Step } from '../../../../core/models';
 import { shuffle } from '../../../../shared/utils/random';
 import { ITEMS, PAIR, PRE_OPTS, QCAT, QREP, RULES, SlovaItem, TEXT, TRIO_WORDS, VOW_OK } from './data';
 
-/* ---------- HTML-кусочки (как в старой игре) ---------- */
-const esc = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-const fillGap = (w: string, l: string, cls = 'ok') => w.replace('_', `<span class="${cls}">${l}</span>`);
-const plain = (w: string, l: string) => w.replace('_', l);
-const word = (inner: string) => `<div class="word">${inner}</div>`;
-const sent = (inner: string) => `<div class="sent">${inner}</div>`;
-const why = (inner: string) => `<p class="why">${inner}</p>`;
-const words = (s: string) => s.split(' ');
-const bare = (w: string) => w.replace(/[.,!?…]/g, '');
-const noAccent = (s: string) => s.replace(/́/g, '');
-const partShow = (it: SlovaItem, hl: boolean) =>
-  word(it['parts'].map((p: string, i: number) => `<span class="seg${hl && i === it['hl'] ? ' hl' : ''}">${p}</span>`).join(''));
-const secWords = (x: string[]) => (x[3] ? [x[3], x[2]] : [x[2]]);
-const qWrong = (q: string) => {
-  const c = Object.keys(QCAT).find((k) => QCAT[k].includes(q));
-  return shuffle(Object.keys(QREP).filter((k) => k !== c).map((k) => QREP[k])).slice(0, 2);
+import {
+  MainLabels,
+  StreetTexts,
+  bare,
+  choice,
+  esc,
+  fillGap,
+  lessonOf,
+  mainMembers,
+  noAccent,
+  partShow as partShowKit,
+  plain,
+  qWrongFrom,
+  scene,
+  secSent as secSentKit,
+  secWords,
+  secondaryMembers,
+  sent,
+  streetExercise,
+  streetMode,
+  why,
+  word,
+  words,
+} from '../../../common/streets';
+
+const TX: StreetTexts = { correct: 'Верно! +1 ⭐', next: 'Дальше', examples: 'Смотри, как это работает', remember: 'Запомни это слово' };
+const LBL: MainLabels = {
+  pred: 'Найди сказуемое (что делает?) — две черты',
+  subj: 'Найди подлежащее (кто? что?) — одна черта',
+  tapSec: (f, q) => `Задай вопрос: ${f} (${q}) … — нажми на это слово`,
+  askSec: (f, w) => `Какой вопрос задаём от слова «${f}» к слову «${w}»?`,
 };
-function secSent(it: SlovaItem, upto: number, hl?: string[]) {
-  const marks: Record<string, string> = { [it['pred']]: 'u2', [it['subj']]: 'u1' };
-  (it['sec'] as string[][]).slice(0, upto).forEach((x) => secWords(x).forEach((w) => (marks[w] = 'u3')));
-  return sent(
-    words(it['s'])
-      .map((w) => {
-        const b = bare(w);
-        let h = marks[b] ? `<span class="${marks[b]}">${w}</span>` : w;
-        if (hl?.includes(b)) h = `<span class="hlw">${h}</span>`;
-        return h;
-      })
-      .join(' '),
-  );
-}
+const qWrong = qWrongFrom(QCAT, QREP);
+const partShow = (it: SlovaItem, hl: boolean) => partShowKit(it['parts'], hl ? it['hl'] : -1);
+const secSent = (it: SlovaItem, upto: number, hl?: string[]) => secSentKit(it as never, upto, hl);
 const preNote = (it: SlovaItem) => {
   const bad = it['p'].replace(it['l'], PRE_OPTS[it['l']][1]);
   return `Приставки «${bad}-» в русском языке нет, поэтому пишем только <b>${it['p']}</b>.`;
@@ -144,34 +148,12 @@ function taskView(it: SlovaItem): string {
 
 /** урок после ошибки: правило + 2 примера того же типа (словарное — само слово) */
 function lessonFor(it: SlovaItem) {
-  const r = RULES[it.type];
-  let ex = '';
-  if (it.type === 'dict') ex = `<p class="sub">Запомни это слово</p><div class="memo">${solved(it)}</div>`;
-  else {
-    const others = shuffle(ITEMS.filter((x) => x.type === it.type && x.id !== it.id)).slice(0, 2);
-    if (others.length) ex = `<p class="sub">Смотри, как это работает</p><div class="exs">${others.map((o) => `<div class="ex">${solved(o)}</div>`).join('')}</div>`;
-  }
-  return { title: r.title, html: `<p>${r.text}</p>${ex}` };
+  const others = it.type === 'dict' ? [] : shuffle(ITEMS.filter((x) => x.type === it.type && x.id !== it.id)).slice(0, 2).map(solved);
+  return lessonOf(RULES[it.type], TX, others, it.type === 'dict' ? solved(it) : undefined);
 }
 
 /* ---------- шаги ---------- */
-interface Spec {
-  ask: string;
-  show?: string;
-  note?: string;
-}
-const scene = (sp: Spec) => ({ ask: sp.ask, html: sp.show || undefined, hint: sp.note || undefined });
-const choice = (sp: Spec, opts: string[], ans: string, o: { letters?: boolean; long?: boolean; accept?: string[] } = {}): Step => ({
-  kind: 'choice',
-  options: opts,
-  answer: ans,
-  accept: o.accept,
-  shuffle: false,
-  layout: o.letters ? 'small' : o.long || opts.some((x) => x.length > 11) ? 'list' : 'grid',
-  prompt: scene(sp),
-});
 type Lv = 0 | 1 | 2;
-type Mark = 'u1' | 'u2' | 'u3' | 'hl';
 
 function checkSpec(v: { w: string; l: string; ch: string; wrong: string[] }, show: string, lv: Lv): Step {
   if (lv) {
@@ -244,10 +226,7 @@ export function steps(it: SlovaItem, lv: Lv): Step[] {
     case 'phr':
       return [choice({ ask: 'Это предложение или словосочетание?', show: sent(it['s']) }, ['предложение', 'словосочетание'], it['isS'] ? 'предложение' : 'словосочетание')];
     case 'mem':
-      return [
-        { kind: 'tap', words: words(it['s']), accept: [it['pred']], markAs: 'u2', prompt: scene({ ask: 'Найди сказуемое (что делает?) — две черты' }) },
-        { kind: 'tap', words: words(it['s']), accept: [it['subj']], markAs: 'u1', marked: { [it['pred']]: 'u2' }, prompt: scene({ ask: 'Найди подлежащее (кто? что?) — одна черта' }) },
-      ];
+      return mainMembers(it as never, LBL);
     case 'syn':
     case 'ant': {
       const name = it.type === 'syn' ? 'синоним' : 'антоним';
@@ -269,30 +248,8 @@ export function steps(it: SlovaItem, lv: Lv): Step[] {
     }
     case 'fig':
       return [choice({ ask: 'Значение прямое или переносное?', show: sent(it['s']) }, ['прямое', 'переносное'], it['v'])];
-    case 'sec': {
-      const marked: Record<string, Mark> = { [it['pred']]: 'u2' };
-      const out: Step[] = [
-        { kind: 'tap', words: words(it['s']), accept: [it['pred']], markAs: 'u2', prompt: scene({ ask: 'Найди сказуемое (что делает?) — две черты' }) },
-        { kind: 'tap', words: words(it['s']), accept: [it['subj']], markAs: 'u1', marked: { ...marked }, prompt: scene({ ask: 'Найди подлежащее (кто? что?) — одна черта' }) },
-      ];
-      marked[it['subj']] = 'u1';
-      (it['sec'] as string[][]).forEach((x, k) => {
-        const ww = secWords(x);
-        if (k % 2 === 0 || Math.random() < 0.3)
-          out.push({
-            kind: 'tap',
-            words: words(it['s']),
-            accept: [x[2]],
-            markWords: ww,
-            markAs: 'u3',
-            marked: { ...marked },
-            prompt: scene({ ask: `Задай вопрос: ${x[0].toLowerCase()} (${x[1]}) … — нажми на это слово` }),
-          });
-        else out.push(choice({ ask: `Какой вопрос задаём от слова «${x[0].toLowerCase()}» к слову «${ww.join(' ').toLowerCase()}»?`, show: secSent(it, k, [x[0], ...ww]) }, shuffle([x[1], ...qWrong(x[1])]), x[1]));
-        ww.forEach((w) => (marked[w] = 'u3'));
-      });
-      return out;
-    }
+    case 'sec':
+      return secondaryMembers(it as never, LBL, qWrong);
     case 'mnog':
       return [
         choice(
@@ -312,27 +269,11 @@ export function steps(it: SlovaItem, lv: Lv): Step[] {
 
 /** упражнение: шаги + «Верно! и правило» + урок на случай ошибки */
 export function exercise(it: SlovaItem, lv: Lv): Exercise {
-  const r = ruleFor(it);
-  return {
-    itemId: it.id,
-    label: it.label,
-    prompt: {},
-    steps: [
-      ...steps(it, lv),
-      {
-        kind: 'note',
-        html: `<p class="verdict">Верно! +1 ⭐</p>${solved(it)}<div class="rulebox"><b>${r.title}</b><p>${r.text}</p></div>`,
-        button: 'Дальше',
-        lockSec: 3,
-        prompt: { ask: undefined, html: undefined, hint: undefined },
-      },
-    ],
-    lesson: lessonFor(it),
-  };
+  return streetExercise(it, steps(it, lv), solved(it), ruleFor(it), lessonFor(it), TX);
 }
 
 /* ---------- режимы = уровни улиц ---------- */
-const mode = (id: string, title: string, icon: string, desc: string, lv: Lv): Mode<SlovaItem> => ({ id, title, icon, desc, build: (it) => exercise(it, lv) });
+const mode = (id: string, title: string, icon: string, desc: string, lv: Lv): Mode<SlovaItem> => streetMode(id, title, icon, desc, (it: SlovaItem) => exercise(it, lv));
 
 export const MODES_BY_STREET: Record<string, Mode<SlovaItem>[]> = {
   dict: [mode('choose', 'Выбери букву', '👆', 'Выбрать букву из двух', 0), mode('type', 'Напечатай букву', '⌨️', 'Напечатать букву самой', 1), mode('spell', 'Буква и всё слово', '✏️', 'Буква, потом всё слово по памяти', 2)],

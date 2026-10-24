@@ -9,6 +9,7 @@ import { HeaderService } from '../../core/layout/header.service';
 import { levelOf } from '../../core/progress/levels';
 import { Button, PageHero, PetGroup, ProgressBar, Section, StatCard } from '../../shared/ui';
 import { assignmentLink } from './assignment-link';
+import { LangService } from '../../core/i18n/lang.service';
 
 /** Кабинет ребёнка: я, мои питомцы, звёзды, задания, что я прошла. #/me */
 @Component({
@@ -34,5 +35,6 @@ export class MePage {
 
   constructor() {
     inject(HeaderService).set({ back: '/' });
+    inject(LangService).lang.set('ru');
   }
 }

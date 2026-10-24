@@ -10,7 +10,7 @@
   </div>
 
   @if (legacy(); as path) {
-    <p class="old"><a [href]="'legacy/' + path">Старая версия игры</a></p>
+    <p class="old"><a [href]="'legacy/' + path">{{ i18n.t('oldVersion') }}</a></p>
   }
 } @else if (p.error(); as err) {
   <p>{{ err }}</p>

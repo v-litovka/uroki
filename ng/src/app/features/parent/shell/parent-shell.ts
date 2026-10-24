@@ -7,6 +7,7 @@ import { ParentSession } from '../../../core/family/parent-session';
 import { HeaderService } from '../../../core/layout/header.service';
 import { Button, PageHero, SegOption, Segmented, TabItem, Tabs } from '../../../shared/ui';
 import { ParentState } from '../parent-state';
+import { LangService } from '../../../core/i18n/lang.service';
 
 /** Кабинет взрослого: выбор ребёнка + разделы. */
 @Component({
@@ -37,6 +38,7 @@ export class ParentShell {
 
   constructor() {
     inject(HeaderService).set({ back: '/me' });
+    inject(LangService).lang.set('ru');
   }
 
   logout() {

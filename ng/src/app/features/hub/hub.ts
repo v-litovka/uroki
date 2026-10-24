@@ -9,6 +9,7 @@ import { CatalogService } from '../../core/catalog/catalog.service';
 import { AssignmentsService } from '../../core/assignments/assignments.service';
 import { Button, GameTile, PageHero, TabItem, Tabs } from '../../shared/ui';
 import { assignmentLink } from '../me/assignment-link';
+import { LangService } from '../../core/i18n/lang.service';
 
 /** Хаб «Игры»: приветствие, задание от взрослого, вкладки классов, плитки игр. #/3, #/4 */
 @Component({
@@ -35,5 +36,6 @@ export class Hub {
 
   constructor() {
     inject(HeaderService).set({});
+    inject(LangService).lang.set('ru');
   }
 }

@@ -1,3 +1,3 @@
-<b class="title">Почему?</b>
+<b class="title">{{ i18n.t('why') }}</b>
 <app-option-grid [options]="options()" [answer]="ok()" layout="list" [doShuffle]="false" (picked)="onPick($event)" />
 <p class="msg" aria-live="polite">{{ msg() }}</p>

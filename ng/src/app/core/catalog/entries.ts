@@ -14,7 +14,7 @@ export const ENTRIES: CatalogEntry[] = [
   { kind: 'legacy', id: 'english', grade: 3, subject: 'en', title: 'English с Вирой и Венди', desc: 'Magic Box 3: слова, he/she/they, грамматика', color: '#E2557A', path: 'english/', storageKey: 'english3', bookIds: ['en3-magicbox'] },
   { kind: 'pack', id: 'slova', grade: 3, subject: 'ru', title: 'Город Слов', desc: 'Правила, члены предложения, лексика', color: '#7A4FE0', packId: 'ru3-slova', bookIds: ['ru3-antipova-1'] },
   { kind: 'pack', id: 'rabota', grade: 3, subject: 'ru', title: 'Работа над ошибками', desc: '-тся и -ться, окончания, разделительный ь, слова из диктанта', color: '#E2557A', packId: 'ru3-rabota' },
-  { kind: 'legacy', id: 'slovy', grade: 3, subject: 'by', title: 'Горад Слоў', desc: 'Правілы, члены сказа, лексіка', color: '#3D8B3A', path: 'slovy/', storageKey: 'horad-slou-v1', bookIds: ['by3-svirydzenka-1'] },
+  { kind: 'pack', id: 'slovy', grade: 3, subject: 'by', title: 'Горад Слоў', desc: 'Правілы, члены сказа, лексіка', color: '#3D8B3A', packId: 'by3-slovy', bookIds: ['by3-svirydzenka-1'] },
   // ---------- 4 класс ----------
   { kind: 'legacy', id: 'zadachi4', grade: 4, subject: 'math', title: 'Город Задач 4', desc: 'Движение, цена, доли, уравнения, единицы', color: '#2D6CDF', path: '4klass/zadachi/', storageKey: 'gorod-zadach4-v1', bookIds: ['math4-muravyova'] },
   { kind: 'legacy', id: 'slova4', grade: 4, subject: 'ru', title: 'Город Слов 4', desc: 'Падежи, склонения, окончания', color: '#7A4FE0', path: '4klass/slova/', storageKey: 'gorod-slov4-v1', bookIds: ['ru4-antipova'] },
@@ -24,4 +24,4 @@ export const ENTRIES: CatalogEntry[] = [
 export const EXTRA_LINKS: ExtraLink[] = [{ grade: 3, title: 'Шпаргалка по схемам', path: 'zadachi/shpargalka.html' }];
 
 /** Старая HTML-версия пака (на всякий случай, пока Angular-версия проверяется). */
-export const LEGACY_FALLBACK: Record<string, string> = { 'ru3-rabota': 'rabota/', 'math3-stih': 'stih/', 'ru3-slova': 'slova/' };
+export const LEGACY_FALLBACK: Record<string, string> = { 'ru3-rabota': 'rabota/', 'math3-stih': 'stih/', 'ru3-slova': 'slova/', 'by3-slovy': 'slovy/' };

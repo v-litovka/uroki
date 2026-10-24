@@ -1,4 +1,5 @@
-import { Component, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
+import { LangService } from '../../../core/i18n/lang.service';
 import { ProgressBar } from '../../../shared/ui';
 
 /** Шапка раунда: «👆 ВЫБЕРИ · ТЕМА», «3 / 10», полоска, пометка «повторяем ошибку». */
@@ -13,4 +14,5 @@ export class RoundHeader {
   readonly pos = input(1);
   readonly len = input(1);
   readonly again = input(false);
+  protected readonly i18n = inject(LangService);
 }

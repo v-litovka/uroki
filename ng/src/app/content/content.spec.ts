@@ -92,3 +92,28 @@ describe('Город Слов', () => {
         }
   });
 });
+
+describe('Горад Слоў', () => {
+  it('каждое задание: урок, финальный экран, варианты без пустых', async () => {
+    const { PACK } = await import('./grade-3/by/slovy/pack');
+    const { ITEMS } = await import('./grade-3/by/slovy/data');
+    expect(PACK.lang).toBe('by');
+    expect(ITEMS.length).toBeGreaterThan(400);
+    expect(new Set(ITEMS.map((x) => x.id)).size).toBe(ITEMS.length);
+    for (const t of PACK.topics)
+      for (const m of t.modes)
+        for (const it of m.items ?? t.items) {
+          const ex = m.build(it);
+          expect(ex.lesson?.title, ex.itemId).toBeTruthy();
+          expect(ex.steps.at(-1)?.kind, ex.itemId).toBe('note');
+          expect(ex.steps.length, ex.itemId).toBeGreaterThan(1);
+          for (const s of ex.steps) {
+            if (s.kind === 'choice') {
+              expect(s.options.every((o) => typeof o === 'string' && o.length > 0), ex.itemId).toBe(true);
+              expect(s.options, ex.itemId).toContain(s.answer);
+            }
+            expect(JSON.stringify(s), ex.itemId).not.toContain('undefined');
+          }
+        }
+  });
+});

@@ -6,6 +6,7 @@ import { SfxService } from '../../core/audio/sfx.service';
 import { diffLetters, lev, matches, norm } from '../../shared/utils/text';
 import { pick } from '../../shared/utils/random';
 import { petPhrase } from '../phrases';
+import { LangService } from '../../core/i18n/lang.service';
 
 export interface ExerciseResult {
   /** была ли хоть одна ошибка */
@@ -33,6 +34,7 @@ export class ExercisePlayer {
   readonly finished = output<ExerciseResult>();
 
   private sfx = inject(SfxService);
+  protected readonly i18n = inject(LangService);
 
   /* Всё состояние привязано к упражнению: пришло новое — сбросилось само (linkedSignal). */
   protected readonly stepIdx = linkedSignal({ source: this.exercise, computation: () => 0 });
@@ -62,7 +64,7 @@ export class ExercisePlayer {
   private say(ok: boolean, text?: string) {
     const pet = this.speaker();
     const own = this.phrases();
-    return { ok, pet, text: text ?? (own ? pick(ok ? own.ok : own.bad) : petPhrase(pet, ok)) };
+    return { ok, pet, text: text ?? (own ? pick(ok ? own.ok : own.bad) : petPhrase(pet, ok, this.i18n.lang())) };
   }
 
   constructor() {
@@ -131,7 +133,7 @@ export class ExercisePlayer {
       // как в Городе Слов: правило + примеры, потом то же задание заново
       this.lessonAgain.set(this.retried);
       setTimeout(() => this.lesson.set(ls), 900);
-      this.fb.set(this.say(false, 'Ловушка! Разберёмся'));
+      this.fb.set(this.say(false, this.i18n.t('trap')));
       return;
     }
     this.fb.set(this.say(false, text ?? this.hint(st)));
@@ -195,7 +197,7 @@ export class ExercisePlayer {
         const near = answers.find((a) => lev(v, norm(a)) <= (norm(a).length > 5 ? 2 : 1));
         if (near) {
           this.sfx.play('bad');
-          this.fb.set(this.say(false, `Почти! В слове ошибка. Правильно: «${near}» — напиши ещё раз.`));
+          this.fb.set(this.say(false, this.i18n.t('typo', { w: near })));
           return;
         }
       }

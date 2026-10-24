@@ -1,4 +1,5 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
+import { LangService } from '../../../core/i18n/lang.service';
 import { RouterLink } from '@angular/router';
 import { Mode, Pet } from '../../../core/models';
 import { Button, Card, LevelUp, PetGroup } from '../../../shared/ui';
@@ -19,4 +20,5 @@ export class RoundFinish {
   readonly pets = input<Pet[]>([]);
   readonly nextMode = input<Mode | null>(null);
   readonly again = output<void>();
+  protected readonly i18n = inject(LangService);
 }
