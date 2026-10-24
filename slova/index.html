@@ -1165,7 +1165,7 @@ function finishSession(kind){
 function renderMenu(){
   clearTimers();NEXT=null;KEYS=null;clearInterval(TICK);SES=null;strip.hidden=true;document.body.classList.remove('playing');
   const hist=(S.history||[]).slice(0,5);
-  stage.innerHTML=`<section class="hero"><a class="hub" href="../">← Все игры</a><h1>Город Слов</h1>
+  stage.innerHTML=`<section class="hero"><a class="hub" href="../">← Все игры</a> <a class="hub" href="../rabota/">✍️ Работа над ошибками</a><h1>Город Слов</h1>
     <p>Улицы — это темы учебника. Выбери, по каким улицам гулять сегодня. Ошибёшься — откроется правило, а потом решишь сама.</p></section>
     <div class="streets">${STREETS.map(st=>{
       const xs=ITEMS.filter(x=>x.street===st.id),t=xs.length;
