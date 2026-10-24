@@ -15,11 +15,13 @@ export class ConfirmButton {
   readonly label = input.required<string>();
   readonly lockSec = input(0);
   readonly confirmed = output<void>();
-  protected readonly locked = linkedSignal({ source: this.lockSec, computation: (s) => s > 0 });
+  /** в автотестах (window.__E2E_FAST__) кнопки не ждут */
+  private readonly fast = !!(globalThis as unknown as { __E2E_FAST__?: boolean }).__E2E_FAST__;
+  protected readonly locked = linkedSignal({ source: this.lockSec, computation: (s) => s > 0 && !this.fast });
 
   constructor() {
     effect(() => {
-      const s = this.lockSec();
+      const s = this.fast ? 0 : this.lockSec();
       if (s > 0) setTimeout(() => this.locked.set(false), s * 1000);
     });
   }

@@ -87,8 +87,11 @@ export class PlayPage {
   private start(t: Topic) {
     const m = this.modeObj()!;
     this.fin.set(null);
-    const size = m.roundSize ?? this.family.current().settings.roundSize ?? t.roundSize ?? 10;
-    this.queue.set(new RoundQueue(m.items ?? t.items, size, m.shuffle !== false));
+    const size = m.roundSize ?? t.roundSize ?? this.family.current().settings.roundSize ?? 10;
+    // коробки знаний: «не знаю» попадается в 6 раз чаще, чем «знаю»
+    const h = this.handle();
+    const weight = this.p.pack()?.leitner && h ? (it: unknown) => [6, 3, 1][h.box((it as { id: string }).id)] : undefined;
+    this.queue.set(new RoundQueue(m.items ?? t.items, size, m.shuffle !== false, weight));
     this.show();
   }
 
@@ -104,6 +107,7 @@ export class PlayPage {
     const q = this.queue()!;
     const ex = this.current()!;
     if (!q.current.again) {
+      if (this.p.pack()?.leitner) this.handle()?.setBox(ex.itemId, !r.missed);
       this.progress.logAttempt({ pack: this.p.pack()!.id, topic: this.topic(), mode: this.mode(), item: ex.itemId, label: ex.label, ok: !r.missed });
     }
     q.complete(r.missed, r.mistakes);

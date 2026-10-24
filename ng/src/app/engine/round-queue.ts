@@ -13,10 +13,25 @@ export class RoundQueue<T> {
   /** всего ошибок за раунд (для своих правил звёзд) */
   mistakes = 0;
 
-  constructor(items: readonly T[], size = 10, random = true) {
-    const src = random ? shuffle(items) : items.slice();
+  /**
+   * weight — вес элемента (коробки знаний: «не знаю» 6, «почти» 3, «знаю» 1):
+   * выбор без повторов, но незнакомое попадает чаще.
+   */
+  constructor(items: readonly T[], size = 10, random = true, weight?: (item: T) => number) {
+    const src = !random ? items.slice() : weight ? RoundQueue.weighted(items, size, weight) : shuffle(items);
     this.q = src.slice(0, size).map((item) => ({ item, again: false }));
     this.total = this.q.length;
+  }
+
+  static weighted<T>(items: readonly T[], n: number, weight: (item: T) => number): T[] {
+    const pool = items.map((item) => ({ item, w: Math.max(0.0001, weight(item)) }));
+    const out: T[] = [];
+    while (out.length < n && pool.length) {
+      let r = Math.random() * pool.reduce((s, x) => s + x.w, 0);
+      const k = pool.findIndex((x) => (r -= x.w) <= 0);
+      out.push(pool.splice(k < 0 ? pool.length - 1 : k, 1)[0].item);
+    }
+    return out;
   }
 
   get done() {

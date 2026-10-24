@@ -1,4 +1,10 @@
 @let p = prompt();
+@if (p.ask) {
+  <p class="ask">{{ p.ask }}</p>
+}
+@if (p.html) {
+  <app-rich-html [html]="p.html" />
+}
 @if (p.say) {
   <button app-say-button (click)="speech.say(p.say)"></button>
 }

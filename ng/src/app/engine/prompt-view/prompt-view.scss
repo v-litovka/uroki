@@ -1,1 +1,3 @@
+@use 'mixins' as m;
 :host { display: grid; gap: 12px; }
+.ask { @include m.display(26px, 1.15); margin: 0; text-align: center; }

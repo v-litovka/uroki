@@ -20,6 +20,8 @@ export interface Picked {
 export class OptionGrid {
   readonly options = input.required<string[]>();
   readonly answer = input.required<string>();
+  /** ещё верные ответы */
+  readonly accept = input<string[]>([]);
   /** grid — плитки; small — узкие плитки (окончания); list — фразы столбиком */
   readonly layout = input<'grid' | 'small' | 'list'>('grid');
   readonly doShuffle = input(true);
@@ -44,7 +46,7 @@ export class OptionGrid {
   }
 
   protected pick(o: string) {
-    const correct = o === this.answer();
+    const correct = o === this.answer() || this.accept().includes(o);
     this.state.update((s) => ({ ...s, [o]: correct ? 'right' : 'bad' }));
     if (correct) this.solved.set(true);
     this.picked.emit({ value: o, correct });

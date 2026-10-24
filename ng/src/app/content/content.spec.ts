@@ -27,6 +27,10 @@ describe('контент', () => {
                   expect(new Set(st.options).size, where + ' дубли вариантов').toBe(st.options.length);
                 }
                 if (st.kind === 'input') expect(matches(String(Array.isArray(st.answer) ? st.answer[0] : st.answer), st.answer), where).toBe(true);
+                if (st.kind === 'tap') {
+                  const ws = st.words.map((w) => w.replace(/[.,!?…:;«»"]/g, ''));
+                  for (const a of st.accept) expect(ws, where + ' слово для нажатия есть в предложении').toContain(a);
+                }
                 if (st.kind === 'order') {
                   expect(st.items.length, where).toBeGreaterThan(1);
                   expect(new Set(st.items).size, where + ' одинаковые строки — порядок неоднозначен').toBe(st.items.length);
@@ -69,5 +73,22 @@ describe('Стишок умножения', () => {
       // в «спрятанном» куске цифры ответа (с пробелом/nbsp для «2 4»)
       expect(f.g.replace(/[^\d]/g, '').startsWith(String(f.v)), f.id).toBe(true);
     }
+  });
+});
+
+describe('Город Слов', () => {
+  it('каждое задание: урок после ошибки и финальный экран с правилом', async () => {
+    const { PACK } = await import('./grade-3/ru/slova/pack');
+    const { ITEMS } = await import('./grade-3/ru/slova/data');
+    expect(ITEMS.length).toBeGreaterThan(400);
+    expect(new Set(ITEMS.map((x) => x.id)).size).toBe(ITEMS.length);
+    for (const t of PACK.topics)
+      for (const m of t.modes)
+        for (const it of (m.items ?? t.items).slice(0, 500)) {
+          const ex = m.build(it);
+          expect(ex.lesson?.title, ex.itemId).toBeTruthy();
+          expect(ex.steps.at(-1)?.kind, ex.itemId).toBe('note');
+          expect(ex.steps.length, ex.itemId).toBeGreaterThan(1);
+        }
   });
 });

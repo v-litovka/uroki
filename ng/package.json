@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "publish": "node tools/publish.mjs",
-    "e2e": "node tools/smoke.mjs && node tools/e2e.mjs && node tools/e2e-cabinet.mjs"
+    "e2e": "node tools/smoke.mjs && node tools/e2e.mjs && node tools/e2e-cabinet.mjs && node tools/e2e-lesson.mjs"
   },
   "private": true,
   "dependencies": {

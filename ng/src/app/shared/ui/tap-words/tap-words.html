@@ -1,0 +1,5 @@
+<div class="chips">
+  @for (c of view(); track c.i) {
+    <button type="button" class="chip" [class]="'chip ' + c.mark" [class.no]="c.bad" [disabled]="solved()" (click)="tap(c.i)">{{ c.w }}</button>
+  }
+</div>

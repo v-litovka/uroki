@@ -24,6 +24,13 @@ export interface PoemLine {
 
 /** Что показано над шагами. Каждый шаг может дополнить/заменить сцену. */
 export interface Prompt {
+  /** вопрос крупно над сценой («Вставь букву») */
+  ask?: string;
+  /**
+   * Богатая сцена — доверенный статичный HTML из кода контента
+   * (классы: word, gap, ok, sent, blank, why, u1/u2/u3, hlw, seg, hl, pre, addr, memo, ex). См. shared/ui/rich-html.
+   */
+  html?: string;
   /** стих / несколько строк */
   poem?: PoemLine[];
   /** предложение из кусков */
@@ -63,6 +70,8 @@ export interface ChoiceStep extends StepBase {
   layout?: 'grid' | 'small' | 'list';
   /** блокировать кнопки N секунд, чтобы ребёнок прочитал */
   lockSec?: number;
+  /** ещё верные ответы (например, «.» и «!» для побудительного) */
+  accept?: string[];
 }
 
 export interface InputStep extends StepBase {
@@ -74,6 +83,18 @@ export interface InputStep extends StepBase {
   showDiff?: 'never' | 'always' | 'second';
   /** цифровая клавиатура на планшете */
   numeric?: boolean;
+  /** заведомо неверные ответы — ошибка сразу */
+  reject?: string[];
+  /**
+   * Если ответ не верный и не из reject — мягкое сообщение без ошибки
+   * («Такого проверочного слова нет, подбери другое»). unknownLimit — после N таких ответов считать ошибкой.
+   */
+  unknownMsg?: string;
+  unknownLimit?: number;
+  /** простить опечатку: близко к верному → «Почти! Проверь буквы», без ошибки */
+  typo?: boolean;
+  /** ответ засчитан, но он не первый в answer → показать подсказку «лучше подойдёт …» */
+  bestNote?: string;
 }
 
 export interface WhyStep extends StepBase {
@@ -106,13 +127,48 @@ export interface OrderStep extends StepBase {
   note?: string;
 }
 
-export type Step = ChoiceStep | InputStep | WhyStep | MemorizeStep | OrderStep;
+/** Нажми на слово в предложении (подлежащее, сказуемое, обращение…). */
+export interface TapStep extends StepBase {
+  kind: 'tap';
+  /** слова предложения как есть (со знаками) */
+  words: string[];
+  /** верные слова (без знаков препинания) */
+  accept: string[];
+  /** какие слова подчеркнуть после верного ответа (по умолчанию accept) */
+  markWords?: string[];
+  /** u1 — одна черта (подлежащее), u2 — две (сказуемое), u3 — пунктир (второстепенный), hl — выделить */
+  markAs: 'u1' | 'u2' | 'u3' | 'hl';
+  /** что уже подчёркнуто на прошлых шагах */
+  marked?: Record<string, 'u1' | 'u2' | 'u3' | 'hl'>;
+}
+
+/** Экран-пояснение после ответа: «Верно! + правило», кнопка «Дальше» (можно с блокировкой). */
+export interface NoteStep extends StepBase {
+  kind: 'note';
+  /** доверенный статичный HTML */
+  html: string;
+  button?: string;
+  lockSec?: number;
+}
+
+export type Step = ChoiceStep | InputStep | WhyStep | MemorizeStep | OrderStep | TapStep | NoteStep;
+
+/** Урок после ошибки: правило + примеры; после чтения — то же задание заново. */
+export interface Lesson {
+  title: string;
+  /** доверенный статичный HTML (правило и примеры) */
+  html: string;
+  /** сколько секунд читать (по умолчанию 15) */
+  lockSec?: number;
+}
 
 export interface Exercise {
   /** id элемента данных — по нему копится статистика ошибок */
   itemId: string;
   /** как показать элемент взрослому в «трудных местах» (слово, пример) */
   label?: string;
+  /** при ошибке — урок с правилом, потом задание заново (вместо подсказок) */
+  lesson?: Lesson;
   prompt: Prompt;
   steps: Step[];
 }
@@ -177,8 +233,13 @@ export interface Pack {
   /** фразы похвалы/ошибки; иначе — по умолчанию для mascot */
   phrases?: { ok: string[]; bad: string[] };
   /**
-   * Ключ legacy-версии в localStorage: при первом запуске звёзды и пройденные
-   * режимы переносятся оттуда (формат { stars, done: { 'topic:mode': 1 } }).
+   * Ключ legacy-версии в localStorage: при первом запуске звёзды, пройденные
+   * режимы и коробки переносятся оттуда (формат { stars, done: { 'topic:mode': 1 }, box: { id: 0..2 } }).
    */
   legacyStorageKey?: string;
+  /**
+   * Коробки «не знаю / почти знаю / знаю» (по item.id): чаще дают то, что не знаешь;
+   * в списке тем — «знаю k из n». Нужны item.id у элементов.
+   */
+  leitner?: boolean;
 }

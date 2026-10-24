@@ -7,5 +7,6 @@ import { Pack } from '../core/models';
  */
 export const PACKS: Record<string, () => Promise<Pack>> = {
   'ru3-rabota': () => import('./grade-3/ru/rabota/pack').then((m) => m.PACK),
+  'ru3-slova': () => import('./grade-3/ru/slova/pack').then((m) => m.PACK),
   'math3-stih': () => import('./grade-3/math/stih/pack').then((m) => m.PACK),
 };

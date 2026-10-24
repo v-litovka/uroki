@@ -52,6 +52,8 @@
 | StatCard | `app-stat-card` | `value`, `label` | кабинеты |
 | Section | `app-section` | `title`, `note` + контент | кабинеты |
 | Field | `app-field` | `label` + поле внутри | формы |
+| RichHtml | `app-rich-html` | `html` (доверенный, из контента) | сцены Города Слов, урок, «Верно + правило» |
+| TapWords | `app-tap-words` | `words`, `accept`, `markWords`, `markAs: u1/u2/u3/hl`, `marked` → `(picked)` | шаг tap |
 | ConfirmButton | `app-confirm-button` | `label`, `lockSec` → `(confirmed)` | шаг memorize («Прочитала!») |
 
 Компоненты экранов (не общие): `features/play/round-header`, `features/play/round-finish`, `engine/prompt-view`, `engine/exercise-player`.

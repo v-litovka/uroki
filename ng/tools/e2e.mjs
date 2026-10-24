@@ -19,7 +19,7 @@ await mkdir('tools/shots', { recursive: true });
 
 const b = await chromium.launch();
 const page = await b.newPage({ viewport: { width: 390, height: 844 } });
-await page.addInitScript(() => { window.__E2E__ = true; });
+await page.addInitScript(() => { window.__E2E__ = true; window.__E2E_FAST__ = true; });
 const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 
@@ -41,6 +41,14 @@ async function playRound(label) {
       if (await btn.count()) await btn.first().click(); else { await page.waitForTimeout(150); continue; }
     } else if (st.kind === 'memorize') {
       await page.locator('[data-test=confirm]').click({ timeout: 20000 }); // кнопка может быть заблокирована N секунд
+    } else if (st.kind === 'tap') {
+      const want = st.accept[0];
+      const chip = page.locator('app-tap-words button.chip:not([disabled])').filter({ hasText: new RegExp('^\\s*' + want.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$') });
+      if (await chip.count()) await chip.first().click(); else { await page.waitForTimeout(150); continue; }
+    } else if (st.kind === 'note') {
+      await page.locator('[data-test=confirm]').click({ timeout: 20000 });
+    } else if (st.kind === 'lesson') {
+      await page.locator('[data-test=confirm]').click({ timeout: 20000 });
     } else if (st.kind === 'order') {
       for (const t of st.items) {
         await page.locator('app-order-tiles button.tile:not([disabled])').filter({ hasText: t.trim() }).first().click();

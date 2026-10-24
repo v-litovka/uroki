@@ -3,6 +3,8 @@ export interface PackProgress {
   stars: number;
   /** 'topicId:modeId' → 1, если режим пройден хотя бы раз */
   done: Record<string, 1>;
+  /** коробки знаний: item.id → 0 не знаю, 1 почти знаю, 2 знаю */
+  box?: Record<string, number>;
 }
 
 /** Одна попытка (одно задание в раунде) — основа «трудных мест». */

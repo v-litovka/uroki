@@ -1,0 +1,6 @@
+@use 'mixins' as m;
+
+.kicker { margin: 0; font-weight: 900; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--trap); }
+.again { margin: 0; color: var(--trap); font-weight: 800; }
+.taskline { margin: 0; font-size: 17px; font-weight: 800; color: var(--muted); }
+.ltitle { @include m.display(28px); margin: 0; }

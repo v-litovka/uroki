@@ -1,0 +1,32 @@
+@use 'mixins' as m;
+
+:host { display: block; }
+.rich { display: grid; gap: 10px; }
+.rich ::ng-deep {
+  .word { @include m.display(clamp(40px, 11vw, 62px), 1.1); text-align: center; letter-spacing: 0.02em; overflow-wrap: anywhere; }
+  .word .ok, .ex .ok { color: var(--good); background: #e3f6ea; border-radius: 8px; padding: 0 0.06em; }
+  .word .gap { display: inline-block; min-width: 0.75em; padding: 0 0.08em; border-bottom: 5px solid var(--trap); color: var(--trap); background: #fff1e8; border-radius: 8px 8px 0 0; }
+  .word .pre { border: 3px solid var(--accent); border-radius: 10px; padding: 0 0.08em; }
+  .seg { display: inline-block; padding: 0 0.04em; }
+  .seg.hl { border-bottom: 5px solid var(--accent); color: var(--accent); }
+  .sent { font-size: clamp(22px, 5.4vw, 28px); font-weight: 800; line-height: 1.7; text-align: center; text-wrap: balance; margin: 0; }
+  .blank { display: inline-block; width: 1.1em; height: 1.15em; vertical-align: -0.2em; margin-left: 4px; border: 3px dashed var(--trap); border-radius: 8px; background: #fff1e8; }
+  .why { margin: 0; font-size: 18px; font-weight: 800; text-align: center; color: var(--muted); }
+  .u1 { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+  .u2 { text-decoration: underline double; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+  .u3 { text-decoration: underline dashed; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+  .hlw, .addr { background: #ffe9a8; border-radius: 6px; padding: 0 3px; }
+  .memo { text-align: center; padding: 10px; border: 3px solid var(--ink); border-radius: 18px; background: #fff1c2; }
+  .exs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .ex { border: 2px dashed var(--muted); border-radius: 14px; padding: 10px 12px; background: #f7f4ff; font-weight: 800; font-size: 19px; display: grid; gap: 4px; min-width: 0; }
+  .ex .word { font-size: 32px; }
+  .ex .sent { font-size: 19px; }
+  .rulebox { display: grid; gap: 4px; padding: 12px 16px; border: 3px solid var(--ink); border-radius: 18px; background: #fff1c2; }
+  .rulebox > b { @include m.display(24px); }
+  .rulebox p { margin: 0; }
+  .rulebox p b { color: var(--accent); }
+  .verdict { @include m.display(30px); margin: 0; color: var(--good); }
+  .sub { margin: 4px 0 0; font-weight: 800; color: var(--muted); }
+  h3 { @include m.display(26px); margin: 4px 0 0; }
+  p { margin: 0; }
+}

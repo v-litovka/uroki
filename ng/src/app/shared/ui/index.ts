@@ -34,3 +34,5 @@ export * from './emoji-picker/emoji-picker';
 export * from './stat-card/stat-card';
 export * from './section/section';
 export * from './field/field';
+export * from './rich-html/rich-html';
+export * from './tap-words/tap-words';

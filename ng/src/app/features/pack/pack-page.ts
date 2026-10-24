@@ -39,6 +39,10 @@ export class PackPage {
   protected badge(t: Topic) {
     const pk = this.p.pack()!;
     const pr = this.progress.pack(pk.id, pk.legacyStorageKey);
+    if (pk.leitner) {
+      const ids = (t.items as { id: string }[]).map((x) => x.id);
+      return `знаю ${ids.filter((id) => pr.box(id) === 2).length} из ${ids.length}`;
+    }
     const ms = t.modes.filter((m) => !m.needs || m.needs.every((c) => this.speech.has(c)));
     return `${ms.filter((m) => pr.isDone(t.id, m.id)).length} / ${ms.length}`;
   }

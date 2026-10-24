@@ -15,6 +15,10 @@ export interface PackProgressHandle {
   /** +звёзды; вернёт true, если открылся новый уровень */
   addStars(n: number): boolean;
   markDone(topic: string, mode: string): void;
+  /** коробка знаний элемента: 0 / 1 / 2 */
+  box(itemId: string): number;
+  /** верно с первого раза → коробка +1, ошибка → 0 */
+  setBox(itemId: string, ok: boolean): number;
 }
 
 /**
@@ -45,7 +49,8 @@ export class ProgressService {
     let initial = this.kv.get<PackProgress | null>(k, null);
     if (!initial) {
       const old = legacyKey && childId === 'me' ? this.kv.get<Partial<PackProgress> | null>(legacyKey, null) : null;
-      initial = { stars: old?.stars ?? 0, done: { ...(old?.done ?? {}) } };
+      const box = Object.fromEntries(Object.entries(old?.box ?? {}).filter(([, v]) => typeof v === 'number'));
+      initial = { stars: old?.stars ?? 0, done: { ...(old?.done ?? {}) }, box };
       this.kv.set(k, initial);
     }
     const state = signal<PackProgress>(initial);
@@ -68,6 +73,13 @@ export class ProgressService {
       markDone(t, m) {
         state.update((s) => ({ ...s, done: { ...s.done, [`${t}:${m}`]: 1 } }));
         save();
+      },
+      box: (id) => state().box?.[id] ?? 0,
+      setBox(id, ok) {
+        const b = ok ? Math.min(2, (state().box?.[id] ?? 0) + 1) : 0;
+        state.update((s) => ({ ...s, box: { ...(s.box ?? {}), [id]: b } }));
+        save();
+        return b;
       },
     };
     this.handles.set(k, h);

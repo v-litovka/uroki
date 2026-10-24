@@ -1,9 +1,9 @@
 import { Component, computed, effect, inject, input, linkedSignal, output } from '@angular/core';
-import { Exercise, Pet, Prompt, Step } from '../../core/models';
-import { AnswerInput, Card, ConfirmButton, Feedback, Hint, LetterDiff, OptionGrid, OrderTiles, Picked, Typed, WhyStepView } from '../../shared/ui';
+import { Exercise, Lesson, Pet, Prompt, Step } from '../../core/models';
+import { AnswerInput, Card, ConfirmButton, Feedback, Hint, LetterDiff, OptionGrid, OrderTiles, Picked, RichHtml, TapWords, Typed, WhyStepView } from '../../shared/ui';
 import { PromptView } from '../prompt-view/prompt-view';
 import { SfxService } from '../../core/audio/sfx.service';
-import { diffLetters } from '../../shared/utils/text';
+import { diffLetters, lev, matches, norm } from '../../shared/utils/text';
 import { pick } from '../../shared/utils/random';
 import { petPhrase } from '../phrases';
 
@@ -20,7 +20,8 @@ export interface ExerciseResult {
  */
 @Component({
   selector: 'app-exercise-player',
-  imports: [Card, PromptView, OptionGrid, AnswerInput, WhyStepView, Feedback, LetterDiff, ConfirmButton, OrderTiles, Hint],
+  imports: [Card, PromptView, OptionGrid, AnswerInput, WhyStepView, Feedback, LetterDiff, ConfirmButton, OrderTiles, Hint, RichHtml, TapWords],
+  styleUrl: './exercise-player.scss',
   templateUrl: './exercise-player.html',
 })
 export class ExercisePlayer {
@@ -39,7 +40,11 @@ export class ExercisePlayer {
     source: this.exercise,
     computation: (ex) => ({ ...(ex.steps[0]?.prompt ?? {}) }),
   });
-  private readonly run = computed(() => ({ ex: this.exercise(), wrong: 0, mistakes: 0, missed: false, finished: false }));
+  private readonly run = computed(() => ({ ex: this.exercise(), wrong: 0, mistakes: 0, missed: false, finished: false, unknown: 0 }));
+  /** урок после ошибки (если у упражнения есть lesson) */
+  protected readonly lesson = linkedSignal<Exercise, Lesson | null>({ source: this.exercise, computation: () => null });
+  protected readonly lessonAgain = linkedSignal({ source: this.exercise, computation: () => false });
+  private retried = false;
   protected readonly fb = linkedSignal<Exercise, { ok: boolean; text: string; pet: Pet | null } | null>({ source: this.exercise, computation: () => null });
   protected readonly diff = linkedSignal<Exercise, { ch: string; bad: boolean }[] | null>({ source: this.exercise, computation: () => null });
   protected readonly praise = linkedSignal<Exercise, { text: string; pet: Pet | null } | null>({ source: this.exercise, computation: () => null });
@@ -64,7 +69,7 @@ export class ExercisePlayer {
     // Хук для e2e-тестов (tools/e2e.mjs): виден, только если тест выставил window.__E2E__.
     effect(() => {
       const w = globalThis as unknown as { __E2E__?: boolean; __STEP__?: unknown };
-      if (w.__E2E__) w.__STEP__ = this.step() ?? null;
+      if (w.__E2E__) w.__STEP__ = this.lesson() ? { kind: 'lesson' } : (this.step() ?? null);
     });
   }
 
@@ -121,6 +126,14 @@ export class ExercisePlayer {
     run.missed = true;
     run.wrong++;
     run.mistakes++;
+    const ls = this.exercise().lesson;
+    if (ls) {
+      // как в Городе Слов: правило + примеры, потом то же задание заново
+      this.lessonAgain.set(this.retried);
+      setTimeout(() => this.lesson.set(ls), 900);
+      this.fb.set(this.say(false, 'Ловушка! Разберёмся'));
+      return;
+    }
     this.fb.set(this.say(false, text ?? this.hint(st)));
     const wp = st.wrongPrompt;
     if (wp?.length) this.overlay.update((o) => ({ ...o, ...wp[Math.min(run.wrong - 1, wp.length - 1)] }));
@@ -137,6 +150,25 @@ export class ExercisePlayer {
     this.right(this.step()!);
   }
 
+  /** после урока — задание с начала */
+  protected retry() {
+    this.retried = true;
+    this.lesson.set(null);
+    this.fb.set(null);
+    this.diff.set(null);
+    this.praise.set(null);
+    this.run().wrong = 0;
+    this.overlay.set({ ...(this.exercise().steps[0]?.prompt ?? {}) });
+    this.stepIdx.set(-1);
+    setTimeout(() => this.stepIdx.set(0)); // шаги пересоздаются с чистым состоянием
+  }
+
+  protected onTap(correct: boolean) {
+    const st = this.step()!;
+    if (correct) this.right(st);
+    else this.wrong(st);
+  }
+
   protected memorized() {
     const st = this.step();
     if (st?.after) this.overlay.update((o) => ({ ...o, ...st.after }));
@@ -151,7 +183,32 @@ export class ExercisePlayer {
 
   protected onType(t: Typed) {
     const st = this.step()!;
-    if (t.correct) return this.right(st);
+    if (st.kind === 'input') {
+      const answers = Array.isArray(st.answer) ? st.answer : [st.answer];
+      if (t.correct) {
+        // засчитано, но есть ответ лучше
+        if (st.bestNote && norm(t.value) !== norm(answers[0])) st.okMsg = st.okMsg ?? st.bestNote;
+        return this.right(st);
+      }
+      const v = norm(t.value);
+      if (st.typo && !(st.reject ?? []).some((r) => norm(r) === v)) {
+        const near = answers.find((a) => lev(v, norm(a)) <= (norm(a).length > 5 ? 2 : 1));
+        if (near) {
+          this.sfx.play('bad');
+          this.fb.set(this.say(false, `Почти! В слове ошибка. Правильно: «${near}» — напиши ещё раз.`));
+          return;
+        }
+      }
+      if (st.unknownMsg && !(st.reject ?? []).some((r) => matches(t.value, r))) {
+        const run = this.run();
+        run.unknown++;
+        if (!st.unknownLimit || run.unknown < st.unknownLimit) {
+          this.sfx.play('bad');
+          this.fb.set(this.say(false, st.unknownMsg));
+          return;
+        }
+      }
+    } else if (t.correct) return this.right(st);
     this.wrong(st);
     if (st.kind === 'input') {
       const ans = Array.isArray(st.answer) ? st.answer[0] : st.answer;

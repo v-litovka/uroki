@@ -1,0 +1,10 @@
+@use 'mixins' as m;
+
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: clamp(20px, 5vw, 26px); font-weight: 800; }
+.chip { @include m.raised(2px, 12px, 3px, #fff); padding: 4px 12px; font: inherit; color: var(--ink); }
+.chip:disabled { cursor: default; }
+.u1 { background: #e7f1ff; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.u2 { background: #e3f6ea; text-decoration: underline double; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.u3 { background: #fff3d6; text-decoration: underline dashed; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.hl { background: #ffe9a8; }
+.no { background: #ffe9e3; border-color: var(--trap); @include m.shake; }

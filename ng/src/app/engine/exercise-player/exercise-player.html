@@ -1,3 +1,18 @@
+@if (lesson(); as ls) {
+<app-card>
+  <p class="kicker">Прочитай правило вслух</p>
+  @if (lessonAgain()) {
+    <p class="again">Не получилось — прочитай ещё раз</p>
+  }
+  @if (exercise().prompt.html) {
+    <p class="taskline">Задание:</p>
+    <app-rich-html [html]="exercise().prompt.html!" />
+  }
+  <h2 class="ltitle">{{ ls.title }}</h2>
+  <app-rich-html [html]="ls.html" />
+  <app-confirm-button label="Решаю сама!" [lockSec]="ls.lockSec ?? 15" (confirmed)="retry()" />
+</app-card>
+} @else {
 <app-card>
   <app-prompt-view [prompt]="scene()" />
 
@@ -7,6 +22,7 @@
         <app-option-grid
           [options]="st.options"
           [answer]="st.answer"
+          [accept]="st.accept ?? []"
           [layout]="st.layout ?? 'grid'"
           [doShuffle]="st.shuffle !== false"
           [lockSec]="st.lockSec ?? 0"
@@ -25,6 +41,20 @@
       @case ('memorize') {
         <app-confirm-button [label]="st.button" [lockSec]="st.lockSec ?? 0" (confirmed)="memorized()" />
       }
+      @case ('tap') {
+        <app-tap-words
+          [words]="st.words"
+          [accept]="st.accept"
+          [markWords]="st.markWords"
+          [markAs]="st.markAs"
+          [marked]="st.marked ?? {}"
+          (picked)="onTap($event.correct)"
+        />
+      }
+      @case ('note') {
+        <app-rich-html [html]="st.html" />
+        <app-confirm-button [label]="st.button ?? 'Дальше'" [lockSec]="st.lockSec ?? 0" (confirmed)="memorized()" />
+      }
       @case ('order') {
         @if (st.note) {
           <app-hint>{{ st.note }}</app-hint>
@@ -41,3 +71,4 @@
     <app-letter-diff [letters]="d" />
   }
 </app-card>
+}
