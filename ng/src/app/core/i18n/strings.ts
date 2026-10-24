@@ -22,6 +22,7 @@ export const STRINGS = {
     oldVersion: 'Старая версия игры',
     newLevel: 'Новый уровень {n}!',
     know: 'знаю {k} из {n}',
+    time: 'Время: {t}',
   },
   by: {
     check: 'Праверыць',
@@ -43,6 +44,7 @@ export const STRINGS = {
     oldVersion: 'Старая версія гульні',
     newLevel: 'Новы ўзровень {n}!',
     know: 'ведаю {k} з {n}',
+    time: 'Час: {t}',
   },
 } satisfies Record<Lang, Record<string, string>>;
 

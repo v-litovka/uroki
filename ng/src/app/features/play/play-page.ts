@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { usePack } from '../pack/use-pack';
 import { ProgressService } from '../../core/progress/progress.service';
@@ -17,7 +17,13 @@ interface Fin {
   n: number;
   stars: number;
   levelUp: boolean;
+  time: string | null;
 }
+
+const mmss = (ms: number) => {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
 
 /** Раунд: N заданий подряд, ошибки повторяются в конце. #/:grade/:subject/:pack/:topic/:mode */
 @Component({
@@ -59,6 +65,10 @@ export class PlayPage {
   private tick = signal(0); // RoundQueue — изменяемый объект, tick заставляет пересчитать вид
   protected current = signal<Exercise | null>(null);
   protected fin = signal<Fin | null>(null);
+  /** часы раунда (Mode.clock) */
+  private startedAt = 0;
+  private now = signal(Date.now());
+  protected clock = computed(() => (this.modeObj()?.clock ? mmss(this.now() - this.startedAt) : null));
   protected pos = computed(() => (this.tick(), Math.min((this.queue()?.index ?? 0) + 1, this.queue()?.length ?? 0)));
   protected len = computed(() => (this.tick(), this.queue()?.length ?? 0));
   protected again = computed(() => (this.tick(), !!this.queue()?.current?.again));
@@ -71,6 +81,8 @@ export class PlayPage {
 
   constructor() {
     const header = inject(HeaderService);
+    const iv = setInterval(() => this.now.set(Date.now()), 1000);
+    inject(DestroyRef).onDestroy(() => clearInterval(iv));
     effect(() => {
       const h = this.handle();
       header.set({ back: `/${this.grade()}/${this.subject()}/${this.pack()}/${this.topic()}`, stars: h?.stars ?? null, level: h?.level ?? null });
@@ -87,6 +99,8 @@ export class PlayPage {
   private start(t: Topic) {
     const m = this.modeObj()!;
     this.fin.set(null);
+    this.startedAt = Date.now();
+    this.now.set(this.startedAt);
     const size = m.roundSize ?? t.roundSize ?? this.family.current().settings.roundSize ?? 10;
     // коробки знаний: «не знаю» попадается в 6 раз чаще, чем «знаю»
     const h = this.handle();
@@ -135,7 +149,7 @@ export class PlayPage {
     });
     this.sfx.play('fin');
     this.current.set(null);
-    this.fin.set({ ok: q.firstTry, n: q.total, stars, levelUp });
+    this.fin.set({ ok: q.firstTry, n: q.total, stars, levelUp, time: m.clock ? mmss(Date.now() - this.startedAt) : null });
     window.scrollTo(0, 0);
   }
 

@@ -51,7 +51,13 @@ export class ExercisePlayer {
   protected readonly diff = linkedSignal<Exercise, { ch: string; bad: boolean }[] | null>({ source: this.exercise, computation: () => null });
   protected readonly praise = linkedSignal<Exercise, { text: string; pet: Pet | null } | null>({ source: this.exercise, computation: () => null });
 
-  protected readonly step = computed<Step | undefined>(() => this.exercise().steps[this.stepIdx()]);
+  /** шаги упражнения; урок с «реши сама» вставляет свои шаги вместо ошибочного */
+  private readonly steps = linkedSignal<Exercise, Step[]>({ source: this.exercise, computation: (ex) => ex.steps });
+  /** идут шаги урока: с какого места и какой урок */
+  private readonly practice = linkedSignal<Exercise, { lesson: Lesson; start: number } | null>({ source: this.exercise, computation: () => null });
+  protected readonly step = computed<Step | undefined>(() => this.steps()[this.stepIdx()]);
+  /** «Задача: …» над уроком */
+  protected readonly lessonTask = computed(() => this.lesson()?.task ?? this.exercise().prompt.html);
   /** сцена = базовая + всё, что шаги добавили (prompt при активации, after при успехе) */
   protected readonly scene = computed<Prompt>(() => ({ ...this.exercise().prompt, ...this.overlay() }));
   /** какой питомец говорит (случайный из питомцев ребёнка) */
@@ -85,11 +91,11 @@ export class ExercisePlayer {
     const run = this.run();
     run.wrong = 0;
     const nextIdx = this.stepIdx() + 1;
-    if (this.exercise().steps[nextIdx]?.kind !== 'why') this.praise.set(null);
+    if (this.steps()[nextIdx]?.kind !== 'why') this.praise.set(null);
     this.stepIdx.set(nextIdx);
-    const np = this.exercise().steps[nextIdx]?.prompt;
+    const np = this.steps()[nextIdx]?.prompt;
     if (np) this.overlay.update((o) => ({ ...o, ...np }));
-    if (nextIdx >= this.exercise().steps.length && !run.finished) {
+    if (nextIdx >= this.steps().length && !run.finished) {
       run.finished = true;
       setTimeout(() => {
         if (this.run() === run) this.finished.emit({ missed: run.missed, mistakes: run.mistakes });
@@ -101,7 +107,7 @@ export class ExercisePlayer {
     this.sfx.play('ok');
     if (st.after) this.overlay.update((o) => ({ ...o, ...st.after }));
     this.diff.set(null);
-    const next = this.exercise().steps[this.stepIdx() + 1];
+    const next = this.steps()[this.stepIdx() + 1];
     if (next?.kind === 'why') {
       this.fb.set(null);
       const m = this.say(true, st.okMsg);
@@ -128,10 +134,10 @@ export class ExercisePlayer {
     run.missed = true;
     run.wrong++;
     run.mistakes++;
-    const ls = this.exercise().lesson;
+    const ls = st.lesson ?? this.exercise().lesson;
     if (ls) {
       // как в Городе Слов: правило + примеры, потом то же задание заново
-      this.lessonAgain.set(this.retried);
+      this.lessonAgain.set(ls.steps ? this.practice()?.lesson === ls : this.retried);
       setTimeout(() => this.lesson.set(ls), 900);
       this.fb.set(this.say(false, this.i18n.t('trap')));
       return;
@@ -152,10 +158,12 @@ export class ExercisePlayer {
     this.right(this.step()!);
   }
 
-  /** после урока — задание с начала */
+  /** после урока — шаги урока («реши сама») или задание с начала */
   protected retry() {
+    const ls = this.lesson();
     this.retried = true;
     this.lesson.set(null);
+    if (ls?.steps?.length) return this.startPractice(ls);
     this.fb.set(null);
     this.diff.set(null);
     this.praise.set(null);
@@ -163,6 +171,24 @@ export class ExercisePlayer {
     this.overlay.set({ ...(this.exercise().steps[0]?.prompt ?? {}) });
     this.stepIdx.set(-1);
     setTimeout(() => this.stepIdx.set(0)); // шаги пересоздаются с чистым состоянием
+  }
+
+  private startPractice(ls: Lesson) {
+    this.fb.set(null);
+    this.diff.set(null);
+    this.praise.set(null);
+    this.run().wrong = 0;
+    const i = this.stepIdx();
+    if (this.practice()?.lesson !== ls) {
+      // заменить ошибочный шаг шагами урока (у каждого — этот же урок на случай ошибки)
+      const own = ls.steps!.map((s) => ({ ...s, lesson: ls }) as Step);
+      this.steps.update((a) => [...a.slice(0, i), ...own, ...a.slice(i + 1)]);
+      this.practice.set({ lesson: ls, start: i });
+    }
+    const start = this.practice()!.start;
+    this.overlay.set({ ...(this.steps()[start]?.prompt ?? {}) });
+    this.stepIdx.set(-1);
+    setTimeout(() => this.stepIdx.set(start));
   }
 
   protected onTap(correct: boolean) {

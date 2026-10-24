@@ -20,10 +20,12 @@ export class AnswerInput {
   readonly placeholder = input('');
   /** цифровая клавиатура на планшете */
   readonly numeric = input(false);
+  /** номер шага: новый шаг — чистое поле, даже если ответ тот же (56 и 56) */
+  readonly resetKey = input<unknown>(null);
   readonly typed = output<Typed>();
   protected readonly i18n = inject(LangService);
   /** сброс при новом ответе (новый шаг) */
-  protected readonly done = linkedSignal({ source: this.answer, computation: () => false });
+  protected readonly done = linkedSignal({ source: () => [this.answer(), this.resetKey()], computation: () => false });
   protected readonly shake = signal(false);
   private inp = viewChild.required<ElementRef<HTMLInputElement>>('inp');
 
@@ -31,6 +33,7 @@ export class AnswerInput {
     // после отрисовки: очистить поле и поставить фокус, когда пришёл новый ответ
     afterRenderEffect(() => {
       this.answer();
+      this.resetKey();
       const el = this.inp().nativeElement;
       el.value = '';
       setTimeout(() => {

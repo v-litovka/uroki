@@ -59,6 +59,8 @@ export interface StepBase {
   hints?: string[];
   /** как меняется сцена после 1-й, 2-й… ошибки (например, показать кусочек стиха) */
   wrongPrompt?: Partial<Prompt>[];
+  /** свой урок для ошибки на этом шаге (вместо Exercise.lesson) */
+  lesson?: Lesson;
 }
 
 export interface ChoiceStep extends StepBase {
@@ -160,6 +162,13 @@ export interface Lesson {
   html: string;
   /** сколько секунд читать (по умолчанию 15) */
   lockSec?: number;
+  /** HTML «Задача: …» над уроком (по умолчанию — сцена упражнения) */
+  task?: string;
+  /**
+   * «Реши сама» по шагам (как хитрость в Улице Домиков): после урока вместо повтора задания
+   * идут эти шаги, потом — шаги упражнения после ошибочного. Ошибка в них — снова этот урок.
+   */
+  steps?: Step[];
 }
 
 export interface Exercise {
@@ -198,6 +207,8 @@ export interface Mode<T = unknown> {
   shuffle?: boolean;
   /** сколько звёзд дать (по умолчанию — число заданий с первого раза) */
   stars?(r: RoundStats): number;
+  /** часы в шапке раунда и время в итоге (Улица Домиков) */
+  clock?: boolean;
 }
 
 export interface Topic<T = unknown> {

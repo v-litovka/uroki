@@ -29,4 +29,51 @@
   .sub { margin: 4px 0 0; font-weight: 800; color: var(--muted); }
   h3 { @include m.display(26px); margin: 4px 0 0; }
   p { margin: 0; }
+
+  /* ---- Улица Домиков: домик, стишок, шаги «реши сама» ---- */
+  .house { --w: 270px; width: min(var(--w), 100%); margin: 0 auto; }
+  .house.small { --w: 200px; }
+  .roof { position: relative; height: 122px; }
+  .roof svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .roof polygon { fill: var(--roof); stroke: var(--ink); stroke-width: 5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  .attic { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); width: 76px; height: 76px; border-radius: 50%; background: #fff; border: 4px solid var(--ink); display: grid; place-items: center; font-weight: 900; font-size: 34px; font-variant-numeric: tabular-nums; }
+  .walls { width: 86%; margin: -3px auto 0; background: #ffe48f; border: 4px solid var(--ink); border-top-width: 0; border-radius: 0 0 14px 14px; padding: 18px 12px 22px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .win { width: 76px; height: 76px; border-radius: 12px; background: #fff; border: 4px solid var(--ink); display: grid; place-items: center; font-weight: 900; font-size: 34px; font-variant-numeric: tabular-nums; }
+  .op { font-weight: 900; font-size: 34px; }
+  .house.small .roof { height: 74px; }
+  .house.small .attic { width: 54px; height: 54px; font-size: 24px; bottom: 7px; border-width: 3px; }
+  .house.small .walls { padding: 10px 8px 12px; gap: 6px; border-width: 3px; border-top-width: 0; }
+  .house.small .win { width: 52px; height: 52px; font-size: 24px; border-width: 3px; }
+  .house.small .op { font-size: 20px; }
+  .pair { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pair .house { --w: 160px; }
+  .slot { display: inline-grid; place-items: center; min-width: 1.6em; padding: 0 0.15em; border-radius: 10px; color: var(--trap); font-weight: 900; font-variant-numeric: tabular-nums; }
+  .attic .slot, .win .slot { width: 100%; height: 100%; border-radius: inherit; background: #fff4d6; outline: 3px dashed var(--trap); outline-offset: -9px; }
+  .bigeq .slot, .steps .slot.live { background: #fff4d6; border: 3px dashed var(--trap); min-width: 2.2em; line-height: 1.2; }
+  .bigeq { text-align: center; font-weight: 900; font-size: clamp(30px, 9vw, 40px); font-variant-numeric: tabular-nums; }
+  .facts { text-align: center; font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .rhyme { background: #fff1c2; border: 3px solid var(--ink); border-radius: 18px; padding: 14px 16px; }
+  .rhyme .tag { display: block; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 900; color: var(--muted); }
+  .rhyme p { margin: 2px 0 0; font-family: var(--display); font-size: 22px; line-height: 1.25; text-wrap: balance; }
+  .rhyme .ln { display: block; }
+  .rnote { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; padding-top: 10px; border-top: 2px dashed rgba(31, 42, 85, 0.25); font-weight: 900; font-size: 24px; }
+  .seq { display: flex; gap: 6px; }
+  .seq b { display: grid; place-items: center; width: 38px; height: 42px; border: 3px solid var(--ink); border-radius: 10px; background: var(--paper); }
+  .seq b:nth-child(-n + 2) { background: #e3f6ea; color: var(--good); }
+  .seq b:nth-child(n + 3) { background: #e7eeff; color: #2d6cdf; }
+  .seqeq i { font-style: normal; }
+  .seqeq .sg { color: var(--good); }
+  .seqeq .sb { color: #2d6cdf; }
+  .twinnote { font-weight: 800; color: var(--trap); text-align: center; }
+  .ex .slot { color: var(--good); padding: 0 0.1em; min-width: 0; }
+  .exres { margin-top: 4px; padding-top: 4px; border-top: 2px solid var(--ghost); color: var(--good); }
+  .taskline { text-align: center; font-weight: 800; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: st; }
+  .steps li { counter-increment: st; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-weight: 800; font-size: 19px; font-variant-numeric: tabular-nums; padding: 8px 12px 8px 46px; border-radius: 14px; position: relative; min-height: 52px; }
+  .steps li::before { content: counter(st); position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font-size: 14px; background: var(--paper); }
+  .steps li.done { background: #e3f6ea; }
+  .steps li.done .slot { color: var(--good); }
+  .steps li.done::before { content: '✓'; background: var(--good); color: #fff; }
+  .steps li.cur { background: #fff8e1; border: 3px solid var(--ink); }
+  .steps li.todo { color: var(--ghost); letter-spacing: 0.3em; }
 }

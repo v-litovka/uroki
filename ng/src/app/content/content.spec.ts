@@ -117,3 +117,25 @@ describe('Горад Слоў', () => {
         }
   });
 });
+
+describe('Улица Домиков', () => {
+  it('все домики × все варианты: ответ сходится, у урока есть «реши сама»', async () => {
+    const { CARDS } = await import('./grade-3/math/ulica/hacks');
+    const { exercise } = await import('./grade-3/math/ulica/modes');
+    expect(CARDS.length).toBe(36);
+    for (const c of CARDS)
+      for (const hide of ['top', 'x', 'y'] as const) {
+        const ex = exercise(c, hide);
+        const main = ex.steps[0];
+        expect(main.kind).toBe('input');
+        const ans = Number((main as { answer: string }).answer);
+        expect(hide === 'top' ? ans : c.n / ans, `${c.id} ${hide}`).toBe(hide === 'top' ? c.n : hide === 'x' ? c.y : c.x);
+        const ls = ex.lesson!;
+        expect(ls.steps?.length, `${c.id} ${hide}`).toBeGreaterThan(0);
+        // последний шаг «реши сама» даёт ответ задачи
+        expect(Number((ls.steps!.at(-1) as { answer: string }).answer), `${c.id} ${hide}`).toBe(ans);
+        for (const s of [...ex.steps, ...ls.steps!]) expect(JSON.stringify(s)).not.toMatch(/undefined|NaN/);
+        expect(ls.html).not.toMatch(/undefined|NaN/);
+      }
+  });
+});

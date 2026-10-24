@@ -14,5 +14,7 @@ export class RoundHeader {
   readonly pos = input(1);
   readonly len = input(1);
   readonly again = input(false);
+  /** «3:07» — если у режима есть часы */
+  readonly clock = input<string | null>(null);
   protected readonly i18n = inject(LangService);
 }

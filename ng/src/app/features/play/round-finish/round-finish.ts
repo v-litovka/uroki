@@ -19,6 +19,8 @@ export class RoundFinish {
   readonly levelUp = input(false);
   readonly pets = input<Pet[]>([]);
   readonly nextMode = input<Mode | null>(null);
+  /** сколько заняло («4:12»), если у режима часы */
+  readonly time = input<string | null>(null);
   readonly again = output<void>();
   protected readonly i18n = inject(LangService);
 }

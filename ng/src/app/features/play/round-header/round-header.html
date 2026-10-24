@@ -1,5 +1,8 @@
 <div class="top">
   <span class="kick">{{ kicker() }}</span>
+  @if (clock(); as c) {
+    <span class="clock" data-test="clock">⏱ {{ c }}</span>
+  }
   <span class="count">{{ pos() }} / {{ len() }}</span>
 </div>
 <app-progress-bar [value]="(pos() - 1) / len()" />

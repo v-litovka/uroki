@@ -6,6 +6,9 @@
   } @else {
     <p class="stat">+{{ stars() }} ⭐</p>
   }
+  @if (time(); as t) {
+    <p class="stat">{{ i18n.t('time', { t }) }}</p>
+  }
   @if (levelUp()) {
     <app-level-up [level]="level()" />
   }

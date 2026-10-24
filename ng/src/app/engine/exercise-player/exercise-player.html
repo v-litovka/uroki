@@ -4,9 +4,9 @@
   @if (lessonAgain()) {
     <p class="again">{{ i18n.t('lessonAgain') }}</p>
   }
-  @if (exercise().prompt.html) {
+  @if (lessonTask(); as task) {
     <p class="taskline">{{ i18n.t('task') }}</p>
-    <app-rich-html [html]="exercise().prompt.html!" />
+    <app-rich-html [html]="task" />
   }
   <h2 class="ltitle">{{ ls.title }}</h2>
   <app-rich-html [html]="ls.html" />
@@ -30,7 +30,7 @@
         />
       }
       @case ('input') {
-        <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" [numeric]="!!st.numeric" (typed)="onType($event)" />
+        <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" [numeric]="!!st.numeric" [resetKey]="stepIdx()" (typed)="onType($event)" />
       }
       @case ('why') {
         @if (praise(); as pr) {
