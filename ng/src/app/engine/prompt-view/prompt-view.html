@@ -6,7 +6,7 @@
   <app-rich-html [html]="p.html" />
 }
 @if (p.say) {
-  <button app-say-button (click)="speech.say(p.say)"></button>
+  <button app-say-button (click)="speech.say(p.say, p.sayLang ?? 'ru')"></button>
 }
 @if (p.poem) {
   <app-poem [lines]="p.poem" />

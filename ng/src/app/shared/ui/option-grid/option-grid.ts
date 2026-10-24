@@ -1,6 +1,7 @@
 import { Component, computed, effect, input, linkedSignal, output, signal } from '@angular/core';
 import { shuffle } from '../../utils/random';
 import { Option, OptionState } from '../option/option';
+import { RichHtml } from '../rich-html/rich-html';
 
 export interface Picked {
   value: string;
@@ -13,7 +14,7 @@ export interface Picked {
  */
 @Component({
   selector: 'app-option-grid',
-  imports: [Option],
+  imports: [Option, RichHtml],
   templateUrl: './option-grid.html',
   styleUrl: './option-grid.scss',
 })
@@ -23,7 +24,9 @@ export class OptionGrid {
   /** ещё верные ответы */
   readonly accept = input<string[]>([]);
   /** grid — плитки; small — узкие плитки (окончания); list — фразы столбиком */
-  readonly layout = input<'grid' | 'small' | 'list'>('grid');
+  readonly layout = input<'grid' | 'small' | 'list' | 'pics' | 'cards'>('grid');
+  /** вариант → доверенный HTML вместо текста (схемы-картинки в Городе Задач) */
+  readonly html = input<Record<string, string>>({});
   readonly doShuffle = input(true);
   /** заблокировать кнопки на N секунд, чтобы ребёнок прочитал */
   readonly lockSec = input(0);

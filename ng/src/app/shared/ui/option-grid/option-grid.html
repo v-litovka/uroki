@@ -1,13 +1,19 @@
-<div class="grid" [class.small]="layout() === 'small'" [class.list]="layout() === 'list'">
-  @for (o of order(); track o) {
+<div class="grid" [class.small]="layout() === 'small'" [class.list]="layout() === 'list'" [class.pics]="layout() === 'pics'" [class.cards]="layout() === 'cards'">
+  @for (o of order(); track o; let j = $index) {
     <button
       app-option
+      [attr.data-v]="o"
       [variant]="layout() === 'list' ? 'text' : 'word'"
       [state]="state()[o] ?? 'idle'"
       [disabled]="locked() || solved() || state()[o] === 'bad'"
       (click)="pick(o)"
     >
-      {{ o }}
+      @if (html()[o]; as h) {
+        <span class="k">{{ j + 1 }}</span>
+        <app-rich-html [html]="h" />
+      } @else {
+        {{ o }}
+      }
     </button>
   }
 </div>

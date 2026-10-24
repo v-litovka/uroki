@@ -43,6 +43,8 @@ export interface Prompt {
   say?: string;
   /** озвучить сразу (по умолчанию true) */
   sayAuto?: boolean;
+  /** язык озвучки (по умолчанию ru) */
+  sayLang?: 'ru' | 'en';
 }
 
 export interface StepBase {
@@ -61,6 +63,8 @@ export interface StepBase {
   wrongPrompt?: Partial<Prompt>[];
   /** свой урок для ошибки на этом шаге (вместо Exercise.lesson) */
   lesson?: Lesson;
+  /** после какой ошибки на этом шаге урок (вместо Exercise.lessonAfter) */
+  lessonAfter?: number;
 }
 
 export interface ChoiceStep extends StepBase {
@@ -69,7 +73,10 @@ export interface ChoiceStep extends StepBase {
   answer: string;
   /** перемешать варианты (по умолчанию true) */
   shuffle?: boolean;
-  layout?: 'grid' | 'small' | 'list';
+  /** pics — крупные картинки-эмодзи (послушай и выбери) */
+  layout?: 'grid' | 'small' | 'list' | 'pics' | 'cards';
+  /** вариант → доверенный HTML (картинка-схема) вместо текста; layout 'cards' */
+  optionHtml?: Record<string, string>;
   /** блокировать кнопки N секунд, чтобы ребёнок прочитал */
   lockSec?: number;
   /** ещё верные ответы (например, «.» и «!» для побудительного) */
@@ -127,6 +134,12 @@ export interface OrderStep extends StepBase {
   hintAfter?: string;
   /** подпись над плитками */
   note?: string;
+  /** лишние плитки (не нужны в ответе) */
+  extra?: string[];
+  /** плитки и собранное — в строку (буквы слова, слова предложения), а не столбиком */
+  inline?: boolean;
+  /** разделитель собранного в строку: '' для букв, ' ' для слов */
+  joiner?: string;
 }
 
 /** Нажми на слово в предложении (подлежащее, сказуемое, обращение…). */
@@ -178,6 +191,8 @@ export interface Exercise {
   label?: string;
   /** при ошибке — урок с правилом, потом задание заново (вместо подсказок) */
   lesson?: Lesson;
+  /** после какой по счёту ошибки на шаге показывать урок (по умолчанию 1; до этого — подсказки шага) */
+  lessonAfter?: number;
   prompt: Prompt;
   steps: Step[];
 }

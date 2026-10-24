@@ -33,15 +33,17 @@ describe('контент', () => {
                 }
                 if (st.kind === 'order') {
                   expect(st.items.length, where).toBeGreaterThan(1);
-                  expect(new Set(st.items).size, where + ' одинаковые строки — порядок неоднозначен').toBe(st.items.length);
+                  // одинаковые буквы в слове (apple) — можно: плитки с одинаковым текстом взаимозаменяемы
+                  if (!st.inline) expect(new Set(st.items).size, where + ' одинаковые строки — порядок неоднозначен').toBe(st.items.length);
                 }
                 if (st.kind === 'why') {
                   expect(st.ok.length, where).toBeGreaterThan(0);
                   expect(st.wrong.length, where).toBeGreaterThan(0);
                 }
               }
-              // правило проекта: никаких «мама»
-              expect(JSON.stringify(ex).toLowerCase(), where).not.toMatch(/мам[аыеуой]/);
+              // правило проекта: никаких «мама»; исключение — английская лексика (mum → мама), см. CLAUDE.md
+              const txt = JSON.stringify(ex).toLowerCase();
+              if (!(pack.subject === 'en' && /\bmum\b/.test(txt))) expect(txt, where).not.toMatch(/мам[аыеуой]/);
             }
           }
         }
@@ -137,5 +139,13 @@ describe('Улица Домиков', () => {
         for (const s of [...ex.steps, ...ls.steps!]) expect(JSON.stringify(s)).not.toMatch(/undefined|NaN/);
         expect(ls.html).not.toMatch(/undefined|NaN/);
       }
+  });
+});
+
+describe('English', () => {
+  it('«mum» — только в двух местах данных (лексика), не больше', async () => {
+    const src = JSON.stringify(await import('./grade-3/en/english/data')).toLowerCase();
+    expect(src.match(/\bmum\b/g)?.length ?? 0).toBeLessThanOrEqual(2);
+    expect(src.match(/мам[аыеуой]/g)?.length ?? 0).toBeLessThanOrEqual(2);
   });
 });

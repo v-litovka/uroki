@@ -76,4 +76,42 @@
   .steps li.done::before { content: '✓'; background: var(--good); color: #fff; }
   .steps li.cur { background: #fff8e1; border: 3px solid var(--ink); }
   .steps li.todo { color: var(--ghost); letter-spacing: 0.3em; }
+
+  /* ---- English: картинка-эмодзи, перевод, пропуск в предложении, таблица правил ---- */
+  .pic { font-size: 92px; line-height: 1.05; text-align: center; }
+  .pic.sm { font-size: 56px; }
+  .ru { text-align: center; color: var(--muted); font-weight: 800; font-size: 18px; }
+  .sent .gap { display: inline-block; min-width: 2.2em; border-bottom: 4px solid var(--trap); color: var(--trap); text-align: center; }
+  .pi { font-size: 26px; }
+  .yn { display: block; text-align: center; font-size: 40px; }
+  .pt { border-collapse: collapse; margin: 4px 0; background: #fff; }
+  .pt td, .pt th { border: 2px solid var(--ink); padding: 3px 10px; font-size: 16px; text-align: left; }
+
+  /* ---- Город Задач: текст задачи, схемы-отрезки, таблица К1 · К = ОК ---- */
+  .task { padding: 12px 16px; border: 3px solid var(--ink); border-radius: 18px; background: #fff8dc; font-size: 20px; font-weight: 800; line-height: 1.4; }
+  .task.sm { font-size: 17px; padding: 10px 12px; }
+  .mini { display: grid; place-items: center; padding: 6px; border: 2px dashed var(--ghost); border-radius: 14px; background: #fff; }
+  .mini .scheme { max-height: 150px; width: auto; max-width: 100%; }
+  .eq { text-align: center; font-weight: 900; font-size: 28px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+  .eq b { color: var(--good); }
+  .eq .blank { width: 2em; height: 1.1em; }
+  b.big { font-size: 1.3em; color: var(--accent); }
+  .ex .task.sm { background: #fffdf8; }
+  .ex .eq { font-size: 22px; }
+  .scheme { display: block; max-width: 100%; height: auto; margin: 0 auto; overflow: visible; }
+  .scheme .sg { stroke: #2b3a9e; stroke-width: 4; stroke-linecap: round; }
+  .scheme .ds { stroke-dasharray: 6 5; stroke-width: 3; }
+  .scheme .dt { fill: #2b3a9e; }
+  .scheme .dt.ho { fill: #fff; stroke: #2b3a9e; stroke-width: 2; }
+  .scheme .br { fill: none; stroke: #26224f; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .scheme .br.bq { stroke: #e8452c; }
+  .scheme text { font-family: 'Nunito', system-ui, sans-serif; font-weight: 900; font-size: 17px; fill: #26224f; }
+  .scheme .sq { fill: #e8452c; font-size: 19px; }
+  .scheme .nm { font-size: 15px; fill: #5b5785; }
+  .kt { border-collapse: collapse; margin: 4px auto; font-size: 15px; background: #fff; max-width: 100%; }
+  .kt th, .kt td { border: 3px solid var(--ink); padding: 6px 10px; text-align: center; vertical-align: top; }
+  .kt th { background: #f1ecff; font-weight: 800; font-size: 13px; line-height: 1.2; max-width: 9em; }
+  .kt th span { display: block; font-family: var(--display); font-size: 24px; font-weight: 400; color: #7a4fe0; }
+  .kt td { font-size: 26px; font-weight: 900; height: 52px; min-width: 3.4em; }
+  .kt .q { color: var(--trap); }
 }

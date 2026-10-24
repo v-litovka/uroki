@@ -14,3 +14,8 @@
 }
 .used { visibility: hidden; }
 .bad { background: #ffb4a2; @include m.shake; }
+.built.row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; border: 0; background: none; padding: 0; }
+.cell { @include m.display(26px, 1.2); min-width: 44px; height: 52px; padding: 0 8px; display: grid; place-items: center; border-bottom: 4px solid var(--ghost); }
+.cell.on { border-bottom-color: var(--good); color: var(--good); }
+.tiles.row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.tiles.row .tile { width: auto; min-width: 52px; text-align: center; }

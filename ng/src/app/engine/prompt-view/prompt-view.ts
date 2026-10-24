@@ -17,10 +17,10 @@ export class PromptView {
 
   constructor() {
     effect(() => {
-      const { say: t, sayAuto } = this.prompt();
+      const { say: t, sayAuto, sayLang } = this.prompt();
       if (t && sayAuto !== false && t !== this.lastSaid) {
         this.lastSaid = t;
-        setTimeout(() => this.speech.say(t), 300);
+        setTimeout(() => this.speech.say(t, sayLang ?? 'ru'), 300);
       }
     });
   }

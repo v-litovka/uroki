@@ -31,8 +31,11 @@ async function playRound(label) {
     if (await page.$('app-round-finish')) return;
     const st = await page.evaluate(() => window.__STEP__);
     if (!st) { await page.waitForTimeout(200); continue; }
-    if (st.kind === 'choice') {
-      const btn = page.locator('app-exercise-player > app-card > app-option-grid button[app-option]:not([disabled])', { hasText: st.answer }).filter({ hasText: new RegExp('^\\s*' + st.answer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$') });
+    if (st.kind === 'choice' && st.optionHtml) {
+      const card = page.locator(`app-exercise-player app-option-grid button[data-v="${st.answer}"]:not([disabled])`);
+      if (await card.count()) await card.first().click(); else { await page.waitForTimeout(150); continue; }
+    } else if (st.kind === 'choice') {
+      const btn = page.locator('app-exercise-player > app-card > app-option-grid button[app-option]:not([disabled])', { hasText: st.answer }).filter({ hasText: new RegExp('^\\s*' + st.answer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+') + '\\s*$') });
       if (await btn.count()) await btn.first().click(); else { await page.waitForTimeout(150); continue; }
     } else if (st.kind === 'input') {
       const inp = page.locator('app-answer-input input:not([disabled])');
@@ -46,7 +49,7 @@ async function playRound(label) {
       await page.locator('[data-test=confirm]').click({ timeout: 20000 }); // кнопка может быть заблокирована N секунд
     } else if (st.kind === 'tap') {
       const want = st.accept[0];
-      const chip = page.locator('app-tap-words button.chip:not([disabled])').filter({ hasText: new RegExp('^\\s*' + want.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$') });
+      const chip = page.locator('app-tap-words button.chip:not([disabled])').filter({ hasText: new RegExp('^\\s*' + want.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+') + '\\s*$') });
       if (await chip.count()) await chip.first().click(); else { await page.waitForTimeout(150); continue; }
     } else if (st.kind === 'note') {
       await page.locator('[data-test=confirm]').click({ timeout: 20000 });
@@ -54,7 +57,10 @@ async function playRound(label) {
       await page.locator('[data-test=confirm]').click({ timeout: 20000 });
     } else if (st.kind === 'order') {
       for (const t of st.items) {
-        await page.locator('app-order-tiles button.tile:not([disabled])').filter({ hasText: t.trim() }).first().click();
+        // нажать первую свободную видимую плитку с этим текстом (одинаковые буквы: hall, bathroom)
+        await page.waitForFunction((t) => [...document.querySelectorAll('app-order-tiles button.tile')].some((b) => !b.disabled && b.textContent.trim() === t), t.trim(), { timeout: 5000 });
+        await page.evaluate((t) => [...document.querySelectorAll('app-order-tiles button.tile')].find((b) => !b.disabled && b.textContent.trim() === t).click(), t.trim());
+        await page.waitForTimeout(60);
       }
     }
     await page.waitForTimeout(250);

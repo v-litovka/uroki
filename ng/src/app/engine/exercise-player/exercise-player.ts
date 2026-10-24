@@ -135,7 +135,7 @@ export class ExercisePlayer {
     run.wrong++;
     run.mistakes++;
     const ls = st.lesson ?? this.exercise().lesson;
-    if (ls) {
+    if (ls && run.wrong >= (st.lessonAfter ?? this.exercise().lessonAfter ?? 1)) {
       // как в Городе Слов: правило + примеры, потом то же задание заново
       this.lessonAgain.set(ls.steps ? this.practice()?.lesson === ls : this.retried);
       setTimeout(() => this.lesson.set(ls), 900);

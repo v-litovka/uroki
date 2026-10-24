@@ -24,6 +24,7 @@
           [answer]="st.answer"
           [accept]="st.accept ?? []"
           [layout]="st.layout ?? 'grid'"
+          [html]="st.optionHtml ?? {}"
           [doShuffle]="st.shuffle !== false"
           [lockSec]="st.lockSec ?? 0"
           (picked)="onPick($event)"
@@ -59,7 +60,7 @@
         @if (st.note) {
           <app-hint>{{ st.note }}</app-hint>
         }
-        <app-order-tiles [items]="st.items" (wrong)="onOrderWrong(st, $event.pos)" (done)="onOrderDone()" />
+        <app-order-tiles [items]="st.items" [extra]="st.extra ?? []" [inline]="!!st.inline" [joiner]="st.joiner ?? ' '" (wrong)="onOrderWrong(st, $event.pos)" (done)="onOrderDone()" />
       }
     }
   }
