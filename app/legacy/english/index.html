@@ -399,7 +399,7 @@ const UNITS=[
  {id:'u2',n:2,en:'Daily life',ru:'Мой день, время',pic:'⏰',c:'#2D6CDF',words:[
   ['get up','⏰','вставать'],['take a shower','🚿','принимать душ'],['do my exercises','🤸','делать зарядку'],['get dressed','👕','одеваться'],
   ['have breakfast','🥣','завтракать'],['go to school','🏫','идти в школу'],['go to work','💼','идти на работу'],['get home','🏡','приходить домой'],
-  ['help my mum','🤗','помогать маме'],['wash the dishes','🍽️','мыть посуду'],['tidy my room','🧹','убирать комнату'],['make my bed','🛏️','заправлять кровать'],
+  ['help my granny','🤗','помогать бабушке'],['wash the dishes','🍽️','мыть посуду'],['tidy my room','🧹','убирать комнату'],['make my bed','🛏️','заправлять кровать'],
   ['lay the table','🍴','накрывать на стол'],['walk my dog','🐕','гулять с собакой'],['feed my pet','🥫','кормить питомца'],['clock','🕰️','часы'],['morning','🌅','утро'],['evening','🌆','вечер']]},
  {id:'u3',n:3,en:'Pets',ru:'Питомцы, сравнение',pic:'🐹',c:'#13A3A0',words:[
   ['dog','🐶','собака'],['cat','🐱','кошка'],['rabbit','🐰','кролик'],['hamster','🐹','хомяк'],['parrot','🦜','попугай'],['fish','🐟','рыбка'],
@@ -538,12 +538,12 @@ const PRON_SUBJ=[ /* [что, картинка, местоимение, по-р�
  ['my uncle','🧔','He','мой дядя'],['my auntie','👩‍🦰','She','моя тётя'],['the cake','🎂','It','торт'],['my cousins','👧👦','They','мои двоюродные'],
  ['the baby','👶','He','малыш'],['Mike and I','👦🙋','We','Майк и я'],['a cat in the street','🐈‍⬛','It','кошка на улице'],['a dog in the park','🐕','It','собака в парке'],['the children','🧒🧒🧒','They','дети']];
 const PRON_POSS=[ /* [фраза, картинка, притяжательное, кто] */
- ['Mike\'s ball','👦⚽','his','he'],['Liz\'s doll','👧🪆','her','she'],['my dad\'s car','👨🚗','his','he'],['my mum\'s bag','👩👜','her','she'],
+ ['Mike\'s ball','👦⚽','his','he'],['Liz\'s doll','👧🪆','her','she'],['my dad\'s car','👨🚗','his','he'],['my granny\'s bag','👵👜','her','she'],
  ['Vira\'s bowl','🐄🥣','her','she'],['Wendy\'s toy','🐈🧶','her','she'],['the children\'s room','🧒🧒🛏️','their','they'],['my parents\' house','👫🏠','their','they'],
  ['the cat\'s tail','🐱','its','it'],['granny\'s glasses','👵👓','her','she'],['grandad\'s hat','👴🎩','his','he'],['Vira and Wendy\'s sofa','🐱🐱🛋️','their','they']];
 const PRON_SENT=[ /* [предложение 1, предложение 2 с ___, ответ, неправильные, картинка] */
  ['This is my dad.','___ is tall.','He',['She','They'],'👨'],
- ['This is my mum.','___ name is Ann.','Her',['His','She'],'👩'],
+ ['This is my sister.','___ name is Ann.','Her',['His','She'],'👧'],
  ['These are my parents.','___ are at work.','They',['He','Their'],'👫'],
  ['This is Vira.','___ is fat and fluffy.','She',['He','It'],'🐄🐱'],
  ['Vira likes to eat.','___ bowl is always empty!','Her',['His','She'],'🥣'],
@@ -689,7 +689,7 @@ const PRON_RULE=`<table class="pt"><tr><th></th><th>кто?</th><th>чей?</th>
 <tr><td>👨 он</td><td><b>he</b></td><td><b>his</b></td></tr><tr><td>👩 она</td><td><b>she</b></td><td><b>her</b></td></tr>
 <tr><td>📦🐶 оно</td><td><b>it</b></td><td><b>its</b></td></tr><tr><td>👨‍👩‍👧 они</td><td><b>they</b></td><td><b>their</b></td></tr>
 <tr><td>🙋‍♀️ я</td><td><b>I</b></td><td><b>my</b></td></tr><tr><td>🙋‍♀️🙋 мы</td><td><b>we</b></td><td><b>our</b></td></tr></table>
-<p>Мальчик, папа, дедушка → <b>he</b>. Девочка, мама, бабушка, Вира → <b>she</b>. Вещь → <b>it</b>. Двое и больше → <b>they</b>.</p>
+<p>Мальчик, папа, дедушка → <b>he</b>. Девочка, бабушка, Вира → <b>she</b>. Вещь → <b>it</b>. Двое и больше → <b>they</b>.</p>
 <p>🐈 <b>Животное:</b> кошка с улицы, чужая собака → <b>it</b>. А наша Вира — член семьи, мы знаем, что она девочка → <b>she</b>. Венди тоже <b>she</b>.</p>`;
 function genPron(lv){
   const kinds=lv===0?['who','who','ru']:lv===1?['sent','sent','poss','who']:['two','two','sentAll','typeP'];
@@ -903,7 +903,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* подлежащее: [как в предложении, картинка, местоимение для краткого ответа, в вопросе (I → you)] */
 const BE=[ /* [подлежащее, картинка, глагол, остаток, местоимение, по-русски] */
  ['I','🙋‍♀️','am','nine','I','мне девять'],['I','🙋‍♀️','am','hungry','I','я голодная'],['Vira','🐄🐱','is','fat','she','Вира толстая'],['Wendy','🐈','is','thin','she','Венди худая'],
- ['Vira','🐄🐱','is','on the floor','she','Вира на полу'],['My dad','👨','is','tall','he','папа высокий'],['My mum','👩','is','at work','she','мама на работе'],
+ ['Vira','🐄🐱','is','on the floor','she','Вира на полу'],['My dad','👨','is','tall','he','папа высокий'],['My sister','👧','is','at school','she','сестра в школе'],
  ['Mike','👦','is','funny','he','Майк смешной'],['The ball','⚽','is','red','it','мяч красный'],['We','🙋‍♀️🙋','are','friends','we','мы друзья'],
  ['My parents','👫','are','at home','they','родители дома'],['Vira and Wendy','🐱🐱','are','hungry','they','кошки голодные'],['The cats','🐱🐱','are','in the kitchen','they','кошки на кухне'],
  ['You','🫵','are','happy','you','ты счастлива'],['Liz','👧','is','tired','she','Лиз устала'],['My granny','👵','is','kind','she','бабушка добрая']];

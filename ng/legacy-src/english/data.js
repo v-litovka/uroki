@@ -11,7 +11,7 @@ const UNITS=[
  {id:'u2',n:2,en:'Daily life',ru:'Мой день, время',pic:'⏰',c:'#2D6CDF',words:[
   ['get up','⏰','вставать'],['take a shower','🚿','принимать душ'],['do my exercises','🤸','делать зарядку'],['get dressed','👕','одеваться'],
   ['have breakfast','🥣','завтракать'],['go to school','🏫','идти в школу'],['go to work','💼','идти на работу'],['get home','🏡','приходить домой'],
-  ['help my mum','🤗','помогать маме'],['wash the dishes','🍽️','мыть посуду'],['tidy my room','🧹','убирать комнату'],['make my bed','🛏️','заправлять кровать'],
+  ['help my granny','🤗','помогать бабушке'],['wash the dishes','🍽️','мыть посуду'],['tidy my room','🧹','убирать комнату'],['make my bed','🛏️','заправлять кровать'],
   ['lay the table','🍴','накрывать на стол'],['walk my dog','🐕','гулять с собакой'],['feed my pet','🥫','кормить питомца'],['clock','🕰️','часы'],['morning','🌅','утро'],['evening','🌆','вечер']]},
  {id:'u3',n:3,en:'Pets',ru:'Питомцы, сравнение',pic:'🐹',c:'#13A3A0',words:[
   ['dog','🐶','собака'],['cat','🐱','кошка'],['rabbit','🐰','кролик'],['hamster','🐹','хомяк'],['parrot','🦜','попугай'],['fish','🐟','рыбка'],
@@ -150,12 +150,12 @@ const PRON_SUBJ=[ /* [что, картинка, местоимение, по-р�
  ['my uncle','🧔','He','мой дядя'],['my auntie','👩‍🦰','She','моя тётя'],['the cake','🎂','It','торт'],['my cousins','👧👦','They','мои двоюродные'],
  ['the baby','👶','He','малыш'],['Mike and I','👦🙋','We','Майк и я'],['a cat in the street','🐈‍⬛','It','кошка на улице'],['a dog in the park','🐕','It','собака в парке'],['the children','🧒🧒🧒','They','дети']];
 const PRON_POSS=[ /* [фраза, картинка, притяжательное, кто] */
- ['Mike\'s ball','👦⚽','his','he'],['Liz\'s doll','👧🪆','her','she'],['my dad\'s car','👨🚗','his','he'],['my mum\'s bag','👩👜','her','she'],
+ ['Mike\'s ball','👦⚽','his','he'],['Liz\'s doll','👧🪆','her','she'],['my dad\'s car','👨🚗','his','he'],['my granny\'s bag','👵👜','her','she'],
  ['Vira\'s bowl','🐄🥣','her','she'],['Wendy\'s toy','🐈🧶','her','she'],['the children\'s room','🧒🧒🛏️','their','they'],['my parents\' house','👫🏠','their','they'],
  ['the cat\'s tail','🐱','its','it'],['granny\'s glasses','👵👓','her','she'],['grandad\'s hat','👴🎩','his','he'],['Vira and Wendy\'s sofa','🐱🐱🛋️','their','they']];
 const PRON_SENT=[ /* [предложение 1, предложение 2 с ___, ответ, неправильные, картинка] */
  ['This is my dad.','___ is tall.','He',['She','They'],'👨'],
- ['This is my mum.','___ name is Ann.','Her',['His','She'],'👩'],
+ ['This is my sister.','___ name is Ann.','Her',['His','She'],'👧'],
  ['These are my parents.','___ are at work.','They',['He','Their'],'👫'],
  ['This is Vira.','___ is fat and fluffy.','She',['He','It'],'🐄🐱'],
  ['Vira likes to eat.','___ bowl is always empty!','Her',['His','She'],'🥣'],

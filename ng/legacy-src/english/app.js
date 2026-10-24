@@ -79,7 +79,7 @@ const PRON_RULE=`<table class="pt"><tr><th></th><th>кто?</th><th>чей?</th>
 <tr><td>👨 он</td><td><b>he</b></td><td><b>his</b></td></tr><tr><td>👩 она</td><td><b>she</b></td><td><b>her</b></td></tr>
 <tr><td>📦🐶 оно</td><td><b>it</b></td><td><b>its</b></td></tr><tr><td>👨‍👩‍👧 они</td><td><b>they</b></td><td><b>their</b></td></tr>
 <tr><td>🙋‍♀️ я</td><td><b>I</b></td><td><b>my</b></td></tr><tr><td>🙋‍♀️🙋 мы</td><td><b>we</b></td><td><b>our</b></td></tr></table>
-<p>Мальчик, папа, дедушка → <b>he</b>. Девочка, мама, бабушка, Вира → <b>she</b>. Вещь → <b>it</b>. Двое и больше → <b>they</b>.</p>
+<p>Мальчик, папа, дедушка → <b>he</b>. Девочка, бабушка, Вира → <b>she</b>. Вещь → <b>it</b>. Двое и больше → <b>they</b>.</p>
 <p>🐈 <b>Животное:</b> кошка с улицы, чужая собака → <b>it</b>. А наша Вира — член семьи, мы знаем, что она девочка → <b>she</b>. Венди тоже <b>she</b>.</p>`;
 function genPron(lv){
   const kinds=lv===0?['who','who','ru']:lv===1?['sent','sent','poss','who']:['two','two','sentAll','typeP'];
