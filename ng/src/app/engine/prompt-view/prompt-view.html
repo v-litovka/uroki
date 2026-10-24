@@ -2,6 +2,9 @@
 @if (p.say) {
   <button app-say-button (click)="speech.say(p.say)"></button>
 }
+@if (p.poem) {
+  <app-poem [lines]="p.poem" />
+}
 @if (p.sentence) {
   <app-sentence [segs]="p.sentence" />
 }

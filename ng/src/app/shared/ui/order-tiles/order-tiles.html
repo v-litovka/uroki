@@ -1,0 +1,12 @@
+<div class="built" aria-live="polite">
+  @for (t of built(); track $index) {
+    <span class="ln">{{ t }}</span>
+  }
+</div>
+<div class="tiles">
+  @for (o of order(); track o.k) {
+    <button type="button" class="tile" [class.used]="o.k < pos()" [class.bad]="shake() === o.k" [disabled]="o.k < pos()" (click)="tap(o.k)">
+      {{ o.t }}
+    </button>
+  }
+</div>

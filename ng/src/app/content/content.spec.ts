@@ -14,7 +14,9 @@ describe('контент', () => {
       for (const t of pack.topics) {
         expect(t.items.length).toBeGreaterThan(0);
         for (const m of t.modes) {
-          for (const it of t.items) {
+          const items = m.items ?? t.items;
+          expect(items.length, `${t.id}/${m.id}: нет элементов`).toBeGreaterThan(0);
+          for (const it of items) {
             for (let rep = 0; rep < 3; rep++) {
               const ex = m.build(it);
               const where = `${t.id}/${m.id}/${ex.itemId}`;
@@ -25,6 +27,10 @@ describe('контент', () => {
                   expect(new Set(st.options).size, where + ' дубли вариантов').toBe(st.options.length);
                 }
                 if (st.kind === 'input') expect(matches(String(Array.isArray(st.answer) ? st.answer[0] : st.answer), st.answer), where).toBe(true);
+                if (st.kind === 'order') {
+                  expect(st.items.length, where).toBeGreaterThan(1);
+                  expect(new Set(st.items).size, where + ' одинаковые строки — порядок неоднозначен').toBe(st.items.length);
+                }
                 if (st.kind === 'why') {
                   expect(st.ok.length, where).toBeGreaterThan(0);
                   expect(st.wrong.length, where).toBeGreaterThan(0);
@@ -50,6 +56,19 @@ describe('контент', () => {
         expect(p.mascot).not.toBe('cats');
         expect(JSON.stringify(p.topics.map((t) => t.items))).not.toMatch(/Вир|Венди/);
       }
+    }
+  });
+});
+
+describe('Стишок умножения', () => {
+  it('каждый пример: ответ = x · y, и он есть в строке стиха', async () => {
+    const { ALL_FACTS } = await import('./grade-3/math/stih/items');
+    expect(ALL_FACTS.length).toBeGreaterThan(20);
+    for (const f of ALL_FACTS) {
+      expect(f.v).toBe(f.x * f.y);
+      expect(f.block.L[f.i].t, f.id).toContain(f.g);
+      // в «спрятанном» куске цифры ответа (с пробелом/nbsp для «2 4»)
+      expect(f.g.replace(/[^\d]/g, '').startsWith(String(f.v)), f.id).toBe(true);
     }
   });
 });

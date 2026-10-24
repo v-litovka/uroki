@@ -1,0 +1,16 @@
+@use 'mixins' as m;
+
+:host { display: grid; gap: 12px; }
+.built { display: grid; gap: 4px; min-height: 40px; border: 3px dashed var(--muted); border-radius: 16px; padding: 10px 12px; background: #fff; }
+.ln { @include m.display(20px, 1.25); }
+.tiles { display: grid; gap: 8px; }
+.tile {
+  @include m.raised(3px, 14px, 3px, #e7f1ff);
+  @include m.display(20px, 1.2);
+  width: 100%;
+  text-align: left;
+  min-height: 52px;
+  padding: 8px 14px;
+}
+.used { visibility: hidden; }
+.bad { background: #ffb4a2; @include m.shake; }

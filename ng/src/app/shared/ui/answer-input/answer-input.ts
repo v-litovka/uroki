@@ -17,6 +17,8 @@ export interface Typed {
 export class AnswerInput {
   readonly answer = input.required<string | string[]>();
   readonly placeholder = input('');
+  /** цифровая клавиатура на планшете */
+  readonly numeric = input(false);
   readonly typed = output<Typed>();
   /** сброс при новом ответе (новый шаг) */
   protected readonly done = linkedSignal({ source: this.answer, computation: () => false });

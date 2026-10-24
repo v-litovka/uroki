@@ -24,3 +24,6 @@ export * from './hint/hint';
 export * from './say-button/say-button';
 export * from './letter-diff/letter-diff';
 export * from './level-up/level-up';
+export * from './poem/poem';
+export * from './order-tiles/order-tiles';
+export * from './confirm-button/confirm-button';

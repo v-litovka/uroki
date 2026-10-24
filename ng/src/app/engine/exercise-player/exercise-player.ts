@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, input, linkedSignal, output } from '@angular/core';
 import { Exercise, Mascot, Prompt, Step } from '../../core/models';
-import { AnswerInput, Button, Card, Feedback, LetterDiff, OptionGrid, Picked, Typed, WhyStepView } from '../../shared/ui';
+import { AnswerInput, Card, ConfirmButton, Feedback, Hint, LetterDiff, OptionGrid, OrderTiles, Picked, Typed, WhyStepView } from '../../shared/ui';
 import { PromptView } from '../prompt-view/prompt-view';
 import { SfxService } from '../../core/audio/sfx.service';
 import { diffLetters } from '../../shared/utils/text';
@@ -10,6 +10,8 @@ import { DEFAULT_PHRASES } from '../phrases';
 export interface ExerciseResult {
   /** была ли хоть одна ошибка */
   missed: boolean;
+  /** сколько всего ошибок */
+  mistakes: number;
 }
 
 /**
@@ -18,7 +20,7 @@ export interface ExerciseResult {
  */
 @Component({
   selector: 'app-exercise-player',
-  imports: [Card, PromptView, OptionGrid, AnswerInput, WhyStepView, Feedback, LetterDiff, Button],
+  imports: [Card, PromptView, OptionGrid, AnswerInput, WhyStepView, Feedback, LetterDiff, ConfirmButton, OrderTiles, Hint],
   templateUrl: './exercise-player.html',
 })
 export class ExercisePlayer {
@@ -35,7 +37,7 @@ export class ExercisePlayer {
     source: this.exercise,
     computation: (ex) => ({ ...(ex.steps[0]?.prompt ?? {}) }),
   });
-  private readonly run = computed(() => ({ ex: this.exercise(), wrong: 0, missed: false, finished: false }));
+  private readonly run = computed(() => ({ ex: this.exercise(), wrong: 0, mistakes: 0, missed: false, finished: false }));
   protected readonly fb = linkedSignal<Exercise, { ok: boolean; text: string } | null>({ source: this.exercise, computation: () => null });
   protected readonly diff = linkedSignal<Exercise, { ch: string; bad: boolean }[] | null>({ source: this.exercise, computation: () => null });
   protected readonly praise = linkedSignal<Exercise, string | null>({ source: this.exercise, computation: () => null });
@@ -70,7 +72,7 @@ export class ExercisePlayer {
     if (nextIdx >= this.exercise().steps.length && !run.finished) {
       run.finished = true;
       setTimeout(() => {
-        if (this.run() === run) this.finished.emit({ missed: run.missed });
+        if (this.run() === run) this.finished.emit({ missed: run.missed, mistakes: run.mistakes });
       }, 1300);
     }
   }
@@ -99,11 +101,26 @@ export class ExercisePlayer {
     }
   }
 
-  private wrong(st: Step) {
+  private wrong(st: Step, text?: string) {
     this.sfx.play('bad');
-    this.run().missed = true;
-    this.run().wrong++;
-    this.fb.set({ ok: false, text: this.hint(st) });
+    const run = this.run();
+    run.missed = true;
+    run.wrong++;
+    run.mistakes++;
+    this.fb.set({ ok: false, text: text ?? this.hint(st) });
+    const wp = st.wrongPrompt;
+    if (wp?.length) this.overlay.update((o) => ({ ...o, ...wp[Math.min(run.wrong - 1, wp.length - 1)] }));
+  }
+
+  protected onOrderWrong(st: Step, pos: number) {
+    if (st.kind !== 'order') return;
+    const prev = st.items[pos - 1];
+    const text = pos === 0 ? st.hintFirst : st.hintAfter?.replace('{prev}', prev ?? '');
+    this.wrong(st, text);
+  }
+
+  protected onOrderDone() {
+    this.right(this.step()!);
   }
 
   protected memorized() {

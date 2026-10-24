@@ -1,0 +1,11 @@
+:host { display: flex; justify-content: center; }
+.lock { position: relative; overflow: hidden; }
+.lock::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(31, 157, 87, 0.25);
+  transform-origin: left;
+  animation: fill var(--t, 5s) linear forwards;
+}
+@keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }

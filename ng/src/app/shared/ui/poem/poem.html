@@ -1,0 +1,5 @@
+<p>
+  @for (l of view(); track $index) {
+    <span class="ln" [class.mul]="l.mul" [class.hl]="l.hl">{{ l.pre }}@if (l.kind) {<span [class]="l.kind">{{ l.mid }}</span>}{{ l.post }}</span>
+  }
+</p>

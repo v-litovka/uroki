@@ -14,7 +14,7 @@
         />
       }
       @case ('input') {
-        <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" (typed)="onType($event)" />
+        <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" [numeric]="!!st.numeric" (typed)="onType($event)" />
       }
       @case ('why') {
         @if (praise(); as text) {
@@ -23,7 +23,13 @@
         <app-why-step-view [ok]="st.ok" [wrong]="st.wrong" (answered)="onWhy($event)" />
       }
       @case ('memorize') {
-        <button app-btn data-test="memorize" (click)="memorized()">{{ st.button }}</button>
+        <app-confirm-button [label]="st.button" [lockSec]="st.lockSec ?? 0" (confirmed)="memorized()" />
+      }
+      @case ('order') {
+        @if (st.note) {
+          <app-hint>{{ st.note }}</app-hint>
+        }
+        <app-order-tiles [items]="st.items" (wrong)="onOrderWrong(st, $event.pos)" (done)="onOrderDone()" />
       }
     }
   }

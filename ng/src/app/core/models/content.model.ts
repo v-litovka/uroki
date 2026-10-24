@@ -9,16 +9,33 @@ import { Grade, SubjectId } from './catalog.model';
 /** Кусок текста в «сцене» упражнения. cls: vb — выделенное слово, gp — пропуск, hl — подсветка. */
 export type Seg = string | { t: string; cls: 'vb' | 'gp' | 'hl' };
 
+/** Строка стиха в сцене. */
+export interface PoemLine {
+  t: string;
+  /** строка-пример (выделяется цветом) */
+  mul?: boolean;
+  /** подсветка (подсказка: «прочитай эти строчки») */
+  hl?: boolean;
+  /** кусок строки, который спрятан за «?» */
+  gap?: string;
+  /** кусок строки, который только что вписан (зелёным) */
+  good?: string;
+}
+
 /** Что показано над шагами. Каждый шаг может дополнить/заменить сцену. */
 export interface Prompt {
+  /** стих / несколько строк */
+  poem?: PoemLine[];
   /** предложение из кусков */
   sentence?: Seg[];
   /** крупное слово (или «• • •», когда спрятано) */
   big?: string;
   /** серая подсказка-задание под сценой */
   hint?: string;
-  /** текст для озвучки: появится кнопка 🔊 и прозвучит автоматически */
+  /** текст для озвучки: появится кнопка 🔊 */
   say?: string;
+  /** озвучить сразу (по умолчанию true) */
+  sayAuto?: boolean;
 }
 
 export interface StepBase {
@@ -33,6 +50,8 @@ export interface StepBase {
    * Правило проекта: подсказка НАВОДИТ, а не говорит ответ.
    */
   hints?: string[];
+  /** как меняется сцена после 1-й, 2-й… ошибки (например, показать кусочек стиха) */
+  wrongPrompt?: Partial<Prompt>[];
 }
 
 export interface ChoiceStep extends StepBase {
@@ -53,6 +72,8 @@ export interface InputStep extends StepBase {
   placeholder?: string;
   /** после ошибки показать слово с подсветкой неверных букв */
   showDiff?: 'never' | 'always' | 'second';
+  /** цифровая клавиатура на планшете */
+  numeric?: boolean;
 }
 
 export interface WhyStep extends StepBase {
@@ -61,14 +82,31 @@ export interface WhyStep extends StepBase {
   wrong: string[];
 }
 
-/** «Посмотри и запомни» → кнопка «спрятать». Следом обычно идёт InputStep. */
+/**
+ * Кнопка-подтверждение: «Запомнила — спрятать», «Прочитала!».
+ * lockSec — кнопка станет активной через N секунд (чтобы ребёнок действительно прочитал).
+ */
 export interface MemorizeStep extends StepBase {
   kind: 'memorize';
-  word: string;
+  word?: string;
   button: string;
+  lockSec?: number;
 }
 
-export type Step = ChoiceStep | InputStep | WhyStep | MemorizeStep;
+/** Расставь по порядку: нажимать плитки в правильной последовательности. */
+export interface OrderStep extends StepBase {
+  kind: 'order';
+  /** элементы в ПРАВИЛЬНОМ порядке (на экране перемешаются) */
+  items: string[];
+  /** подсказка, если первым нажат не тот элемент */
+  hintFirst?: string;
+  /** подсказка после ошибки в середине; {prev} — последний верный элемент */
+  hintAfter?: string;
+  /** подпись над плитками */
+  note?: string;
+}
+
+export type Step = ChoiceStep | InputStep | WhyStep | MemorizeStep | OrderStep;
 
 export interface Exercise {
   /** id элемента данных — по нему копится статистика ошибок */
@@ -80,6 +118,13 @@ export interface Exercise {
 /** Что нужно режиму от устройства. */
 export type Capability = 'tts-ru' | 'tts-en';
 
+/** Итог раунда — для своих правил начисления звёзд. */
+export interface RoundStats {
+  firstTry: number;
+  total: number;
+  mistakes: number;
+}
+
 export interface Mode<T = unknown> {
   id: string;
   title: string;
@@ -87,6 +132,14 @@ export interface Mode<T = unknown> {
   desc: string;
   needs?: Capability[];
   build(item: T): Exercise;
+  /** свои элементы вместо topic.items (например, «весь стих целиком» для режима «Читаем») */
+  items?: T[];
+  /** заданий в раунде (иначе topic.roundSize ?? 10) */
+  roundSize?: number;
+  /** перемешивать элементы (по умолчанию true) */
+  shuffle?: boolean;
+  /** сколько звёзд дать (по умолчанию — число заданий с первого раза) */
+  stars?(r: RoundStats): number;
 }
 
 export interface Topic<T = unknown> {

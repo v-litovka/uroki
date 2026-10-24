@@ -44,6 +44,9 @@
 | SayButton | `button[app-say-button]` | — | сцена (озвучка) |
 | LetterDiff | `app-letter-diff` | `letters: {ch, bad}[]` | ошибка в слове |
 | LevelUp | `app-level-up` | `level` | итог раунда |
+| Poem | `app-poem` | `lines: PoemLine[]` (mul, hl, gap, good) | сцена: стих |
+| OrderTiles | `app-order-tiles` | `items` (в верном порядке) → `(wrong)`, `(done)` | шаг order |
+| ConfirmButton | `app-confirm-button` | `label`, `lockSec` → `(confirmed)` | шаг memorize («Прочитала!») |
 
 Компоненты экранов (не общие): `features/play/round-header`, `features/play/round-finish`, `engine/prompt-view`, `engine/exercise-player`.
 

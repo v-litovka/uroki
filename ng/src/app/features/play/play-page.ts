@@ -14,6 +14,7 @@ import { RoundFinish } from './round-finish/round-finish';
 interface Fin {
   ok: number;
   n: number;
+  stars: number;
   levelUp: boolean;
 }
 
@@ -43,7 +44,13 @@ export class PlayPage {
     return pk ? this.progress.pack(pk.id, pk.legacyStorageKey) : null;
   });
   protected level = computed(() => levelOf(this.handle()?.stars() ?? 0));
-  protected kicker = computed(() => `${this.modeObj()?.icon ?? ''} ${this.modeObj()?.title ?? ''} · ${this.topicObj()?.title ?? ''}`);
+  protected kicker = computed(() => {
+    const m = this.modeObj();
+    const t = this.topicObj();
+    const strip = (x = '') => x.replace(/[^\p{L}\p{N} ]/gu, '').trim();
+    const head = `${m?.icon ?? ''} ${m?.title ?? ''}`;
+    return strip(m?.title) === strip(t?.title) ? head : `${head} · ${t?.title ?? ''}`;
+  });
 
   private queue = signal<RoundQueue<unknown> | null>(null);
   private tick = signal(0); // RoundQueue — изменяемый объект, tick заставляет пересчитать вид
@@ -75,8 +82,9 @@ export class PlayPage {
   }
 
   private start(t: Topic) {
+    const m = this.modeObj()!;
     this.fin.set(null);
-    this.queue.set(new RoundQueue(t.items, t.roundSize ?? 10));
+    this.queue.set(new RoundQueue(m.items ?? t.items, m.roundSize ?? t.roundSize ?? 10, m.shuffle !== false));
     this.show();
   }
 
@@ -94,7 +102,7 @@ export class PlayPage {
     if (!q.current.again) {
       this.progress.logAttempt({ pack: this.p.pack()!.id, topic: this.topic(), mode: this.mode(), item: ex.itemId, ok: !r.missed });
     }
-    q.complete(r.missed);
+    q.complete(r.missed, r.mistakes);
     this.show();
   }
 
@@ -102,10 +110,12 @@ export class PlayPage {
     const q = this.queue()!;
     const h = this.handle()!;
     h.markDone(this.topic(), this.mode());
-    const levelUp = h.addStars(q.firstTry);
+    const m = this.modeObj()!;
+    const stars = m.stars ? m.stars({ firstTry: q.firstTry, total: q.total, mistakes: q.mistakes }) : q.firstTry;
+    const levelUp = h.addStars(stars);
     this.sfx.play('fin');
     this.current.set(null);
-    this.fin.set({ ok: q.firstTry, n: q.total, levelUp });
+    this.fin.set({ ok: q.firstTry, n: q.total, stars, levelUp });
     window.scrollTo(0, 0);
   }
 

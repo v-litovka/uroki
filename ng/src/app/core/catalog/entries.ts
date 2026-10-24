@@ -8,7 +8,7 @@ import { CatalogEntry, ExtraLink } from '../models';
 export const ENTRIES: CatalogEntry[] = [
   // ---------- 3 класс ----------
   { kind: 'legacy', id: 'ulica', grade: 3, subject: 'math', title: 'Улица Домиков', desc: 'Таблица умножения и деления', color: '#E8452C', path: 'ulica/' },
-  { kind: 'legacy', id: 'stih', grade: 3, subject: 'math', title: 'Стишок умножения', desc: 'Таблица умножения в стихах с Вирой и Венди', color: '#13A3A0', path: 'stih/' },
+  { kind: 'pack', id: 'stih', grade: 3, subject: 'math', title: 'Стишок умножения', desc: 'Таблица умножения в стихах с Вирой и Венди', color: '#13A3A0', packId: 'math3-stih' },
   { kind: 'legacy', id: 'zadachi', grade: 3, subject: 'math', title: 'Город Задач', desc: 'Схемы к задачам, К1 · К = ОК', color: '#2D6CDF', path: 'zadachi/', bookIds: ['math3-muravyova'] },
   { kind: 'legacy', id: 'domashka', grade: 3, subject: 'math', title: 'Домашка', desc: 'Решаем ДЗ по шагам: тетрадь и учебник', color: '#D9480F', path: 'domashka/', bookIds: ['math3-wb', 'math3-muravyova'] },
   { kind: 'legacy', id: 'english', grade: 3, subject: 'en', title: 'English с Вирой и Венди', desc: 'Magic Box 3: слова, he/she/they, грамматика', color: '#E2557A', path: 'english/', bookIds: ['en3-magicbox'] },
@@ -24,4 +24,4 @@ export const ENTRIES: CatalogEntry[] = [
 export const EXTRA_LINKS: ExtraLink[] = [{ grade: 3, title: 'Шпаргалка по схемам', path: 'zadachi/shpargalka.html' }];
 
 /** Старая HTML-версия пака (на всякий случай, пока Angular-версия проверяется). */
-export const LEGACY_FALLBACK: Record<string, string> = { 'ru3-rabota': 'rabota/' };
+export const LEGACY_FALLBACK: Record<string, string> = { 'ru3-rabota': 'rabota/', 'math3-stih': 'stih/' };

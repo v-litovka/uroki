@@ -6,6 +6,8 @@
     [class.bad]="shake()"
     [disabled]="done()"
     [placeholder]="placeholder()"
+    [attr.inputmode]="numeric() ? 'numeric' : null"
+    [attr.pattern]="numeric() ? '[0-9]*' : null"
     autocomplete="off"
     autocapitalize="off"
     spellcheck="false"

@@ -1,7 +1,11 @@
 <app-card [center]="true">
   <app-mascot-pair [mascot]="mascot()" size="lg" />
   <h2>Готово!</h2>
-  <p class="stat">С первого раза: {{ ok() }} из {{ total() }} · +{{ ok() }} ⭐</p>
+  @if (total() > 1) {
+    <p class="stat">С первого раза: {{ ok() }} из {{ total() }} · +{{ stars() }} ⭐</p>
+  } @else {
+    <p class="stat">+{{ stars() }} ⭐</p>
+  }
   @if (levelUp()) {
     <app-level-up [level]="level()" />
   }

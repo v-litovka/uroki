@@ -40,7 +40,11 @@ async function playRound(label) {
       const btn = page.locator('app-why-step-view button[app-option]:not([disabled])', { hasText: st.ok });
       if (await btn.count()) await btn.first().click(); else { await page.waitForTimeout(150); continue; }
     } else if (st.kind === 'memorize') {
-      await page.locator('[data-test=memorize]').click();
+      await page.locator('[data-test=confirm]').click({ timeout: 20000 }); // кнопка может быть заблокирована N секунд
+    } else if (st.kind === 'order') {
+      for (const t of st.items) {
+        await page.locator('app-order-tiles button.tile:not([disabled])').filter({ hasText: t.trim() }).first().click();
+      }
     }
     await page.waitForTimeout(250);
     // ждём смены шага/упражнения

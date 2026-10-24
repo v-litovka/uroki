@@ -1,0 +1,3 @@
+<button app-btn data-test="confirm" [class.lock]="lockSec() > 0" [style.--t]="lockSec() + 's'" [disabled]="locked()" (click)="confirmed.emit()">
+  {{ label() }}
+</button>

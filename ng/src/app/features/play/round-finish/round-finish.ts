@@ -13,6 +13,7 @@ import { Button, Card, LevelUp, MascotPair } from '../../../shared/ui';
 export class RoundFinish {
   readonly ok = input(0);
   readonly total = input(0);
+  readonly stars = input(0);
   readonly level = input(0);
   readonly levelUp = input(false);
   readonly mascot = input<Mascot>('cats');

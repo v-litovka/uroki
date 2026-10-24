@@ -10,6 +10,8 @@ export class RoundQueue<T> {
   private i = 0;
   readonly total: number;
   firstTry = 0;
+  /** всего ошибок за раунд (для своих правил звёзд) */
+  mistakes = 0;
 
   constructor(items: readonly T[], size = 10, random = true) {
     const src = random ? shuffle(items) : items.slice();
@@ -31,9 +33,10 @@ export class RoundQueue<T> {
   }
 
   /** закрыть текущий элемент: missed — была ли ошибка */
-  complete(missed: boolean) {
+  complete(missed: boolean, mistakes = missed ? 1 : 0) {
     const cur = this.q[this.i];
     if (!cur) return;
+    this.mistakes += mistakes;
     if (!missed && !cur.again) this.firstTry++;
     if (missed && !cur.again) this.q.push({ item: cur.item, again: true });
     this.i++;
