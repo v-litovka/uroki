@@ -21,6 +21,15 @@ const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 const shot = (n) => page.screenshot({ path: `tools/shots/cab-${n}.png`, fullPage: true });
 const seen = (sel) => page.waitForSelector(sel, { timeout: 5000 }).then(() => true, () => false);
+async function login(pin = '2924') {
+  for (let i = 0; i < 3; i++) {
+    await page.waitForSelector('app-parent-login [data-test=pin]');
+    await page.fill('[data-test=pin]', pin);
+    await page.press('[data-test=pin]', 'Enter');
+    if (await page.waitForSelector('app-parent-progress', { timeout: 4000 }).then(() => true, () => false)) { if (i) console.log('RETRY', i, page.url()); return; }
+  }
+  throw new Error('не удалось войти');
+}
 const ok = (cond, msg) => { if (!cond) throw new Error('✗ ' + msg); console.log('✓', msg); };
 
 async function playRound() {
@@ -116,9 +125,7 @@ await shot('7-me-after');
 
 // 7. взрослый видит историю и выполненное задание
 await page.click('text=Для взрослых');
-await page.fill('[data-test=pin]', '2924');
-await page.click('app-parent-login button');
-await page.waitForSelector('app-parent-progress');
+await login();
 ok(await seen('app-parent-progress >> text=✅'), 'взрослый: задание ✅');
 await page.waitForTimeout(300); ok((await page.locator('app-parent-progress .row').count()) >= 2, 'взрослый: история раундов');
 await shot('8-parent-progress');
