@@ -1,0 +1,5 @@
+<nav [attr.aria-label]="label()">
+  @for (t of items(); track t.label) {
+    <a [routerLink]="t.link" [class.on]="t.active" [attr.aria-current]="t.active ? 'page' : null">{{ t.label }}</a>
+  }
+</nav>

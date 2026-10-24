@@ -1,0 +1,17 @@
+@if (p.pack(); as pk) {
+  <app-page-hero [title]="pk.title" [text]="pk.desc">
+    <app-mascot-pair aside [mascot]="pk.mascot" />
+  </app-page-hero>
+
+  <div class="topics">
+    @for (t of pk.topics; track t.id) {
+      <a app-topic-card [routerLink]="[t.id]" [badge]="badge(t)" [title]="t.title" [desc]="t.desc" [color]="t.color"></a>
+    }
+  </div>
+
+  @if (legacy(); as path) {
+    <p class="old"><a [href]="'legacy/' + path">Старая версия игры</a></p>
+  }
+} @else if (p.error(); as err) {
+  <p>{{ err }}</p>
+}

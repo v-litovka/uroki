@@ -19,7 +19,8 @@ content   (паки: данные + функции build) — зависит Т�
 
 - `content/` не импортирует Angular, `features/` и `engine/`. Это чистые данные и функции → их легко тестировать, генерировать скриптами по фото страниц, а потом хоть вынести в JSON/на сервер.
 - `engine/` не знает, что такое «-тся» или «К1 · К = ОК»: он проигрывает **шаги**.
-- `shared/ui` ничего не знает о прогрессе и маршрутах.
+- `shared/ui` ничего не знает о прогрессе и маршрутах. Глобальных CSS-классов нет — только компоненты и миксины (`docs/ui-kit.md`).
+- Каждый компонент — `.ts` + `.html` + `.scss` в своей папке.
 - `features/` — единственное место, где есть роутер и связывание.
 
 ## Папки
@@ -36,17 +37,19 @@ src/app/
     layout/            HeaderService (что показать в верхней панели)
     text/              nbsp (неразрывные пробелы)
   shared/
-    ui/                cat, feedback, option-grid, answer-input, why-step, rule-box, progress-bar, top-bar
+    ui/                25 общих компонентов (кнопки, карточки, варианты, ввод, плитки, вкладки…) — каталог в docs/ui-kit.md
     utils/             norm/matches/diffLetters/plural, shuffle/pick
   engine/
-    exercise-player.ts проигрывает Exercise: сцена + шаги, подсказки, «почему?»
-    prompt-view.ts     сцена: предложение из кусков, крупное слово, подсказка, 🔊
+    exercise-player/   проигрывает Exercise: сцена + шаги, подсказки, «почему?»
+    prompt-view/       сцена: предложение, крупное слово, подсказка, 🔊
     round-queue.ts     раунд из N, повтор ошибок в конце, «с первого раза»
+    phrases.ts         фразы похвалы по умолчанию (кошки / нейтрально)
   content/
     registry.ts        id пака → ленивый import
     grade-3/ru/rabota/ data.ts (сырые данные) · items.ts (элементы) · modes.ts (режимы → шаги) · pack.ts
   features/
-    shell/  hub/  pack/  topic/  play/  admin/ (пока README)
+    shell/  hub/  pack/  topic/  play/ (+ round-header, round-finish)  admin/ (пока README)
+src/styles/            _tokens, _base, _animations, _mixins — см. docs/ui-kit.md
 public/legacy/         старые игры как есть
 ```
 
@@ -87,8 +90,8 @@ Hash-маршруты — потому что GitHub Pages не отдаёт ind
 
 **Новый тип шага** (например, `order` — расставить по порядку, `table` — таблица К1·К=ОК, `scheme` — выбрать схему)
 1. Тип в `content.model.ts` (`Step` union).
-2. «Глупый» компонент в `shared/ui/` (или `engine/steps/`), input → output.
-3. `@case` в `engine/exercise-player.ts`.
+2. «Глупый» компонент в `shared/ui/` (input → output, свои .html/.scss, строка в `index.ts` и `docs/ui-kit.md`).
+3. `@case` в `engine/exercise-player/exercise-player.html`.
 4. Ветка в `tools/e2e.mjs` (как правильно ответить) и проверка в `content.spec.ts`.
 
 **Перенос legacy-игры** — см. `docs/migration.md`.

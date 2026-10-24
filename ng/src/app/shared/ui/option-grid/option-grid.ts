@@ -1,5 +1,6 @@
 import { Component, computed, effect, input, linkedSignal, output, signal } from '@angular/core';
 import { shuffle } from '../../utils/random';
+import { Option, OptionState } from '../option/option';
 
 export interface Picked {
   value: string;
@@ -7,39 +8,27 @@ export interface Picked {
 }
 
 /**
- * Сетка вариантов. Неверный вариант краснеет и блокируется, верный — зеленеет и блокирует всё.
- * Пересоздаётся на каждом шаге (track по ключу шага), поэтому состояние локальное.
+ * Сетка вариантов: неверный краснеет и блокируется, верный зеленеет и блокирует всё.
+ * Состояние сбрасывается само, когда приходят новые варианты (linkedSignal).
  */
 @Component({
   selector: 'app-option-grid',
-  template: `
-    <div class="opts" [class.small]="layout() === 'small'" [class.list]="layout() === 'list'">
-      @for (o of order(); track o) {
-        <button
-          type="button"
-          class="opt"
-          [class.right]="state()[o] === 'right'"
-          [class.bad]="state()[o] === 'bad'"
-          [disabled]="locked() || solved() || state()[o] === 'bad'"
-          (click)="pick(o)"
-        >
-          {{ o }}
-        </button>
-      }
-    </div>
-  `,
+  imports: [Option],
+  templateUrl: './option-grid.html',
+  styleUrl: './option-grid.scss',
 })
 export class OptionGrid {
   readonly options = input.required<string[]>();
   readonly answer = input.required<string>();
+  /** grid — плитки; small — узкие плитки (окончания); list — фразы столбиком */
   readonly layout = input<'grid' | 'small' | 'list'>('grid');
   readonly doShuffle = input(true);
+  /** заблокировать кнопки на N секунд, чтобы ребёнок прочитал */
   readonly lockSec = input(0);
   readonly picked = output<Picked>();
 
   protected readonly order = computed(() => (this.doShuffle() ? shuffle(this.options()) : this.options()));
-  /** состояние сбрасывается само, когда приходят новые варианты (новый шаг) */
-  protected readonly state = linkedSignal<string[], Record<string, 'right' | 'bad'>>({ source: this.options, computation: () => ({}) });
+  protected readonly state = linkedSignal<string[], Partial<Record<string, OptionState>>>({ source: this.options, computation: () => ({}) });
   protected readonly solved = linkedSignal({ source: this.options, computation: () => false });
   protected readonly locked = signal(false);
 
@@ -54,7 +43,7 @@ export class OptionGrid {
     });
   }
 
-  pick(o: string) {
+  protected pick(o: string) {
     const correct = o === this.answer();
     this.state.update((s) => ({ ...s, [o]: correct ? 'right' : 'bad' }));
     if (correct) this.solved.set(true);

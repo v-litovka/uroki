@@ -1,0 +1,6 @@
+@if (mascot() === 'cats') {
+  <app-cat [who]="who" [mood]="ok() ? 'happy' : who === 'vira' ? 'sad' : 'sly'" [size]="who === 'vira' ? 52 : 46" />
+} @else {
+  <span class="ico" aria-hidden="true">{{ ok() ? '✅' : '🤔' }}</span>
+}
+<p>{{ text() }}</p>

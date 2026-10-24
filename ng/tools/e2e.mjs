@@ -25,11 +25,11 @@ page.on('pageerror', (e) => errs.push(e.message));
 
 async function playRound(label) {
   for (let k = 0; k < 200; k++) {
-    if (await page.$('.fin')) return;
+    if (await page.$('app-round-finish')) return;
     const st = await page.evaluate(() => window.__STEP__);
     if (!st) { await page.waitForTimeout(200); continue; }
     if (st.kind === 'choice') {
-      const btn = page.locator('app-option-grid .opt:not([disabled])', { hasText: st.answer }).filter({ hasText: new RegExp('^\\s*' + st.answer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$') });
+      const btn = page.locator('app-exercise-player > app-card > app-option-grid button[app-option]:not([disabled])', { hasText: st.answer }).filter({ hasText: new RegExp('^\\s*' + st.answer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$') });
       if (await btn.count()) await btn.first().click(); else { await page.waitForTimeout(150); continue; }
     } else if (st.kind === 'input') {
       const inp = page.locator('app-answer-input input:not([disabled])');
@@ -37,33 +37,33 @@ async function playRound(label) {
       await inp.fill(Array.isArray(st.answer) ? st.answer[0] : st.answer);
       await page.locator('app-answer-input button').click();
     } else if (st.kind === 'why') {
-      const btn = page.locator('app-why-step-view .opt:not([disabled])', { hasText: st.ok });
+      const btn = page.locator('app-why-step-view button[app-option]:not([disabled])', { hasText: st.ok });
       if (await btn.count()) await btn.first().click(); else { await page.waitForTimeout(150); continue; }
     } else if (st.kind === 'memorize') {
-      await page.locator('.card .btn').first().click();
+      await page.locator('[data-test=memorize]').click();
     }
     await page.waitForTimeout(250);
     // ждём смены шага/упражнения
-    await page.waitForFunction((prev) => window.__STEP__ !== prev || document.querySelector('.fin'), st, { timeout: 5000 }).catch(() => {});
+    await page.waitForFunction((prev) => window.__STEP__ !== prev || document.querySelector('app-round-finish'), st, { timeout: 5000 }).catch(() => {});
   }
-  await page.screenshot({ path: 'tools/shots/stuck.png' }); console.log(JSON.stringify(await page.evaluate(() => window.__STEP__)), await page.innerText('.card').catch(()=>''));
+  await page.screenshot({ path: 'tools/shots/stuck.png' }); console.log(JSON.stringify(await page.evaluate(() => window.__STEP__)), await page.innerText('app-card').catch(()=>''));
   throw new Error('раунд не закончился: ' + label);
 }
 
 let rounds = 0;
 for (const grade of [3, 4]) {
   await page.goto(base + '#/' + grade);
-  await page.waitForSelector('a.g');
-  const packs = await page.$$eval('a.g', (a) => a.map((x) => x.getAttribute('href')).filter((h) => h && h.startsWith('#/')));
+  await page.waitForSelector('a[app-game-tile]');
+  const packs = await page.$$eval('a[app-game-tile]', (a) => a.map((x) => x.getAttribute('href')).filter((h) => h && h.startsWith('#/')));
   for (const ph of packs) {
     await page.goto(base + ph);
-    await page.waitForSelector('a.topic');
+    await page.waitForSelector('a[app-topic-card]');
     await page.screenshot({ path: `tools/shots/pack-${ph.replace(/\W+/g, '_')}.png`, fullPage: true });
-    const topics = await page.$$eval('a.topic', (a) => a.map((x) => x.getAttribute('href')));
+    const topics = await page.$$eval('a[app-topic-card]', (a) => a.map((x) => x.getAttribute('href')));
     for (const th of topics) {
       await page.goto(base + th);
-      await page.waitForSelector('a.mb');
-      const modes = await page.$$eval('a.mb', (a) => a.map((x) => x.getAttribute('href')));
+      await page.waitForSelector('a[app-mode-item]');
+      const modes = await page.$$eval('a[app-mode-item]', (a) => a.map((x) => x.getAttribute('href')));
       for (const mh of modes) {
         await page.goto(base + mh);
         await page.waitForSelector('app-exercise-player');

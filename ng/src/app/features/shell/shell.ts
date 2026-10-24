@@ -2,16 +2,11 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TopBar } from '../../shared/ui';
 
-/** Оболочка: травка снизу, верхняя панель, страница. */
+/** Оболочка всех экранов: травка снизу, верхняя панель, страница. */
 @Component({
   selector: 'app-shell',
   imports: [RouterOutlet, TopBar],
-  template: `
-    <div class="ground" aria-hidden="true"></div>
-    <main class="page">
-      <app-top-bar />
-      <router-outlet />
-    </main>
-  `,
+  templateUrl: './shell.html',
+  styleUrl: './shell.scss',
 })
 export class Shell {}

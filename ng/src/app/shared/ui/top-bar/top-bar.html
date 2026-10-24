@@ -1,0 +1,18 @@
+@let s = header.state();
+<header class="bar">
+  @if (s.back !== null) {
+    <a app-icon-btn [routerLink]="s.back" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 11l9-8 9 8" />
+        <path d="M5 10v10h14V10" />
+      </svg>
+    </a>
+  }
+  <span class="spacer"></span>
+  @if (s.stars) {
+    <app-stars-badge [stars]="s.stars()" [level]="s.level?.() ?? 0" />
+  }
+  <button app-icon-btn [muted]="!sfx.on()" [attr.aria-pressed]="sfx.on()" (click)="sfx.toggle()" aria-label="Звук">
+    {{ sfx.on() ? '🔊' : '🔇' }}
+  </button>
+</header>

@@ -1,0 +1,10 @@
+@use 'mixins' as m;
+
+:host {
+  @include m.raised(4px, 50%, 4px, var(--sun));
+  @include m.pressable;
+  justify-self: center;
+  width: 84px;
+  height: 84px;
+  font-size: 40px;
+}

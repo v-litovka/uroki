@@ -1,0 +1,13 @@
+@let p = prompt();
+@if (p.say) {
+  <button app-say-button (click)="speech.say(p.say)"></button>
+}
+@if (p.sentence) {
+  <app-sentence [segs]="p.sentence" />
+}
+@if (p.big) {
+  <app-big-word [text]="p.big" />
+}
+@if (p.hint) {
+  <app-hint>{{ p.hint }}</app-hint>
+}

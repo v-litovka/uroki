@@ -1,0 +1,15 @@
+<form class="row" (submit)="check($event)">
+  <input
+    #inp
+    class="inp"
+    [class.right]="done()"
+    [class.bad]="shake()"
+    [disabled]="done()"
+    [placeholder]="placeholder()"
+    autocomplete="off"
+    autocapitalize="off"
+    spellcheck="false"
+    aria-label="ответ"
+  />
+  <button app-btn [disabled]="done()">Проверить</button>
+</form>

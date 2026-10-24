@@ -1,0 +1,13 @@
+<div class="grid" [class.small]="layout() === 'small'" [class.list]="layout() === 'list'">
+  @for (o of order(); track o) {
+    <button
+      app-option
+      [variant]="layout() === 'list' ? 'text' : 'word'"
+      [state]="state()[o] ?? 'idle'"
+      [disabled]="locked() || solved() || state()[o] === 'bad'"
+      (click)="pick(o)"
+    >
+      {{ o }}
+    </button>
+  }
+</div>

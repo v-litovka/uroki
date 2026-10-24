@@ -1,0 +1,13 @@
+@use 'mixins' as m;
+
+:host {
+  @include m.raised(3px, 999px, 3px, var(--sun));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 46px;
+  padding: 0 14px;
+  font-weight: 900;
+  font-size: 20px;
+}
+small { font-size: 12px; background: var(--ink); color: #fff; border-radius: 8px; padding: 1px 6px; }

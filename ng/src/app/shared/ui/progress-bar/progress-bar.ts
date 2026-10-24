@@ -1,12 +1,13 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
+/** Полоска прогресса 0…1. */
 @Component({
   selector: 'app-progress-bar',
-  template: `<div class="pbar" role="progressbar" [attr.aria-valuenow]="Math.round(value() * 100)"><i [style.width.%]="value() * 100"></i></div>`,
-  styles: `.pbar{height:12px;border:2px solid var(--ink);border-radius:99px;background:var(--ghost);overflow:hidden;margin:6px 0 12px}
-    .pbar i{display:block;height:100%;background:var(--good);transition:width .4s}`,
+  template: '<i [style.width.%]="pct()"></i>',
+  styleUrl: './progress-bar.scss',
+  host: { role: 'progressbar', '[attr.aria-valuenow]': 'pct()', 'aria-valuemin': '0', 'aria-valuemax': '100' },
 })
 export class ProgressBar {
   readonly value = input(0);
-  protected readonly Math = Math;
+  protected readonly pct = computed(() => Math.round(Math.max(0, Math.min(1, this.value())) * 100));
 }

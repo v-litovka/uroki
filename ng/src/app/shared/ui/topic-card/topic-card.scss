@@ -1,0 +1,15 @@
+@use 'mixins' as m;
+
+:host {
+  @include m.raised(4px, 18px);
+  @include m.pressable;
+  @include m.bare-interactive;
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  min-height: 96px;
+  padding: 10px 14px 12px;
+}
+.badge { justify-self: start; padding: 1px 9px; border-radius: 8px; background: var(--c); color: #fff; font-weight: 900; font-size: 12px; }
+.title { @include m.display(24px, 1.05); }
+.desc { font-size: 13px; color: var(--muted); }

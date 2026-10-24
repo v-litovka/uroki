@@ -1,0 +1,11 @@
+@use 'mixins' as m;
+
+:host {
+  @include m.raised(6px, 24px, 4px);
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  position: relative;
+}
+:host > ::ng-deep * { min-width: 0; }
+:host(.center) { text-align: center; justify-items: center; }

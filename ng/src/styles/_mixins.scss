@@ -1,0 +1,50 @@
+// Миксины дизайн-системы. Подключение в компоненте: @use 'mixins' as m;
+// (путь src/styles прописан в angular.json → stylePreprocessorOptions.includePaths)
+
+/// «Пластилиновая» рамка: толстый контур + жёсткая тень (фирменный стиль игр)
+@mixin raised($shadow: 4px, $radius: 16px, $border: 3px, $bg: var(--paper)) {
+  border: $border solid var(--ink);
+  border-radius: $radius;
+  box-shadow: $shadow $shadow 0 var(--ink);
+  background: $bg;
+}
+
+/// Нажатие: элемент «вдавливается» в тень
+@mixin pressable($shift: 3px) {
+  transition: transform 0.1s;
+  &:active:not(:disabled) {
+    transform: translate($shift, $shift);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+}
+
+/// Рукописный заголовочный шрифт
+@mixin display($size, $lh: 1.1) {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: $size;
+  line-height: $lh;
+}
+
+/// Тряска при ошибке (keyframes — в _animations.scss)
+@mixin shake {
+  animation: app-shake 0.4s;
+}
+
+/// Сброс ссылки/кнопки до «голого» блока
+@mixin bare-interactive {
+  color: var(--ink);
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/// Состояния ответа
+@mixin state-right {
+  background: #d8f3e2;
+  border-color: var(--good);
+}
+@mixin state-bad {
+  background: #ffe1d8;
+  border-color: var(--trap);
+}

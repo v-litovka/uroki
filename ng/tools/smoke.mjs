@@ -22,7 +22,8 @@ page.on('pageerror', (e) => errs.push(page.url() + ': ' + e.message));
 let fail = 0;
 for (const grade of [3, 4]) {
   await page.goto(`http://localhost:4317/#/${grade}`);
-  const links = await page.$$eval('a.g', (a) => a.map((x) => x.getAttribute('href')));
+  await page.waitForSelector('a[app-game-tile]');
+  const links = await page.$$eval('a[app-game-tile]', (a) => a.map((x) => x.getAttribute('href')));
   console.log(`${grade} класс: ${links.length} игр`);
   if (!links.length) fail++;
   for (const href of links) {

@@ -1,0 +1,14 @@
+@if (topicObj(); as t) {
+  <app-page-hero [title]="t.title" size="md" />
+  <app-rule-box [html]="t.ruleHtml" [color]="t.color" />
+
+  <div class="modes">
+    @for (m of modes(); track m.id; let i = $index) {
+      <a app-mode-item [routerLink]="[m.id]" [icon]="m.icon" [title]="i + 1 + '. ' + m.title" [desc]="m.desc" [done]="isDone(m.id)"></a>
+    }
+  </div>
+
+  @if (hiddenVoice()) {
+    <p class="note">Диктант появится, если на устройстве есть русский голос.</p>
+  }
+}

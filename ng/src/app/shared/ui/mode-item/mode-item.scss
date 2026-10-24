@@ -1,0 +1,17 @@
+@use 'mixins' as m;
+
+:host {
+  @include m.raised(3px, 16px);
+  @include m.pressable;
+  @include m.bare-interactive;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 14px;
+}
+:host(.done) { background: #e3f6ea; }
+.icon { font-size: 30px; flex: none; }
+.text b { @include m.display(22px); display: block; }
+.text span { font-size: 14px; color: var(--muted); }
+.check { margin-left: auto; color: var(--good); font-weight: 900; font-size: 24px; }

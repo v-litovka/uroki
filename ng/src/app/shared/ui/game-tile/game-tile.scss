@@ -1,0 +1,22 @@
+@use 'mixins' as m;
+
+:host {
+  @include m.raised(6px, 24px, 4px);
+  @include m.pressable(4px);
+  @include m.bare-interactive;
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+}
+.tag {
+  justify-self: start;
+  padding: 3px 12px;
+  border-radius: 9px;
+  border: 2px solid var(--ink);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  background: var(--c);
+}
+b { @include m.display(36px, 1.05); }
+.desc { color: var(--muted); font-size: 16px; }

@@ -1,0 +1,4 @@
+:host { display: block; }
+.box { border: 3px dashed var(--accent); border-radius: 16px; background: #f6f1ff; padding: 10px 14px; }
+.box ::ng-deep p { margin: 4px 0; }
+.box ::ng-deep b { color: var(--accent); }

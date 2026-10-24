@@ -1,0 +1,6 @@
+<div class="aside"><ng-content select="[aside]" /></div>
+<h1>{{ title() }}</h1>
+@if (text()) {
+  <p>{{ text() }}</p>
+}
+<ng-content />

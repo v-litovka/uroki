@@ -1,0 +1,12 @@
+@use 'mixins' as m;
+
+nav { display: flex; gap: 10px; flex-wrap: wrap; }
+a {
+  @include m.raised(3px, 14px);
+  @include m.pressable(2px);
+  @include m.bare-interactive;
+  font-weight: 900;
+  font-size: 18px;
+  padding: 8px 16px;
+}
+.on { background: var(--sun); }

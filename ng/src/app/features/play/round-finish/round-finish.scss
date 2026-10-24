@@ -1,0 +1,5 @@
+@use 'mixins' as m;
+
+h2 { @include m.display(34px); margin: 0; }
+.stat { font-size: 20px; margin: 0; }
+.acts { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }

@@ -1,0 +1,15 @@
+// Глобально — только сброс и фон. Всё остальное — в компонентах.
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: linear-gradient(180deg, var(--sky2) 0%, var(--sky) 85%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.45;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid var(--ink); outline-offset: 3px; }

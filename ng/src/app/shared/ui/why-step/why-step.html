@@ -1,0 +1,3 @@
+<b class="title">Почему?</b>
+<app-option-grid [options]="options()" [answer]="ok()" layout="list" [doShuffle]="false" (picked)="onPick($event)" />
+<p class="msg" aria-live="polite">{{ msg() }}</p>

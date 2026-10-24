@@ -1,5 +1,6 @@
 import { Component, ElementRef, afterRenderEffect, input, linkedSignal, output, signal, viewChild } from '@angular/core';
 import { matches } from '../../utils/text';
+import { Button } from '../button/button';
 
 export interface Typed {
   value: string;
@@ -9,23 +10,9 @@ export interface Typed {
 /** Поле ввода + «Проверить». Сравнение без регистра, ё = е. */
 @Component({
   selector: 'app-answer-input',
-  template: `
-    <form class="inrow" (submit)="check($event)">
-      <input
-        #inp
-        class="inp"
-        [class.right]="done()"
-        [class.bad]="shake()"
-        [disabled]="done()"
-        [placeholder]="placeholder()"
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        aria-label="ответ"
-      />
-      <button class="btn" [disabled]="done()">Проверить</button>
-    </form>
-  `,
+  imports: [Button],
+  templateUrl: './answer-input.html',
+  styleUrl: './answer-input.scss',
 })
 export class AnswerInput {
   readonly answer = input.required<string | string[]>();
@@ -37,7 +24,7 @@ export class AnswerInput {
   private inp = viewChild.required<ElementRef<HTMLInputElement>>('inp');
 
   constructor() {
-    // после отрисовки: очистить поле и поставить фокус, когда пришёл новый ответ (новый шаг)
+    // после отрисовки: очистить поле и поставить фокус, когда пришёл новый ответ
     afterRenderEffect(() => {
       this.answer();
       const el = this.inp().nativeElement;
@@ -52,7 +39,7 @@ export class AnswerInput {
     });
   }
 
-  check(e: Event) {
+  protected check(e: Event) {
     e.preventDefault();
     const el = this.inp().nativeElement;
     const v = el.value;

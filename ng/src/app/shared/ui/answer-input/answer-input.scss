@@ -1,0 +1,18 @@
+@use 'mixins' as m;
+
+.row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.inp {
+  @include m.display(32px, 1);
+  flex: 1 1 160px;
+  min-width: 0;
+  width: 100%;
+  max-width: 360px;
+  height: 60px;
+  padding: 0 14px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+}
+.right { border-color: var(--good); background: #e3f6ea; }
+.bad { border-color: var(--trap); @include m.shake; }

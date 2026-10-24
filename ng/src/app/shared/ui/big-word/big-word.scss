@@ -1,0 +1,3 @@
+@use 'mixins' as m;
+
+:host { @include m.display(clamp(40px, 11vw, 56px), 1.15); display: block; text-align: center; letter-spacing: 0.02em; }

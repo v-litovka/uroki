@@ -1,0 +1,37 @@
+<app-card>
+  <app-prompt-view [prompt]="scene()" />
+
+  @if (step(); as st) {
+    @switch (st.kind) {
+      @case ('choice') {
+        <app-option-grid
+          [options]="st.options"
+          [answer]="st.answer"
+          [layout]="st.layout ?? 'grid'"
+          [doShuffle]="st.shuffle !== false"
+          [lockSec]="st.lockSec ?? 0"
+          (picked)="onPick($event)"
+        />
+      }
+      @case ('input') {
+        <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" (typed)="onType($event)" />
+      }
+      @case ('why') {
+        @if (praise(); as text) {
+          <app-feedback [ok]="true" [text]="text" [mascot]="mascot()" />
+        }
+        <app-why-step-view [ok]="st.ok" [wrong]="st.wrong" (answered)="onWhy($event)" />
+      }
+      @case ('memorize') {
+        <button app-btn data-test="memorize" (click)="memorized()">{{ st.button }}</button>
+      }
+    }
+  }
+
+  @if (fb(); as f) {
+    <app-feedback [ok]="f.ok" [text]="f.text" [mascot]="mascot()" />
+  }
+  @if (diff(); as d) {
+    <app-letter-diff [letters]="d" />
+  }
+</app-card>

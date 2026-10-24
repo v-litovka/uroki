@@ -1,0 +1,16 @@
+@use 'mixins' as m;
+
+:host {
+  @include m.raised(4px, 16px, 3px, var(--sun));
+  @include m.pressable;
+  @include m.display(24px, 1);
+  @include m.bare-interactive;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 0 24px;
+}
+:host(.ghost) { background: var(--paper); }
+:host(.lg) { font-size: 28px; min-height: 64px; }
+:host(:disabled) { opacity: 0.6; cursor: default; }
