@@ -4,3 +4,4 @@
 h2 { @include m.display(26px); margin: 0 0 6px; }
 .note { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
 .body { @include m.raised(4px, 20px, 3px); padding: 14px; display: grid; gap: 12px; }
+.body > * { min-width: 0; }

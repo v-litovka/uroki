@@ -27,7 +27,7 @@ const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 
 async function playRound(label) {
-  for (let k = 0; k < 200; k++) {
+  for (let k = 0; k < 800; k++) {
     if (await page.$('app-round-finish')) return;
     const st = await page.evaluate(() => window.__STEP__);
     if (!st) { await page.waitForTimeout(200); continue; }
@@ -55,6 +55,17 @@ async function playRound(label) {
       await page.locator('[data-test=confirm]').click({ timeout: 20000 });
     } else if (st.kind === 'lesson') {
       await page.locator('[data-test=confirm]').click({ timeout: 20000 });
+    } else if (st.kind === 'nums') {
+      const vals = st.testv ?? st.fields.map((f) => f.ok);
+      const inps = page.locator('app-nums-input input:not([disabled])');
+      if ((await inps.count()) < vals.length) { await page.waitForTimeout(150); continue; }
+      for (let i = 0; i < vals.length; i++) await inps.nth(i).fill(String(vals[i]));
+      await page.locator('[data-test=nums-check]').click();
+    } else if (st.kind === 'multi') {
+      for (const i of st.correct) await page.locator(`app-multi-pick button.chip[data-i="${i}"]`).click();
+      await page.locator('[data-test=multi-check]').click();
+    } else if (st.kind === 'ops') {
+      for (const i of st.order) await page.locator(`app-op-tap button.opb[data-i="${i}"]`).click();
     } else if (st.kind === 'order') {
       for (const t of st.items) {
         // нажать первую свободную видимую плитку с этим текстом (одинаковые буквы: hall, bathroom)
@@ -68,7 +79,7 @@ async function playRound(label) {
     await page.waitForFunction((prev) => window.__STEP__ !== prev || document.querySelector('app-round-finish'), st, { timeout: 5000 }).catch(() => {});
   }
   await page.screenshot({ path: 'tools/shots/stuck.png' }); console.log(JSON.stringify(await page.evaluate(() => window.__STEP__)), await page.innerText('app-card').catch(()=>''));
-  throw new Error('раунд не закончился: ' + label);
+  console.log('JS errors:', errs.slice(-5)); throw new Error('раунд не закончился: ' + label);
 }
 
 let rounds = 0;

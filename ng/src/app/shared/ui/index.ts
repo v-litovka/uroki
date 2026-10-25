@@ -36,3 +36,6 @@ export * from './section/section';
 export * from './field/field';
 export * from './rich-html/rich-html';
 export * from './tap-words/tap-words';
+export * from './nums-input/nums-input';
+export * from './multi-pick/multi-pick';
+export * from './op-tap/op-tap';

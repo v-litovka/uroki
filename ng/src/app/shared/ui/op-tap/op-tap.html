@@ -1,0 +1,11 @@
+<div class="expr">
+  @for (p of view(); track $index) {
+    @if (p.t === 'txt') {
+      <span class="tx" [innerHTML]="p.html"></span>
+    } @else {
+      <button type="button" class="opb" [attr.data-i]="p.i" [class.set]="!!marks()[p.i]" [class.bad]="shake() === p.i" (click)="tap(p.i)">
+        <span class="ci">{{ marks()[p.i] || '' }}</span><span class="o">{{ p.o }}</span>
+      </button>
+    }
+  }
+</div>

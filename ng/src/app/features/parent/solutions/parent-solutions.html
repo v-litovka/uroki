@@ -1,0 +1,14 @@
+<app-section title="Решения" note="Только для взрослых. Ребёнок в игре ответов не видит — здесь запись «как в тетради».">
+  <label class="pick">
+    <span>Страница</span>
+    <select [ngModel]="topicId()" (ngModelChange)="topicId.set($event)" data-test="sol-page">
+      <option value="">— выберите —</option>
+      @for (t of topics(); track t.id) {
+        <option [value]="t.id">{{ t.title }}</option>
+      }
+    </select>
+  </label>
+  @if (current(); as c) {
+    <app-rich-html [html]="c.html" />
+  }
+</app-section>

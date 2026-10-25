@@ -1,0 +1,11 @@
+@use 'mixins' as m;
+
+.expr { display: flex; flex-wrap: nowrap; overflow-x: auto; font-size: clamp(22px, 7vw, 30px) !important; justify-content: center; align-items: flex-end; gap: 0.18em; font-weight: 900; padding-top: 10px; font-variant-numeric: tabular-nums; }
+.tx { line-height: 1.2; white-space: nowrap; }
+.tx ::ng-deep .var { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; color: #2b3a9e; }
+.opb { display: inline-flex; flex-direction: column; align-items: center; border: 0; background: none; padding: 2px 0.2em; font: inherit; line-height: 1; border-radius: 10px; }
+.opb:hover { background: #fff4d6; }
+.ci { width: 1.15em; height: 1.15em; border-radius: 50%; border: 2px solid #e85da0; font-size: 0.6em; display: grid; place-items: center; color: #c2185b; font-weight: 900; margin-bottom: 0.15em; }
+.set .ci { background: #ffe3ef; }
+.o { line-height: 1.2; }
+.bad { @include m.shake; }

@@ -1,0 +1,7 @@
+@use 'mixins' as m;
+
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.pre { font-size: 24px; font-weight: 900; }
+.fl { display: inline-flex; align-items: center; gap: 6px; font-weight: 900; font-size: 22px; }
+.inp { width: 96px; height: 56px; border: 3px solid var(--ink); border-radius: 14px; font: inherit; font-weight: 900; font-size: 26px; text-align: center; background: #fff; }
+.inp.right { border-color: var(--good); background: #e3f6ea; }

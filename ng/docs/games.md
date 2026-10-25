@@ -33,15 +33,15 @@
 Уровни сложности на улицу (боксы `setBox`). Отдельная страница `zadachi/shpargalka.html` — шпаргалка по всем схемам.
 Схемы — строго как в учебнике/у учителя.
 
-### Домашка — `domashka/` · ключ `domashka3` · исходники `legacy-src/domashka/`
-Пошаговый репетитор по ДЗ: выбрать **Тетрадь** или **Учебник** → страница → номер → решать по шагам.
-Сейчас: печатная тетрадь, стр. 28–57. Движок шагов (`engine.js`): `pick` (выбор, `alt`), `num`, `nums` (`check`, `testv`),
-`multi` (`raw`, `msgs`), `order`, `note`. Конструкторы заданий (`builders.js`, `lib38.js`): `taskItem` (calc до 5 элементов + `chint`),
-`recTask`, `kTask`/`kRowsTask` (К1·К=ОК), `eqItem`, `mulItem`, `divItem`, `div2Item`, `remItem`, `sampleItem`, `cmpU`, `cmpItem`,
-`clockItem`, `fracItem`, `fracCmp`, `areaRect`, `perSteps`, `anglePick`/`angleSVG`, `multiItem`, `partsTask`, `chkItem`.
-Порядок действий (`orderOf`) и подсказки к счёту (`calcHints`) — как в школе. Шаг «почему?» после верного ответа (`whys.js`).
-Родительский просмотр — пароль 2924. **Правила — в CLAUDE.md (никогда не показывать ответ и т. д.).**
-Новые страницы добавляются по фото: `pages28.js … pages48.js`.
+### Домашка — **Angular-пак** `content/grade-3/math/domashka/` · `#/3/math/domashka` · старая версия `legacy/domashka/` (ключ `domashka3`: отметки «решено» переносятся)
+Пошаговый репетитор по ДЗ: страница тетради = тема, упражнение = режим (кнопка «№ 3. …»). Сейчас: печатная тетрадь, стр. 28–57 (30 страниц, 150 упражнений).
+- `legacy.ts` — вся логика и данные из старой игры почти без правок (под `@ts-nocheck`): движок выражений (`tokens`, `orderOf`, `exprHTML`, `calcHints`, `drawTree`),
+  конструкторы (`taskItem`, `recTask`, `kTask`/`kRowsTask`, `valueItem`, `signItem`, `eqItem`, `mulItem`, `divItem`, … — см. builders/lib38 в файле), страницы `PAGES.wb[номер]`, «почему?» (`W(...)`).
+- `modes.ts` — шаги старой игры → шаги движка: `pick` → choice (варианты-HTML), `num` → input (+ `feedback` «похоже, получилось сложение…»), `nums` → nums, `multi` → multi, `order` → ops (нажимай на знаки), `note` → note, `why` → why/note.
+  Доска (`board`) обновляется только ПОСЛЕ верного ответа (`step.after`). «Не знаю, подскажи» — `Exercise.askHint`. В конце — запись для тетради (`copyHTML`, серым — карандашом).
+- Решения для взрослого — кабинет взрослого → «Решения» (`Topic.solutionHtml`, PIN).
+- **Новая страница по фото**: добавить `PAGES.wb[N] = {lesson, rule, ex:[{n, title, text, rule, items:[…]}]}` в `legacy.ts` (по образцу соседних страниц, конструкторами), «почему?» — `W(N, n, item, step, 'верно', ['неверно'])`. `npm test` проверит, что всё строится.
+- **Правила — в CLAUDE.md** (никогда не показывать ответ и т. д.).
 
 ### English с Вирой и Венди — **Angular-пак** `content/grade-3/en/english/` · `#/3/en/english` · старая версия `legacy/english/` (ключ `english3`, звёзды переносятся)
 Magic Box 3. Темы (`TOPICS`): местоимения he/she/they и замена «my father» → he (главная проблема), слова по юнитам (`UNITS`),
@@ -79,13 +79,13 @@ Magic Box 3. Темы (`TOPICS`): местоимения he/she/they и заме
 
 ## 4 класс (без кошек, нейтральный род; Roblox, собака Луна)
 
-### Город Задач 4 — `4klass/zadachi/` · ключ `gorod-zadach4-v1`
+### Город Задач 4 — **Angular-пак** `content/grade-4/math/zadachi4/` · `#/4/math/zadachi4` · старая версия `legacy/4klass/zadachi/` (ключ `gorod-zadach4-v1`)
 Скорость·время·расстояние (`drawMotion`), Навстречу друг другу, В противоположных направлениях, Цена и работа (тройки величин `TRI`),
 Сначала на одного, Доли, Уравнения (`EQS`), Единицы величин (`CONV`). Плюс площадь (`AREA`) и время (`TIME`).
 
-### Город Слов 4 — `4klass/slova/` · ключ `gorod-slov4-v1`
+### Город Слов 4 — **Angular-пак** `content/grade-4/ru/slova4/` · `#/4/ru/slova4` · старая версия `legacy/4klass/slova/` (ключ `gorod-slov4-v1`)
 Падежи, Похожие падежи, Три склонения, Окончания: е или и?, Нет чего? (мн. ч.), Род и число прилагательных, Окончания прилагательных.
 Словарный диктант с уровнями (`DICT4`, `LV`).
 
-### Горад Слоў 4 — `4klass/slovy/` · ключ `horad-slou4-v1`
+### Горад Слоў 4 — **Angular-пак** `content/grade-4/by/slovy4/` · `#/4/by/slovy4` · старая версия `legacy/4klass/slovy/` (ключ `horad-slou4-v1`)
 Аднародныя члены, Склоны, Тры скланенні, 1-е скл.: Д. і М., Творны склон, 2-е скл.: родны / месны склон, 3-е скланенне, Множны лік.

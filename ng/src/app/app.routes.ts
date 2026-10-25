@@ -33,6 +33,7 @@ export const routes: Routes = [
           { path: 'words', loadComponent: () => import('./features/parent/words/parent-words').then((m) => m.ParentWords) },
           { path: 'pets', loadComponent: () => import('./features/parent/pets/parent-pets').then((m) => m.ParentPets) },
           { path: 'children', loadComponent: () => import('./features/parent/children/parent-children').then((m) => m.ParentChildren) },
+          { path: 'solutions', loadComponent: () => import('./features/parent/solutions/parent-solutions').then((m) => m.ParentSolutions) },
         ],
       },
       { path: ':grade', loadComponent: () => import('./features/hub/hub').then((m) => m.Hub) },

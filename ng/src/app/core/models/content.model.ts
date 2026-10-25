@@ -104,6 +104,10 @@ export interface InputStep extends StepBase {
   typo?: boolean;
   /** ответ засчитан, но он не первый в answer → показать подсказку «лучше подойдёт …» */
   bestNote?: string;
+  /** любое число — верно («придумай число») */
+  any?: boolean;
+  /** что сказать на конкретный неверный ответ: { '30': 'Похоже, получилось сложение…' } */
+  feedback?: Record<string, string>;
 }
 
 export interface WhyStep extends StepBase {
@@ -166,7 +170,34 @@ export interface NoteStep extends StepBase {
   lockSec?: number;
 }
 
-export type Step = ChoiceStep | InputStep | WhyStep | MemorizeStep | OrderStep | TapStep | NoteStep;
+/** Несколько чисел сразу (Домашка): «__ см + __ см + __ см». check — своя проверка (придумай числа), testv — пример верных для тестов. */
+export interface NumsStep extends StepBase {
+  kind: 'nums';
+  fields: { u: string; ok: number }[];
+  /** подпись перед окошками */
+  pre?: string;
+  check?: (v: number[]) => boolean;
+  testv?: number[];
+}
+
+/** Выбрать несколько (Домашка: «подчеркни выражения с переменной»). options — доверенный HTML, correct — номера верных. */
+export interface MultiStep extends StepBase {
+  kind: 'multi';
+  options: string[];
+  correct: number[];
+  msgs?: { extra?: string; none?: string; miss?: string };
+}
+
+/** Кусок выражения для шага «порядок действий»: текст (доверенный HTML) или знак действия с номером i. */
+export type OpPart = { t: 'txt'; html: string } | { t: 'op'; i: number; o: string };
+/** Порядок действий: нажимать на знаки по очереди (order — номера знаков в верном порядке). */
+export interface OpsStep extends StepBase {
+  kind: 'ops';
+  parts: OpPart[];
+  order: number[];
+}
+
+export type Step = ChoiceStep | InputStep | WhyStep | MemorizeStep | OrderStep | TapStep | NoteStep | NumsStep | MultiStep | OpsStep;
 
 /** Урок после ошибки: правило + примеры; после чтения — то же задание заново. */
 export interface Lesson {
@@ -193,6 +224,8 @@ export interface Exercise {
   lesson?: Lesson;
   /** после какой по счёту ошибки на шаге показывать урок (по умолчанию 1; до этого — подсказки шага) */
   lessonAfter?: number;
+  /** кнопка «Не знаю, подскажи» под шагом: показывает подсказки шага по очереди (Домашка) */
+  askHint?: boolean;
   prompt: Prompt;
   steps: Step[];
 }
@@ -237,6 +270,8 @@ export interface Topic<T = unknown> {
   modes: Mode<T>[];
   /** заданий в раунде (по умолчанию 10) */
   roundSize?: number;
+  /** решения для взрослого (Домашка) — показываются только в кабинете взрослого за PIN */
+  solutionHtml?: string;
 }
 
 /**

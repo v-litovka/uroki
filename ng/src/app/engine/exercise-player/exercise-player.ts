@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, input, linkedSignal, output } from '@angular/core';
 import { Exercise, Lesson, Pet, Prompt, Step } from '../../core/models';
-import { AnswerInput, Card, ConfirmButton, Feedback, Hint, LetterDiff, OptionGrid, OrderTiles, Picked, RichHtml, TapWords, Typed, WhyStepView } from '../../shared/ui';
+import { AnswerInput, Card, ConfirmButton, Feedback, Hint, LetterDiff, MultiPick, NumsInput, OpTap, OptionGrid, OrderTiles, Picked, RichHtml, TapWords, Typed, WhyStepView } from '../../shared/ui';
 import { PromptView } from '../prompt-view/prompt-view';
 import { SfxService } from '../../core/audio/sfx.service';
 import { diffLetters, lev, matches, norm } from '../../shared/utils/text';
@@ -21,7 +21,7 @@ export interface ExerciseResult {
  */
 @Component({
   selector: 'app-exercise-player',
-  imports: [Card, PromptView, OptionGrid, AnswerInput, WhyStepView, Feedback, LetterDiff, ConfirmButton, OrderTiles, Hint, RichHtml, TapWords],
+  imports: [Card, PromptView, OptionGrid, AnswerInput, WhyStepView, Feedback, LetterDiff, ConfirmButton, OrderTiles, Hint, RichHtml, TapWords, NumsInput, MultiPick, OpTap],
   styleUrl: './exercise-player.scss',
   templateUrl: './exercise-player.html',
 })
@@ -50,6 +50,15 @@ export class ExercisePlayer {
   protected readonly fb = linkedSignal<Exercise, { ok: boolean; text: string; pet: Pet | null } | null>({ source: this.exercise, computation: () => null });
   protected readonly diff = linkedSignal<Exercise, { ch: string; bad: boolean }[] | null>({ source: this.exercise, computation: () => null });
   protected readonly praise = linkedSignal<Exercise, { text: string; pet: Pet | null } | null>({ source: this.exercise, computation: () => null });
+  /** «Не знаю, подскажи»: сколько подсказок открыто на текущем шаге */
+  protected readonly asked = linkedSignal({ source: () => [this.exercise(), this.stepIdx()], computation: () => 0 });
+  protected readonly askedHint = computed(() => {
+    const st = this.step();
+    const n = this.asked();
+    const h = st?.hints ?? [];
+    return n && h.length ? h[Math.min(n - 1, h.length - 1)] : null;
+  });
+  protected readonly canAsk = computed(() => !!this.exercise().askHint && !!this.step()?.hints?.length && this.step()?.kind !== 'note');
 
   /** шаги упражнения; урок с «реши сама» вставляет свои шаги вместо ошибочного */
   private readonly steps = linkedSignal<Exercise, Step[]>({ source: this.exercise, computation: (ex) => ex.steps });
@@ -191,6 +200,47 @@ export class ExercisePlayer {
     setTimeout(() => this.stepIdx.set(start));
   }
 
+  protected askHint() {
+    this.asked.update((n) => n + 1);
+  }
+
+  /** несколько чисел: своя проверка или все поля совпали */
+  protected onNums(v: number[] | null) {
+    const st = this.step();
+    if (st?.kind !== 'nums') return;
+    if (!v) return this.wrong(st, 'Заполни все окошки.');
+    const ok = st.check ? st.check(v) : st.fields.every((f, i) => f.ok === v[i]);
+    if (ok) this.right(st);
+    else this.wrong(st);
+  }
+
+  /** выбор нескольких: не хватает / лишнее / ничего */
+  protected onMulti(sel: number[]) {
+    const st = this.step();
+    if (st?.kind !== 'multi') return;
+    const miss = st.correct.filter((i) => !sel.includes(i)).length;
+    const extra = sel.filter((i) => !st.correct.includes(i)).length;
+    if (!miss && !extra) return this.right(st);
+    const M = st.msgs ?? {};
+    const msg = extra ? (M.extra ?? 'Отмечено лишнее. Проверь каждый вариант ещё раз.') : !sel.length ? (M.none ?? 'Ничего не отмечено.') : (M.miss ?? 'Отмечены не все. Проверь каждый вариант ещё раз.');
+    this.wrong(st, this.withHint(st, msg));
+  }
+
+  protected onOpsWrong(pos: number) {
+    const st = this.step()!;
+    this.wrong(st, this.withHint(st, pos === 0 ? 'Это действие не первое.' : 'Это действие пока рано делать.'));
+  }
+  protected onOpsDone() {
+    this.right(this.step()!);
+  }
+
+  /** сообщение + подсказка шага (как в Домашке: «Не так» + почему + наводящий вопрос) */
+  private withHint(st: Step, msg: string) {
+    const h = st.hints ?? [];
+    const next = h.length ? h[Math.min(this.run().wrong, h.length - 1)] : '';
+    return next ? `${msg} ${next}` : msg;
+  }
+
   protected onTap(correct: boolean) {
     const st = this.step()!;
     if (correct) this.right(st);
@@ -237,6 +287,10 @@ export class ExercisePlayer {
         }
       }
     } else if (t.correct) return this.right(st);
+    if (st.kind === 'input' && st.feedback?.[norm(t.value)]) {
+      this.wrong(st, this.withHint(st, st.feedback[norm(t.value)]));
+      return;
+    }
     this.wrong(st);
     if (st.kind === 'input') {
       const ans = Array.isArray(st.answer) ? st.answer[0] : st.answer;

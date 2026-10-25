@@ -49,3 +49,9 @@ export const STRINGS = {
 } satisfies Record<Lang, Record<string, string>>;
 
 export type StringKey = keyof (typeof STRINGS)['ru'];
+
+/** замены для текстов без рода (4 класс) */
+export const NEUTRAL: Record<Lang, Partial<Record<StringKey, string>>> = {
+  ru: { solveSelf: 'Теперь решаю!' },
+  by: { solveSelf: 'Цяпер вырашаю!' },
+};

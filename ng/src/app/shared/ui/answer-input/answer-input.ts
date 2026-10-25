@@ -22,6 +22,8 @@ export class AnswerInput {
   readonly numeric = input(false);
   /** номер шага: новый шаг — чистое поле, даже если ответ тот же (56 и 56) */
   readonly resetKey = input<unknown>(null);
+  /** любое непустое число — верно («придумай число») */
+  readonly any = input(false);
   readonly typed = output<Typed>();
   protected readonly i18n = inject(LangService);
   /** сброс при новом ответе (новый шаг) */
@@ -51,7 +53,7 @@ export class AnswerInput {
     const el = this.inp().nativeElement;
     const v = el.value;
     if (!v.trim()) return;
-    const correct = matches(v, this.answer());
+    const correct = this.any() ? /^\s*\d+\s*$/.test(v) : matches(v, this.answer());
     if (correct) this.done.set(true);
     else {
       this.shake.set(true);

@@ -31,7 +31,7 @@
         />
       }
       @case ('input') {
-        <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" [numeric]="!!st.numeric" [resetKey]="stepIdx()" (typed)="onType($event)" />
+        <app-answer-input [answer]="st.answer" [placeholder]="st.placeholder ?? ''" [numeric]="!!st.numeric" [resetKey]="stepIdx()" [any]="!!st.any" (typed)="onType($event)" />
       }
       @case ('why') {
         @if (praise(); as pr) {
@@ -56,6 +56,15 @@
         <app-rich-html [html]="st.html" />
         <app-confirm-button [label]="st.button ?? i18n.t('next')" [lockSec]="st.lockSec ?? 0" (confirmed)="memorized()" />
       }
+      @case ('nums') {
+        <app-nums-input [fields]="st.fields" [pre]="st.pre ?? ''" [solved]="false" (submitted)="onNums($event)" />
+      }
+      @case ('multi') {
+        <app-multi-pick [options]="st.options" (submitted)="onMulti($event)" />
+      }
+      @case ('ops') {
+        <app-op-tap [parts]="st.parts" [order]="st.order" (wrong)="onOpsWrong($event.pos)" (done)="onOpsDone()" />
+      }
       @case ('order') {
         @if (st.note) {
           <app-hint>{{ st.note }}</app-hint>
@@ -65,6 +74,12 @@
     }
   }
 
+  @if (canAsk()) {
+    @if (askedHint(); as h) {
+      <app-hint>💡 {{ h }}</app-hint>
+    }
+    <button type="button" class="ask" data-test="ask-hint" (click)="askHint()">Не знаю, подскажи</button>
+  }
   @if (fb(); as f) {
     <app-feedback [ok]="f.ok" [text]="f.text" [pet]="f.pet" />
   }

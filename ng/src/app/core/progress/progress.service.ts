@@ -50,7 +50,9 @@ export class ProgressService {
     if (!initial) {
       const old = legacyKey && childId === 'me' ? this.kv.get<Partial<PackProgress> | null>(legacyKey, null) : null;
       const box = Object.fromEntries(Object.entries(old?.box ?? {}).filter(([, v]) => typeof v === 'number'));
-      initial = { stars: old?.stars ?? 0, done: { ...(old?.done ?? {}) }, box };
+      // «решено» из старой Домашки: 'wb30-1' → тема p30, режим e1
+      const done = Object.fromEntries(Object.entries(old?.done ?? {}).map(([key, v]) => [key.replace(/^wb(\d+)-(\d+)$/, 'p$1:e$2'), v])) as Record<string, 1>;
+      initial = { stars: old?.stars ?? 0, done, box };
       this.kv.set(k, initial);
     }
     const state = signal<PackProgress>(initial);

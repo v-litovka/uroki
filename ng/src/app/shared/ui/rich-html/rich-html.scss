@@ -1,10 +1,11 @@
 @use 'mixins' as m;
+@use 'domashka';
 
 :host { display: block; }
 .rich { display: grid; gap: 10px; }
 .rich ::ng-deep {
   .word { @include m.display(clamp(40px, 11vw, 62px), 1.1); text-align: center; letter-spacing: 0.02em; overflow-wrap: anywhere; }
-  .word .ok, .ex .ok { color: var(--good); background: #e3f6ea; border-radius: 8px; padding: 0 0.06em; }
+  .word .ok, div.ex .ok { color: var(--good); background: #e3f6ea; border-radius: 8px; padding: 0 0.06em; }
   .word .gap { display: inline-block; min-width: 0.75em; padding: 0 0.08em; border-bottom: 5px solid var(--trap); color: var(--trap); background: #fff1e8; border-radius: 8px 8px 0 0; }
   .word .pre { border: 3px solid var(--accent); border-radius: 10px; padding: 0 0.08em; }
   .seg { display: inline-block; padding: 0 0.04em; }
@@ -18,9 +19,9 @@
   .hlw, .addr { background: #ffe9a8; border-radius: 6px; padding: 0 3px; }
   .memo { text-align: center; padding: 10px; border: 3px solid var(--ink); border-radius: 18px; background: #fff1c2; }
   .exs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-  .ex { border: 2px dashed var(--muted); border-radius: 14px; padding: 10px 12px; background: #f7f4ff; font-weight: 800; font-size: 19px; display: grid; gap: 4px; min-width: 0; }
-  .ex .word { font-size: 32px; }
-  .ex .sent { font-size: 19px; }
+  div.ex { border: 2px dashed var(--muted); border-radius: 14px; padding: 10px 12px; background: #f7f4ff; font-weight: 800; font-size: 19px; display: grid; gap: 4px; min-width: 0; }
+  div.ex .word { font-size: 32px; }
+  div.ex .sent { font-size: 19px; }
   .rulebox { display: grid; gap: 4px; padding: 12px 16px; border: 3px solid var(--ink); border-radius: 18px; background: #fff1c2; }
   .rulebox > b { @include m.display(24px); }
   .rulebox p { margin: 0; }
@@ -65,7 +66,7 @@
   .seqeq .sg { color: var(--good); }
   .seqeq .sb { color: #2d6cdf; }
   .twinnote { font-weight: 800; color: var(--trap); text-align: center; }
-  .ex .slot { color: var(--good); padding: 0 0.1em; min-width: 0; }
+  div.ex .slot { color: var(--good); padding: 0 0.1em; min-width: 0; }
   .exres { margin-top: 4px; padding-top: 4px; border-top: 2px solid var(--ghost); color: var(--good); }
   .taskline { text-align: center; font-weight: 800; }
   .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: st; }
@@ -88,7 +89,7 @@
   .pt td, .pt th { border: 2px solid var(--ink); padding: 3px 10px; font-size: 16px; text-align: left; }
 
   /* ---- Город Задач: текст задачи, схемы-отрезки, таблица К1 · К = ОК ---- */
-  .task { padding: 12px 16px; border: 3px solid var(--ink); border-radius: 18px; background: #fff8dc; font-size: 20px; font-weight: 800; line-height: 1.4; }
+  .task { overflow-wrap: anywhere; min-width: 0; padding: 12px 16px; border: 3px solid var(--ink); border-radius: 18px; background: #fff8dc; font-size: 20px; font-weight: 800; line-height: 1.4; }
   .task.sm { font-size: 17px; padding: 10px 12px; }
   .mini { display: grid; place-items: center; padding: 6px; border: 2px dashed var(--ghost); border-radius: 14px; background: #fff; }
   .mini .scheme { max-height: 150px; width: auto; max-width: 100%; }
@@ -96,8 +97,8 @@
   .eq b { color: var(--good); }
   .eq .blank { width: 2em; height: 1.1em; }
   b.big { font-size: 1.3em; color: var(--accent); }
-  .ex .task.sm { background: #fffdf8; }
-  .ex .eq { font-size: 22px; }
+  div.ex .task.sm { background: #fffdf8; }
+  div.ex .eq { font-size: 22px; }
   .scheme { display: block; max-width: 100%; height: auto; margin: 0 auto; overflow: visible; }
   .scheme .sg { stroke: #2b3a9e; stroke-width: 4; stroke-linecap: round; }
   .scheme .ds { stroke-dasharray: 6 5; stroke-width: 3; }
@@ -114,4 +115,6 @@
   .kt th span { display: block; font-family: var(--display); font-size: 24px; font-weight: 400; color: #7a4fe0; }
   .kt td { font-size: 26px; font-weight: 900; height: 52px; min-width: 3.4em; }
   .kt .q { color: var(--trap); }
+
+  @include domashka.styles;
 }

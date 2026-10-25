@@ -33,7 +33,7 @@ export class ParentShell {
   protected readonly tabs = computed<TabItem[]>(() => {
     const u = this.url();
     const t = (label: string, path: string) => ({ label, link: ['/parent', ...(path ? [path] : [])], active: path ? u.startsWith('/parent/' + path) : u === '/parent' });
-    return [t('Успехи', ''), t('Задания', 'tasks'), t('Слова', 'words'), t('Питомцы', 'pets'), t('Дети и уровни', 'children')];
+    return [t('Успехи', ''), t('Задания', 'tasks'), t('Слова', 'words'), t('Питомцы', 'pets'), t('Дети и уровни', 'children'), t('Решения', 'solutions')];
   });
 
   constructor() {

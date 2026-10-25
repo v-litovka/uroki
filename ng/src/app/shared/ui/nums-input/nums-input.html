@@ -1,0 +1,14 @@
+<form class="row" (submit)="check($event)" autocomplete="off">
+  @if (pre()) {
+    <span class="pre">{{ pre() }}</span>
+  }
+  @for (f of fields(); track $index) {
+    <label class="fl">
+      <input #inp class="inp" [class.right]="solved()" [disabled]="solved()" inputmode="numeric" pattern="[0-9]*" autocomplete="off" [attr.aria-label]="f.u || 'число'" />
+      @if (f.u) {
+        <span>{{ f.u }}</span>
+      }
+    </label>
+  }
+  <button app-btn type="submit" [disabled]="solved()" data-test="nums-check">{{ i18n.t('check') }}</button>
+</form>

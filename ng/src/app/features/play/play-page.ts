@@ -46,8 +46,8 @@ export class PlayPage {
 
   protected topicObj = computed<Topic | undefined>(() => this.p.pack()?.topics.find((t) => t.id === this.topic()));
   protected modeObj = computed<Mode | undefined>(() => this.topicObj()?.modes.find((m) => m.id === this.mode()));
-  /** питомцы ребёнка, если пак «с питомцами» */
-  protected pets = computed(() => (this.p.pack()?.mascot === 'pets' ? this.family.currentPets() : []));
+  /** питомцы, которые хвалят; в 4 классе — без кошек (правило проекта) */
+  protected pets = computed(() => (this.p.pack()?.mascot === 'pets' ? this.family.currentPets().filter((x) => (this.p.pack()!.grade < 4 ? true : x.kind !== 'cat')) : []));
   private handle = computed(() => {
     const pk = this.p.pack();
     return pk ? this.progress.pack(pk.id, pk.legacyStorageKey) : null;

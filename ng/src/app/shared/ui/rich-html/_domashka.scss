@@ -1,0 +1,83 @@
+/* Домашка: задание, доска в клетку, выражения, «дерево», запись для тетради. Подключается в rich-html.scss. */
+@mixin styles {
+  .task .tt { font-size: 20px; font-weight: 800; }
+  details.rulebox { margin-top: 10px; border: 3px dashed var(--muted); border-radius: 16px; background: rgba(255, 253, 248, 0.85); padding: 8px 14px; display: block; }
+  details.rulebox summary { font-weight: 900; cursor: pointer; padding: 4px 0; }
+  details.rulebox p { margin: 8px 0; }
+  details.rulebox b { color: var(--accent); }
+  .smp { background: #fff4d6; border-radius: 10px; padding: 6px 10px; margin: 8px 0; }
+  .prog { display: flex; align-items: center; gap: 6px; font-weight: 900; font-size: 14px; color: var(--muted); }
+  .prog span { margin-right: 6px; }
+  .prog i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); background: var(--ghost); }
+  .prog i.d { background: var(--good); }
+  .prog i.c { background: var(--sun, #ffd23f); }
+  .board { background: #fff; border: 3px solid #2b3a9e; border-radius: 16px; padding: 12px 14px; background-image: linear-gradient(#e6ecfa 1px, transparent 1px), linear-gradient(90deg, #e6ecfa 1px, transparent 1px); background-size: 22px 22px; overflow-x: auto; }
+  .bl { font-size: 21px; font-weight: 800; margin: 4px 0; overflow-x: auto; }
+  .bl.act { font-size: 19px; color: #3c3870; margin-left: 4px; }
+  .bl.big { font-size: 30px; text-align: center; padding-top: 10px; }
+  .cmp { font-size: 26px; text-align: center; }
+  .q { font-family: var(--display); font-size: 26px; line-height: 1.2; }
+  .q .ex { font-family: inherit; font-weight: 900; }
+  .wh { font-family: var(--display); font-size: 24px; color: var(--good); }
+  .wh b { color: var(--ink); }
+  .ex { white-space: nowrap; display: inline-flex; align-items: flex-end; gap: 0.18em; flex-wrap: nowrap; }
+  .tk { white-space: nowrap; }
+  .var { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; color: #2b3a9e; }
+  .opb { position: relative; display: inline-flex; flex-direction: column; align-items: center; border: 0; background: none; padding: 0 0.08em; font: inherit; line-height: 1; }
+  .opb .ci { width: 1.15em; height: 1.15em; border-radius: 50%; border: 2px solid #e85da0; font-size: 0.6em; display: grid; place-items: center; color: #c2185b; font-weight: 900; margin-bottom: 0.15em; visibility: hidden; }
+  .opb .o { line-height: 1.2; }
+  .ex .tk, .ex > .o { line-height: 1.2; }
+  .ex > .o { margin: 0 0.14em; }
+  .ex .pl { margin-right: -0.14em; }
+  .ex .pr { margin-left: -0.14em; }
+  .bl .opb:not(.nc) .ci, .bl.big .opb .ci, .ci.on { visibility: visible; }
+  .sbox { display: inline-grid; place-items: center; min-width: 1.4em; height: 1.4em; border: 3px dashed var(--trap); border-radius: 10px; color: var(--trap); margin: 0 0.3em; }
+  .sbox.on { border-style: solid; border-color: var(--good); color: var(--good); }
+  .qq { color: var(--trap); }
+  .bx { display: inline-block; width: 0.85em; height: 0.95em; border: 2.5px solid var(--ink); border-radius: 4px; vertical-align: -0.1em; background: #fff; }
+  .dials { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
+  .dials figure { margin: 0; text-align: center; font-weight: 800; }
+  .tri { display: block; margin: 0 auto; max-width: 100%; }
+  .cn { color: #c2185b; margin-right: 0.2em; }
+  .win { font-family: var(--display); font-weight: 400; font-size: 32px; color: var(--good); }
+  .kick { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 900; color: var(--accent); }
+  .copy { overflow-x: auto; background: #fff; border: 3px solid #2b3a9e; border-radius: 14px; padding: 8px 14px; }
+  .copy .bl { white-space: normal; margin-bottom: 10px; }
+  .copy u { text-decoration: none; display: inline-block; border-bottom: 3px solid var(--trap); padding-bottom: 2px; }
+  .copy .no, .copy .no .var { color: #a7a3c4; }
+  .pen { color: #8a86a8; font-size: 0.85em; font-weight: 700; margin: 2px 0 0 6px; }
+  .penl { padding: 10px 14px; font-size: 20px; line-height: 1.25; font-weight: 900; background: #fff4d6; border: 3px dashed #e08a00; border-radius: 14px; }
+  .task.sol { display: grid; gap: 10px; margin-top: 14px; }
+  .task.sol .penl { display: none; }
+  .tblc { border-collapse: collapse; font-size: 19px; font-weight: 800; margin: 0 auto; background: #fff; }
+  .tblc th, .tblc td { border: 2px solid var(--ink); padding: 6px 12px; text-align: center; white-space: nowrap; }
+  .tblc th { text-align: left; font-size: 15px; color: var(--muted); }
+  .tblc .pen { margin: 2px 0 0; font-size: 15px; }
+  .ktab th, .ktab td { white-space: normal; padding: 5px 7px; border: 2px solid var(--ink); }
+  .ktab { border-collapse: collapse; background: #fff; margin: 0 auto; }
+  .ktab small { font-size: 11px; font-weight: 700; }
+  .tree { display: block; max-width: 100%; height: auto; margin: 0 auto; overflow: visible; }
+  .tree .te { stroke: #26224f; stroke-width: 2; }
+  .tree .th { fill: #26224f; }
+  .tree .tn { fill: #ffe3b3; stroke: #e08a00; stroke-width: 2.5; }
+  .tree .tn.tr { fill: #fff; stroke: #26224f; }
+  .tree .tn.tq { stroke: var(--trap); }
+  .tree .to { fill: #ffe3ef; stroke: #e85da0; stroke-width: 2; }
+  .tree .tos { font: 900 20px system-ui, sans-serif; fill: #c2185b; }
+  .tree .tos.dot { font-size: 30px; }
+  .tree .tt { font: 900 20px system-ui, sans-serif; fill: #26224f; }
+  .tree .tqq { fill: var(--trap); }
+  .figs { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  .figs .f1 { fill: #e7f1ff; stroke: #2b3a9e; stroke-width: 3; }
+  .figs .f2 { fill: #fff0d6; stroke: #e08a00; stroke-width: 3; }
+  .figs .fl { font: 900 17px system-ui, sans-serif; fill: #26224f; }
+  .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.05; font-size: 0.85em; margin: 0 2px; }
+  .fr > span:first-child { border-bottom: 2px solid currentColor; padding: 0 3px; }
+  .pics { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center; }
+  .pics figure { margin: 0; text-align: center; }
+  .pics figcaption { font-weight: 900; }
+  .ov { border: 2px solid var(--ink); border-radius: 50%; padding: 0 6px; }
+  .fcmp { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap; }
+  .fcmp .fp { display: flex; align-items: center; gap: 4px; }
+  .fcmp svg { width: 72px; height: 72px; }
+}

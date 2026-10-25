@@ -4,3 +4,4 @@
 .again { margin: 0; color: var(--trap); font-weight: 800; }
 .taskline { margin: 0; font-size: 17px; font-weight: 800; color: var(--muted); }
 .ltitle { @include m.display(28px); margin: 0; }
+.ask { justify-self: start; background: none; border: 0; text-decoration: underline; color: var(--muted); font: inherit; font-size: 15px; padding: 4px; cursor: pointer; }

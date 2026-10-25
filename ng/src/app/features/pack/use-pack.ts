@@ -25,6 +25,7 @@ export function usePack(grade: Signal<string>, subject: Signal<string>, slug: Si
       (p) => {
         if (entry()?.packId === p.id) {
           lang.lang.set(p.lang ?? 'ru');
+          lang.neutral.set(p.grade >= 4);
           pack.set(p);
         }
       },

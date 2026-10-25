@@ -1,0 +1,6 @@
+<div class="chips">
+  @for (h of html(); track $index) {
+    <button type="button" class="chip" [attr.data-i]="$index" [attr.aria-pressed]="on().has($index)" [disabled]="solved()" (click)="toggle($index)" [innerHTML]="h"></button>
+  }
+</div>
+<button app-btn type="button" [disabled]="solved()" data-test="multi-check" (click)="check()">{{ i18n.t('check') }}</button>

@@ -26,7 +26,7 @@ export class PackPage {
   private speech = inject(SpeechService);
   private family = inject(FamilyService);
   protected readonly i18n = inject(LangService);
-  protected pets = computed(() => (this.p.pack()?.mascot === 'pets' ? this.family.currentPets() : []));
+  protected pets = computed(() => (this.p.pack()?.mascot === 'pets' ? this.family.currentPets().filter((x) => (this.p.pack()!.grade < 4 ? true : x.kind !== 'cat')) : []));
   protected legacy = computed(() => (this.p.pack() ? LEGACY_FALLBACK[this.p.pack()!.id] : null));
 
   constructor() {
