@@ -1,5 +1,7 @@
 # Игры (Angular)
 
+> ⚠️ Проект переехал: **https://github.com/v-litovka/gripping-class** → https://v-litovka.github.io/gripping-class/. Здесь — замороженная копия.
+
 Учебные игры для 3 и 4 класса: таблица умножения, задачи, домашка, русский, белорусский, английский.
 
 - Новый адрес: https://v-litovka.github.io/uroki/app/
